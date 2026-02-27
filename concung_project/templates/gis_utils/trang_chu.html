@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Con Cưng - Trang chủ{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<section class="py-5" style="background: linear-gradient(135deg, #FF379b 0%, #FF889b 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-white">
+                <h1 class="display-5 fw-bold mb-3">🐾 Chào mừng đến Con Cưng</h1>
+                <p class="lead mb-4">Chuỗi cửa hàng thú cưng uy tín hàng đầu Việt Nam. Sản phẩm chất lượng, dịch vụ tận tâm.</p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'danh_sach_san_pham' %}" class="btn btn-light btn-lg fw-bold px-4">
+                        <i class="bi bi-grid"></i> Xem sản phẩm
+                    </a>
+                    <a href="#ban-do-section" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-geo-alt"></i> Tìm cửa hàng
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center d-none d-lg-block">
+                <div style="font-size: 8rem;">👼🥛🍼</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sản phẩm nổi bật -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Sản phẩm nổi bật</h2>
+            <a href="{% url 'danh_sach_san_pham' %}" class="btn btn-outline-secondary">Xem tất cả →</a>
+        </div>
+        <div class="row g-4">
+            {% for sp in san_phams_noi_bat %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100">
+                    {% if sp.hinh_anh %}
+                        <img src="{{ sp.hinh_anh.url }}" class="card-img-top" alt="{{ sp.ten }}"
+                             style="height: 180px; object-fit: cover; border-radius: 12px 12px 0 0;">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded-top"
+                             style="height: 180px; font-size: 3rem;">🛍️</div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title fw-semibold">{{ sp.ten }}</h6>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div>
+                                {% if sp.co_khuyen_mai %}
+                                    <span class="text-danger fw-bold">{{ sp.gia_khuyen_mai|floatformat:0 }}đ</span>
+                                    <small class="text-muted text-decoration-line-through ms-1">{{ sp.gia_ban|floatformat:0 }}đ</small>
+                                {% else %}
+                                    <span class="fw-bold text-danger">{{ sp.gia_ban|floatformat:0 }}đ</span>
+                                {% endif %}
+                            </div>
+                            <form method="post" action="{% url 'them_vao_gio' sp.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="so_luong" value="1">
+                                <button type="submit" class="btn btn-chinh btn-sm">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <a href="{% url 'chi_tiet_san_pham' sp.pk %}" class="stretched-link"></a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-box-seam display-4"></i>
+                <p class="mt-2">Chưa có sản phẩm nào</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Bản đồ GIS -->
+<section id="ban-do-section" class="py-5 bg-white">
+    <div class="container">
+        <h2 class="fw-bold mb-2">📍 Tìm cửa hàng gần bạn</h2>
+        <p class="text-muted mb-4">Cho phép truy cập vị trí hoặc nhập địa chỉ để tìm cửa hàng Con Cưng gần nhất</p>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div id="ban-do" class="w-100"></div>
+            </div>
+            <div class="col-lg-4">
+                <!-- Nhập địa chỉ -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-search"></i> Tìm kiếm</h6>
+                        <div class="input-group mb-2">
+                            <input type="text" id="input-dia-chi" class="form-control"
+                                   placeholder="Nhập địa chỉ của bạn...">
+                            <button class="btn btn-chinh" onclick="geocodeDiaChi()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-outline-secondary w-100 btn-sm" onclick="layViTriHienTai()">
+                            <i class="bi bi-crosshair2"></i> Vị trí hiện tại của tôi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Danh sách cửa hàng gần nhất -->
+                <div id="danh-sach-cua-hang">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-shop"></i> Cửa hàng lân cận</h6>
+                    <p class="text-muted small">Nhập địa chỉ hoặc cho phép truy cập vị trí để xem cửa hàng gần bạn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dữ liệu cửa hàng từ server
+const CUA_HANG_DATA = {{ cua_hang_data_json|safe }};
+let banDo, viTriNguoiDung;
+
+// Khởi tạo bản đồ Leaflet
+document.addEventListener('DOMContentLoaded', function() {
+    // Mặc định: Tp.HCM
+    banDo = L.map('ban-do').setView([10.7769, 106.7009], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(banDo);
+
+    // Hiển thị tất cả cửa hàng
+    const iconCuaHang = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    });
+
+    CUA_HANG_DATA.forEach(function(ch) {
+        L.marker([ch.vi_do, ch.kinh_do], {icon: iconCuaHang})
+            .addTo(banDo)
+            .bindPopup(`
+                <div class="p-1">
+                    <strong>🏪 ${ch.ten}</strong><br>
+                    <small>${ch.dia_chi}</small><br>
+                    <small>📞 ${ch.so_dien_thoai}</small><br>
+                    <small>🕐 ${ch.gio_mo} - ${ch.gio_dong}</small>
+                </div>
+            `);
+    });
+
+    // Tự động xin vị trí nếu có
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                capNhatViTriNguoiDung(pos.coords.latitude, pos.coords.longitude);
+                timCuaHangGanNhat(pos.coords.latitude, pos.coords.longitude);
+            },
+            function() { console.log('Không lấy được vị trí.'); }
+        );
+    }
+});
+
+function capNhatViTriNguoiDung(lat, lng) {
+    if (viTriNguoiDung) banDo.removeLayer(viTriNguoiDung);
+    viTriNguoiDung = L.marker([lat, lng])
+        .addTo(banDo)
+        .bindPopup('📍 Vị trí của bạn')
+        .openPopup();
+    banDo.setView([lat, lng], 14);
+}
+
+function layViTriHienTai() {
+    if (!navigator.geolocation) {
+        alert('Trình duyệt không hỗ trợ định vị.');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        capNhatViTriNguoiDung(lat, lng);
+        timCuaHangGanNhat(lat, lng);
+    }, function() {
+        alert('Không thể lấy vị trí. Vui lòng cho phép truy cập vị trí.');
+    });
+}
+
+function geocodeDiaChi() {
+    const diaChi = document.getElementById('input-dia-chi').value.trim();
+    if (!diaChi) return;
+
+    fetch(`/api/geocode/?dia_chi=${encodeURIComponent(diaChi)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.loi) { alert('Không tìm thấy địa chỉ: ' + data.loi); return; }
+            capNhatViTriNguoiDung(data.vi_do, data.kinh_do);
+            timCuaHangGanNhat(data.vi_do, data.kinh_do);
+        })
+        .catch(() => alert('Lỗi kết nối. Vui lòng thử lại.'));
+}
+
+function timCuaHangGanNhat(lat, lng) {
+    fetch(`/api/cua-hang-gan-nhat/?vi_do=${lat}&kinh_do=${lng}&ban_kinh=15`)
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('danh-sach-cua-hang');
+            if (!data.cua_hangs || data.cua_hangs.length === 0) {
+                container.innerHTML = '<p class="text-muted small">Không tìm thấy cửa hàng trong bán kính 15km.</p>';
+                return;
+            }
+
+            let html = '<h6 class="fw-bold mb-3"><i class="bi bi-shop"></i> Cửa hàng gần nhất</h6>';
+            data.cua_hangs.forEach(function(ch, idx) {
+                const bg = idx === 0 ? 'border-warning' : '';
+                html += `
+                    <div class="card mb-2 ${bg}" style="cursor:pointer;" onclick="panToCuaHang(${ch.vi_do}, ${ch.kinh_do})">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong class="small">${idx === 0 ? '⭐ ' : ''}${ch.ten}</strong><br>
+                                    <small class="text-muted">${ch.dia_chi}</small><br>
+                                    <small>📞 ${ch.so_dien_thoai}</small>
+                                </div>
+                                <span class="badge bg-success ms-2 text-nowrap">${ch.khoang_cach_hien_thi}</span>
+                            </div>
+                            <div class="mt-1">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${ch.vi_do},${ch.kinh_do}"
+                                   target="_blank" class="btn btn-outline-primary btn-sm"
+                                   onclick="event.stopPropagation()">
+                                    <i class="bi bi-map"></i> Chỉ đường
+                                </a>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        });
+}
+
+function panToCuaHang(lat, lng) {
+    banDo.setView([lat, lng], 16);
+}
+</script>
+{% endblock %}

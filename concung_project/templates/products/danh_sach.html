@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Sản phẩm - Con Cưng{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Sidebar lọc -->
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">🗂️ Danh mục</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-1">
+                            <a href="{% url 'danh_sach_san_pham' %}"
+                               class="text-decoration-none {% if not danh_muc_hien_tai %}fw-bold text-danger{% else %}text-dark{% endif %}">
+                                Tất cả sản phẩm
+                            </a>
+                        </li>
+                        {% for dm in danh_mucs %}
+                        <li class="mb-1">
+                            <a href="?danh_muc={{ dm.pk }}"
+                               class="text-decoration-none {% if danh_muc_hien_tai == dm.pk|stringformat:'s' %}fw-bold text-danger{% else %}text-dark{% endif %}">
+                                {{ dm.ten }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <div class="col-lg-9">
+            <!-- Thanh tìm kiếm và sắp xếp -->
+            <div class="d-flex gap-2 mb-4 flex-wrap">
+                <form method="get" class="d-flex flex-grow-1 gap-2">
+                    {% if danh_muc_hien_tai %}
+                    <input type="hidden" name="danh_muc" value="{{ danh_muc_hien_tai }}">
+                    {% endif %}
+                    <input type="text" name="q" value="{{ tu_khoa }}"
+                           placeholder="Tìm kiếm sản phẩm..." class="form-control">
+                    <select name="sap_xep" class="form-select" style="width:auto;">
+                        <option value="-ngay_tao">Mới nhất</option>
+                        <option value="gia_ban">Giá tăng dần</option>
+                        <option value="-gia_ban">Giá giảm dần</option>
+                        <option value="ten">Tên A-Z</option>
+                    </select>
+                    <button type="submit" class="btn btn-chinh">Tìm</button>
+                </form>
+            </div>
+
+            {% if tu_khoa %}
+            <p class="text-muted mb-3">Kết quả tìm kiếm: "<strong>{{ tu_khoa }}</strong>"</p>
+            {% endif %}
+
+            <div class="row g-3">
+                {% for sp in san_phams %}
+                <div class="col-6 col-md-4">
+                    <div class="card h-100 position-relative">
+                        {% if sp.co_khuyen_mai %}
+                        <span class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</span>
+                        {% endif %}
+                        <a href="{% url 'chi_tiet_san_pham' sp.pk %}">
+                            {% if sp.hinh_anh %}
+                            <img src="{{ sp.hinh_anh.url }}" class="card-img-top"
+                                 style="height:160px; object-fit:cover; border-radius:12px 12px 0 0;">
+                            {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded-top"
+                                 style="height:160px; font-size:3rem;">🛍️</div>
+                            {% endif %}
+                        </a>
+                        <div class="card-body">
+                            <h6 class="card-title small fw-semibold">
+                                <a href="{% url 'chi_tiet_san_pham' sp.pk %}" class="text-dark text-decoration-none">
+                                    {{ sp.ten }}
+                                </a>
+                            </h6>
+                            <div class="d-flex justify-content-between align-items-end mt-2">
+                                <div>
+                                    {% if sp.co_khuyen_mai %}
+                                    <div class="text-danger fw-bold small">{{ sp.gia_khuyen_mai|floatformat:0 }}đ</div>
+                                    <div class="text-muted text-decoration-line-through small">{{ sp.gia_ban|floatformat:0 }}đ</div>
+                                    {% else %}
+                                    <div class="text-danger fw-bold small">{{ sp.gia_ban|floatformat:0 }}đ</div>
+                                    {% endif %}
+                                </div>
+                                <form method="post" action="{% url 'them_vao_gio' sp.pk %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="so_luong" value="1">
+                                    <button type="submit" class="btn btn-chinh btn-sm">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="bi bi-search display-4"></i>
+                    <p class="mt-2">Không tìm thấy sản phẩm nào</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Phân trang -->
+            {% if san_phams.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if san_phams.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ san_phams.previous_page_number }}&q={{ tu_khoa }}">‹</a>
+                    </li>
+                    {% endif %}
+                    {% for num in san_phams.paginator.page_range %}
+                    <li class="page-item {% if san_phams.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&q={{ tu_khoa }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if san_phams.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ san_phams.next_page_number }}&q={{ tu_khoa }}">›</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

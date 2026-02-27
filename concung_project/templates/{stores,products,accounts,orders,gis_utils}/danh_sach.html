@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+{% block title %}Hệ thống cửa hàng Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#F5F4F0}
+:root{
+  --or:#E8571A;--ord:#C94A0E;--orp:#FDF3ED;--orb:#F5C8AD;
+  --ink:#1C1917;--sub:#78716C;--sur:#FAFAF9;--line:#E7E5E4;
+  --nav:#1C1917;--olive:#8B7355;
+}
+
+/* ══ HERO ══ */
+.hero{
+  background:#1C1917;
+  min-height:480px;position:relative;overflow:hidden;
+  display:flex;align-items:center;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 50%, rgba(232,87,26,.18) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 80% at 20% 30%, rgba(139,115,85,.12) 0%, transparent 60%);
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-glyph{
+  position:absolute;right:-2%;bottom:-10%;
+  font-size:22rem;opacity:.04;line-height:1;
+  font-family:'Playfair Display',serif;font-weight:900;color:white;
+  user-select:none;pointer-events:none;
+}
+.hero-inner{position:relative;z-index:2;padding:5rem 0 4rem}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:.5rem;
+  border:1px solid rgba(232,87,26,.4);background:rgba(232,87,26,.1);
+  border-radius:4px;padding:.3rem .85rem;
+  font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#F5A87A;margin-bottom:1.2rem;
+}
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.2rem,5vw,3.8rem);font-weight:900;
+  color:#FAFAF9;line-height:1.1;margin-bottom:1rem;
+}
+.hero-title span{color:var(--or)}
+.hero-sub{font-size:1.05rem;color:#A8A29E;max-width:480px;line-height:1.7;margin-bottom:2rem}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:.6rem;
+  background:var(--or);color:white;padding:.75rem 1.6rem;
+  border-radius:6px;font-weight:700;font-size:.9rem;text-decoration:none;
+  transition:all .2s;box-shadow:0 4px 24px rgba(232,87,26,.4);
+}
+.hero-cta:hover{background:var(--ord);color:white;transform:translateY(-2px);box-shadow:0 8px 32px rgba(232,87,26,.5)}
+.hero-cta2{
+  display:inline-flex;align-items:center;gap:.5rem;
+  border:1px solid rgba(255,255,255,.2);color:#D6D3D1;padding:.73rem 1.4rem;
+  border-radius:6px;font-weight:600;font-size:.88rem;text-decoration:none;
+  transition:all .2s;
+}
+.hero-cta2:hover{border-color:rgba(255,255,255,.5);color:white}
+
+/* Stats ribbon */
+.stats-ribbon{background:#E8571A;padding:1rem 0}
+.stats-ribbon .inner{display:flex;justify-content:center;gap:4rem;flex-wrap:wrap}
+.sr-item{text-align:center;color:white}
+.sr-n{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;line-height:1}
+.sr-l{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-top:.1rem}
+
+/* ══ TOOLBAR ══ */
+.toolbar{
+  background:#FAFAF9;border-bottom:1px solid var(--line);
+  padding:.9rem 0;position:sticky;top:56px;z-index:100;
+}
+.toolbar-inner{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.city-scroll{display:flex;gap:.4rem;flex:1;overflow-x:auto;padding-bottom:.2rem;scrollbar-width:none}
+.city-scroll::-webkit-scrollbar{display:none}
+.cp{
+  padding:.3rem .9rem;border-radius:3px;font-size:.75rem;font-weight:700;
+  text-decoration:none;color:var(--sub);background:#F0EDE8;
+  border:1px solid transparent;transition:all .15s;white-space:nowrap;
+}
+.cp:hover{background:var(--orp);color:var(--or);border-color:var(--orb)}
+.cp.on{background:var(--or);color:white}
+.search-wrap{display:flex;gap:.4rem;flex-shrink:0}
+.search-wrap input{
+  width:210px;padding:.38rem .8rem .38rem 2.2rem;font-size:.82rem;font-weight:500;
+  border:1px solid var(--line);border-radius:4px;background:#F9F7F4;font-family:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.44 1.146a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:.6rem center;background-size:13px;
+  transition:border-color .15s;
+}
+.search-wrap input:focus{border-color:var(--or);outline:none;background-color:white}
+.search-wrap button{
+  padding:.38rem 1rem;background:var(--ink);color:white;border:none;
+  border-radius:4px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .15s;
+}
+.search-wrap button:hover{background:#44403C}
+.btn-map-link{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.38rem .9rem;background:transparent;color:var(--sub);border:1px solid var(--line);
+  border-radius:4px;font-size:.78rem;font-weight:700;text-decoration:none;transition:all .15s;
+  white-space:nowrap;
+}
+.btn-map-link:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ══ STORE GRID ══ */
+.section-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:2rem 0 1.2rem;
+}
+.section-head h2{
+  font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;color:var(--ink)
+}
+.result-count{font-size:.82rem;color:var(--sub);font-weight:500}
+.result-count strong{color:var(--or);font-weight:800}
+
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;padding-bottom:4rem}
+
+/* Store card */
+.sc{
+  background:var(--sur);border:1px solid var(--line);border-radius:8px;
+  overflow:hidden;transition:transform .22s,box-shadow .22s,border-color .22s;
+  display:flex;flex-direction:column;
+}
+.sc:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(28,25,23,.12);border-color:var(--orb)}
+
+/* Map preview */
+.sc-map{
+  height:150px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#292524 0%,#1C1917 100%);
+}
+.sc-map-inner{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:.5rem;
+}
+.sc-map-pin{
+  width:48px;height:48px;background:var(--or);border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(232,87,26,.5);
+}
+.sc-map-pin i{transform:rotate(45deg);color:white;font-size:1.1rem}
+.sc-map-ripple{
+  position:absolute;width:80px;height:80px;border-radius:50%;
+  border:2px solid rgba(232,87,26,.3);animation:ripple 2s infinite;
+}
+.sc-map-ripple2{animation-delay:.6s;width:110px;height:110px;border-color:rgba(232,87,26,.15)}
+@keyframes ripple{0%{opacity:1;transform:scale(.8)}100%{opacity:0;transform:scale(1.4)}}
+
+.sc-city{
+  position:absolute;top:.7rem;left:.7rem;
+  background:rgba(255,255,255,.12);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.15);color:white;
+  border-radius:3px;padding:.18rem .55rem;font-size:.68rem;font-weight:700;letter-spacing:.05em;
+}
+.sc-open{
+  position:absolute;top:.7rem;right:.7rem;
+  border-radius:3px;padding:.18rem .55rem;font-size:.64rem;font-weight:800;letter-spacing:.04em;
+}
+.sc-open.yes{background:#22C55E;color:white}
+.sc-open.no{background:#EF4444;color:white}
+
+/* Card body */
+.sc-body{padding:1.2rem;flex:1;display:flex;flex-direction:column}
+.sc-code{font-size:.65rem;font-weight:800;color:#A8A29E;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.sc-name{
+  font-family:'Playfair Display',serif;font-weight:800;font-size:1.05rem;
+  color:var(--ink);line-height:1.3;margin-bottom:.9rem;
+}
+.sc-rows{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.9rem;flex:1}
+.sc-row{display:flex;align-items:flex-start;gap:.55rem;font-size:.8rem;color:var(--sub)}
+.sc-row i{font-size:.85rem;color:var(--or);flex-shrink:0;margin-top:.1rem}
+.sc-row a{color:var(--sub);text-decoration:none}
+.sc-row a:hover{color:var(--or)}
+.sc-hours{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;
+  border-radius:3px;padding:.2rem .6rem;font-size:.71rem;font-weight:700;
+}
+.sc-area{font-size:.71rem;color:#A8A29E;font-weight:500}
+
+/* Card footer */
+.sc-foot{
+  padding:.85rem 1.2rem;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
+}
+.btn-dir{
+  padding:.45rem;background:var(--or);color:white;border:none;border-radius:4px;
+  font-size:.78rem;font-weight:700;text-align:center;text-decoration:none;
+  transition:background .15s;cursor:pointer;font-family:inherit;
+}
+.btn-dir:hover{background:var(--ord);color:white}
+.btn-det{
+  padding:.45rem;background:transparent;color:var(--ink);border:1px solid var(--line);
+  border-radius:4px;font-size:.78rem;font-weight:700;text-align:center;
+  text-decoration:none;transition:all .15s;
+}
+.btn-det:hover{border-color:var(--ink);color:var(--ink);background:#F5F4F0}
+
+/* Empty */
+.empty-wrap{
+  grid-column:1/-1;text-align:center;padding:5rem 1rem;
+  background:var(--sur);border:1px solid var(--line);border-radius:8px;
+}
+.empty-wrap .ic{font-size:4rem;opacity:.15;margin-bottom:.8rem}
+.empty-wrap h5{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--ink)}
+
+@media(max-width:640px){
+  .hero-title{font-size:2rem}
+  .stats-ribbon .inner{gap:2rem}
+  .toolbar-inner{flex-direction:column;align-items:stretch}
+  .search-wrap input{width:100%}
+  .store-grid{grid-template-columns:1fr}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-glyph">CH</div>
+  <div class="container hero-inner">
+    <div class="hero-tag">
+      <i class="bi bi-geo-alt-fill"></i>
+      Hệ thống cửa hàng Con Cưng
+    </div>
+    <h1 class="hero-title">Cửa hàng <span>gần bạn</span><br>luôn sẵn sàng</h1>
+    <p class="hero-sub">{{ tong_cua_hang }} cửa hàng trải khắp các tỉnh thành · Đội ngũ tư vấn chuyên nghiệp · Hàng chính hãng 100%</p>
+    <div class="d-flex gap-3 flex-wrap">
+      <a href="{% url 'ban_do' %}" class="hero-cta">
+        <i class="bi bi-map-fill"></i> Xem bản đồ GPS
+      </a>
+      <a href="#danh-sach" class="hero-cta2">
+        <i class="bi bi-grid-3x3-gap"></i> Xem danh sách
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS RIBBON -->
+<div class="stats-ribbon">
+  <div class="container inner">
+    <div class="sr-item">
+      <div class="sr-n">{{ tong_cua_hang }}</div>
+      <div class="sr-l">Cửa hàng</div>
+    </div>
+    <div class="sr-item">
+      <div class="sr-n">{{ so_tinh_thanh }}</div>
+      <div class="sr-l">Tỉnh / Thành</div>
+    </div>
+    <div class="sr-item">
+      <div class="sr-n">{{ tong_nhan_vien }}</div>
+      <div class="sr-l">Nhân viên</div>
+    </div>
+    <div class="sr-item">
+      <div class="sr-n">4.8★</div>
+      <div class="sr-l">Đánh giá TB</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR / FILTER -->
+<div class="toolbar" id="danh-sach">
+  <div class="container toolbar-inner">
+    <div class="city-scroll">
+      <a href="{% url 'danh_sach_cua_hang' %}" class="cp {% if not tinh_hien_tai %}on{% endif %}">
+        🗺 Tất cả
+      </a>
+      {% for tp in tinh_thanhs %}
+      <a href="?tinh={{ tp }}" class="cp {% if tinh_hien_tai == tp %}on{% endif %}">
+        {{ tp }}
+      </a>
+      {% endfor %}
+    </div>
+    <form method="get" class="search-wrap">
+      {% if tinh_hien_tai %}<input type="hidden" name="tinh" value="{{ tinh_hien_tai }}">{% endif %}
+      <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm cửa hàng...">
+      <button type="submit">Tìm</button>
+    </form>
+    <a href="{% url 'ban_do' %}" class="btn-map-link">
+      <i class="bi bi-compass"></i> Bản đồ
+    </a>
+  </div>
+</div>
+
+<!-- STORE LIST -->
+<div class="container">
+  <div class="section-head">
+    <h2>Cửa hàng{% if tinh_hien_tai %} tại {{ tinh_hien_tai }}{% endif %}</h2>
+    <div class="result-count">
+      <strong>{{ cua_hangs|length }}</strong> cửa hàng
+      {% if tu_khoa %}cho "<strong>{{ tu_khoa }}</strong>"{% endif %}
+      {% if tinh_hien_tai or tu_khoa %}
+      · <a href="{% url 'danh_sach_cua_hang' %}" style="color:var(--or);text-decoration:none;font-weight:700;">Xóa lọc</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="store-grid">
+    {% if cua_hangs %}
+      {% for ch in cua_hangs %}
+      <div class="sc">
+        <!-- Map preview -->
+        <div class="sc-map">
+          <div class="sc-map-inner">
+            <div class="sc-map-ripple"></div>
+            <div class="sc-map-ripple sc-map-ripple2"></div>
+            <div class="sc-map-pin"><i class="bi bi-shop-window"></i></div>
+          </div>
+          <div class="sc-city">{{ ch.tinh_thanh }}</div>
+          <span class="sc-open {% if ch.dang_hoat_dong %}yes{% else %}no{% endif %}">
+            {% if ch.dang_hoat_dong %}● MỞ CỬA{% else %}● TẠM ĐÓNG{% endif %}
+          </span>
+        </div>
+
+        <div class="sc-body">
+          <div class="sc-code">{{ ch.ma_cua_hang }}</div>
+          <div class="sc-name">{{ ch.ten }}</div>
+
+          <div class="sc-rows">
+            <div class="sc-row">
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>{{ ch.dia_chi }}, {{ ch.quan_huyen }}</span>
+            </div>
+            <div class="sc-row">
+              <i class="bi bi-telephone-fill"></i>
+              <span><a href="tel:{{ ch.so_dien_thoai }}">{{ ch.so_dien_thoai }}</a></span>
+            </div>
+            {% if ch.email %}
+            <div class="sc-row">
+              <i class="bi bi-envelope-fill"></i>
+              <span>{{ ch.email }}</span>
+            </div>
+            {% endif %}
+            <div class="sc-row">
+              <i class="bi bi-clock-fill"></i>
+              <span>
+                <span class="sc-hours">
+                  <i class="bi bi-check-circle-fill"></i>
+                  {{ ch.gio_mo_cua|time:"H:i" }} – {{ ch.gio_dong_cua|time:"H:i" }}
+                </span>
+                <span class="sc-area ms-2">{{ ch.ngay_lam_viec }}</span>
+              </span>
+            </div>
+            {% if ch.dien_tich %}
+            <div class="sc-row">
+              <i class="bi bi-building"></i>
+              <span class="sc-area">{{ ch.dien_tich|floatformat:0 }} m²  ·  {{ ch.so_luong_nhan_vien }} nhân viên</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="sc-foot">
+          {% if ch.vi_tri %}
+          <a href="https://www.google.com/maps?q={{ ch.vi_do }},{{ ch.kinh_do }}"
+             target="_blank" class="btn-dir">
+            <i class="bi bi-navigation-fill"></i> Chỉ đường
+          </a>
+          {% else %}
+          <a href="{% url 'ban_do' %}" class="btn-dir">
+            <i class="bi bi-map"></i> Bản đồ
+          </a>
+          {% endif %}
+          <a href="{% url 'chi_tiet_cua_hang' ch.pk %}" class="btn-det">
+            <i class="bi bi-info-circle"></i> Chi tiết
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-wrap">
+        <div class="ic">🔍</div>
+        <h5>Không tìm thấy cửa hàng nào</h5>
+        <p style="color:var(--sub);font-size:.88rem;margin-top:.4rem;">
+          {% if tu_khoa or tinh_hien_tai %}
+          Hãy thử thay đổi bộ lọc hoặc
+          <a href="{% url 'danh_sach_cua_hang' %}" style="color:var(--or);font-weight:700;">xem tất cả</a>
+          {% else %}
+          Chưa có cửa hàng nào được đăng ký.
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

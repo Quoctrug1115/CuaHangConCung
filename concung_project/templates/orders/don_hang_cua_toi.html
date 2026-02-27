@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block title %}Đơn hàng của tôi — Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'Be Vietnam Pro',sans-serif;background:#F2F4F8}
+:root{
+  --or:#FF6B35;--ord:#E65100;--orp:#FFF3E8;
+  --ink:#1A1A2E;--sub:#6B7280;--sur:#FFFFFF;--line:#EAECF4;
+}
+.page-head{background:linear-gradient(135deg,#1A1A2E 0%,#2D2D5F 50%,#1A237E 100%);padding:2.5rem 0 1.5rem;position:relative;overflow:hidden}
+.page-head::after{content:'📦';position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:6rem;opacity:.07}
+.page-head h3{color:white;font-weight:900;font-size:1.8rem;margin:0}
+.page-head p{color:rgba(255,255,255,.6);font-size:.85rem;margin:.35rem 0 0}
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin:-1.2rem 0 1.5rem}
+.ss-box{background:var(--sur);border-radius:14px;padding:1rem .8rem;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.07);transition:transform .18s;position:relative;overflow:hidden}
+.ss-box:hover{transform:translateY(-3px)}
+.ss-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 14px 14px}
+.ss-box.c0::after{background:linear-gradient(90deg,#FF6B35,#E65100)}
+.ss-box.c1::after{background:linear-gradient(90deg,#1565C0,#0D47A1)}
+.ss-box.c2::after{background:linear-gradient(90deg,#2E7D32,#1B5E20)}
+.ss-box.c3::after{background:linear-gradient(90deg,#B71C1C,#7F0000)}
+.ss-n{font-size:2.1rem;font-weight:900;line-height:1}
+.ss-l{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--sub);margin-top:.2rem}
+.filter-bar{background:var(--sur);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:.85rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.tabs{display:flex;gap:.3rem;flex:1;flex-wrap:wrap}
+.tab{padding:.28rem .75rem;border-radius:20px;font-size:.76rem;font-weight:700;text-decoration:none;color:var(--sub);background:#F0F2F8;border:2px solid transparent;transition:all .14s;white-space:nowrap}
+.tab:hover{background:var(--orp);color:var(--or)}
+.tab.on{background:var(--ord);color:white;border-color:var(--ord)}
+.srch{display:flex;gap:.4rem}
+.srch input{width:185px;padding:.38rem .7rem .38rem 2rem;font-size:.8rem;font-weight:600;border:2px solid var(--line);border-radius:20px;background:#F8FAFF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23aaa' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.44 1.146a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") no-repeat .55rem center / 13px;font-family:inherit;transition:border-color .15s}
+.srch input:focus{border-color:var(--or);outline:none;background-color:white}
+.srch button{padding:.38rem .85rem;background:var(--ord);color:white;border:none;border-radius:20px;font-size:.78rem;font-weight:800;cursor:pointer;font-family:inherit}
+.oc{background:var(--sur);border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:.9rem;transition:box-shadow .18s,transform .18s}
+.oc:hover{box-shadow:0 6px 24px rgba(0,0,0,.1);transform:translateY(-1px)}
+.oc-hd{padding:.9rem 1.25rem;background:linear-gradient(to right,#FEFAF7,#FEF7F2);border-bottom:1px solid #FFE4CC;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+.oc-code{font-weight:900;font-size:1rem;color:var(--ord)}
+.oc-meta{font-size:.7rem;color:#BFC3CE;margin-top:.1rem}
+.sb{padding:.22rem .75rem;border-radius:20px;font-size:.7rem;font-weight:800}
+.s-cho_xac_nhan{background:#FFF8E1;color:#F57F17}
+.s-da_xac_nhan{background:#E3F2FD;color:#1565C0}
+.s-dang_dong_goi{background:#F3E5F5;color:#7B1FA2}
+.s-ban_giao_van_chuyen{background:#E8EAF6;color:#283593}
+.s-dang_giao{background:#E0F2F1;color:#00695C}
+.s-da_giao{background:#E8F5E9;color:#1B5E20}
+.s-huy{background:#FFEBEE;color:#B71C1C}
+.total-chip{background:linear-gradient(135deg,var(--or),var(--ord));color:white;padding:.22rem .7rem;border-radius:10px;font-size:.83rem;font-weight:900}
+.tl{padding:.7rem 1.25rem .4rem;background:#FAFBFF;border-bottom:1px solid #EEF1FA;display:flex;overflow-x:auto}
+.tl-s{flex:1;min-width:52px;display:flex;flex-direction:column;align-items:center;position:relative}
+.tl-s:not(:last-child)::after{content:'';position:absolute;top:11px;left:50%;width:100%;height:2px;background:#DDE1F0;z-index:0}
+.tl-s.done::after,.tl-s.active::after{background:linear-gradient(90deg,#4CAF50,#81C784)}
+.tl-d{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;z-index:1;position:relative;border:2px solid #DDE1F0;background:white}
+.tl-s.done .tl-d{background:#4CAF50;border-color:#4CAF50;color:white}
+.tl-s.active .tl-d{background:var(--ord);border-color:var(--ord);color:white;box-shadow:0 0 0 4px rgba(230,81,0,.18);animation:prng 2s infinite}
+.tl-s.canceled .tl-d{background:#EF5350;border-color:#EF5350;color:white}
+.tl-s.pending .tl-d{background:#F4F6FF;color:#CCC;border-color:#DDE1F0}
+.tl-l{font-size:.55rem;text-align:center;margin-top:.25rem;max-width:54px;font-weight:700;line-height:1.2;color:#C8CEDE}
+.tl-s.done .tl-l,.tl-s.active .tl-l{color:var(--ink)}
+@keyframes prng{0%,100%{box-shadow:0 0 0 4px rgba(230,81,0,.18)}50%{box-shadow:0 0 0 8px rgba(230,81,0,.06)}}
+.huy-banner{background:#FFF5F5;border-left:4px solid #EF5350;padding:.5rem 1.25rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;color:#C62828}
+.oc-bd{padding:.8rem 1.25rem}
+.pr-row{display:flex;align-items:center;gap:.65rem;padding:.38rem 0;border-bottom:1px dashed #F0F2F9}
+.pr-row:last-child{border-bottom:none}
+.pr-img{width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0}
+.pr-ph{width:44px;height:44px;border-radius:9px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.pr-nm{font-weight:700;font-size:.82rem;line-height:1.3}
+.pr-q{font-size:.68rem;color:var(--sub);margin-top:.05rem}
+.pr-p{font-weight:900;color:var(--ord);font-size:.83rem;margin-left:auto;white-space:nowrap}
+.oc-ft{padding:.7rem 1.25rem;background:#F8FAFF;border-top:1px solid #EEF1FA;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.oc-addr{font-size:.7rem;color:var(--sub);max-width:60%;line-height:1.5}
+.oc-acts{display:flex;gap:.45rem;align-items:center}
+.btn-v{padding:.32rem .85rem;border:2px solid var(--ord);color:var(--ord);border-radius:9px;font-size:.75rem;font-weight:800;text-decoration:none;transition:all .14s}
+.btn-v:hover{background:var(--ord);color:white}
+.btn-x{padding:.32rem .75rem;border:2px solid #EF5350;color:#EF5350;border-radius:9px;font-size:.75rem;font-weight:800;background:transparent;cursor:pointer;transition:all .14s;font-family:inherit}
+.btn-x:hover{background:#EF5350;color:white}
+.pg{display:flex;justify-content:center;gap:.35rem;margin-top:1.5rem;flex-wrap:wrap}
+.pg a,.pg span{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;text-decoration:none;transition:all .14s}
+.pg a{background:var(--sur);color:var(--sub);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.pg a:hover{background:var(--orp);color:var(--ord)}
+.pg span{background:var(--ord);color:white}
+.empty-st{text-align:center;padding:4.5rem 1rem}
+.empty-st .ic{font-size:5rem;opacity:.2;line-height:1}
+.empty-st h5{font-weight:900;margin:1rem 0 .4rem;color:var(--ink)}
+@media(max-width:576px){.stats-strip{grid-template-columns:repeat(2,1fr)}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container" style="position:relative;z-index:1;">
+    <h3>📦 Đơn hàng của tôi</h3>
+    <p>Theo dõi và quản lý toàn bộ đơn hàng của bạn</p>
+  </div>
+</div>
+
+<div class="container py-3" style="max-width:880px;">
+
+  <!-- Stats -->
+  <div class="stats-strip">
+    <div class="ss-box c0">
+      <div class="ss-n" style="color:var(--ord);">{{ tong_don }}</div>
+      <div class="ss-l">Tổng đơn</div>
+    </div>
+    <div class="ss-box c1">
+      <div class="ss-n" style="color:#1565C0;">{{ don_dang_xu_ly }}</div>
+      <div class="ss-l">Đang xử lý</div>
+    </div>
+    <div class="ss-box c2">
+      <div class="ss-n" style="color:#2E7D32;">{{ don_da_giao }}</div>
+      <div class="ss-l">Đã giao</div>
+    </div>
+    <div class="ss-box c3">
+      <div class="ss-n" style="color:#B71C1C;">{{ don_huy }}</div>
+      <div class="ss-l">Đã hủy</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <div class="tabs">
+      <a href="?" class="tab {% if not trang_thai_loc %}on{% endif %}">Tất cả</a>
+      <a href="?tt=cho_xac_nhan"  class="tab {% if trang_thai_loc == 'cho_xac_nhan' %}on{% endif %}">⏳ Chờ XN</a>
+      <a href="?tt=da_xac_nhan"   class="tab {% if trang_thai_loc == 'da_xac_nhan'  %}on{% endif %}">✔️ Đã XN</a>
+      <a href="?tt=dang_giao"     class="tab {% if trang_thai_loc == 'dang_giao'    %}on{% endif %}">🚚 Đang giao</a>
+      <a href="?tt=da_giao"       class="tab {% if trang_thai_loc == 'da_giao'      %}on{% endif %}">🎉 Đã giao</a>
+      <a href="?tt=huy"           class="tab {% if trang_thai_loc == 'huy'          %}on{% endif %}">❌ Hủy</a>
+    </div>
+    <form method="get" class="srch">
+      {% if trang_thai_loc %}<input type="hidden" name="tt" value="{{ trang_thai_loc }}">{% endif %}
+      <input type="text" name="q" value="{{ tu_khoa }}" placeholder="Tìm mã đơn...">
+      <button type="submit">Tìm</button>
+    </form>
+  </div>
+
+  {% if don_hangs %}
+    {% for dh in don_hangs %}
+    <div class="oc">
+      <div class="oc-hd">
+        <div>
+          <div class="oc-code">#{{ dh.ma_don_hang }}</div>
+          <div class="oc-meta">
+            🕐 {{ dh.ngay_tao|date:"d/m/Y H:i" }}
+            {% if dh.cua_hang %}&nbsp;·&nbsp;🏪 {{ dh.cua_hang.ten }}{% endif %}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;">
+          <span class="sb s-{{ dh.trang_thai }}">{{ dh.get_trang_thai_display }}</span>
+          {% if dh.ma_van_don %}
+          <span style="background:#E8F5E9;color:#1B5E20;padding:.18rem .55rem;border-radius:9px;font-size:.67rem;font-weight:800;">🚛 {{ dh.ma_van_don }}</span>
+          {% endif %}
+          <div class="total-chip">{{ dh.tong_thanh_toan|floatformat:0 }}₫</div>
+        </div>
+      </div>
+
+      {% if dh.trang_thai != 'huy' %}
+      <div class="tl">
+        {% for s in dh.timeline_steps %}
+        <div class="tl-s {{ s.class }}">
+          <div class="tl-d">{{ s.icon }}</div>
+          <div class="tl-l">{{ s.label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="huy-banner">❌ Đơn hàng đã bị hủy · Tiền hoàn trong 1–3 ngày làm việc</div>
+      {% endif %}
+
+      <div class="oc-bd">
+        {% for ct in dh.chi_tiets.all|slice:":3" %}
+        <div class="pr-row">
+          {% if ct.san_pham and ct.san_pham.hinh_anh %}
+            <img src="{{ ct.san_pham.hinh_anh.url }}" class="pr-img" alt="">
+          {% else %}
+            <div class="pr-ph">👶</div>
+          {% endif %}
+          <div style="flex:1;min-width:0;">
+            <div class="pr-nm">{% if ct.san_pham %}{{ ct.san_pham.ten|truncatechars:46 }}{% else %}Sản phẩm không tồn tại{% endif %}</div>
+            <div class="pr-q">x{{ ct.so_luong }} × {{ ct.gia_tai_thoi_diem|floatformat:0 }}₫</div>
+          </div>
+          <div class="pr-p">{{ ct.thanh_tien|floatformat:0 }}₫</div>
+        </div>
+        {% endfor %}
+        {% if dh.chi_tiets.count > 3 %}
+        <div style="font-size:.72rem;color:var(--sub);margin-top:.4rem;font-weight:600;">··· và {{ dh.chi_tiets.count|add:"-3" }} sản phẩm khác</div>
+        {% endif %}
+      </div>
+
+      <div class="oc-ft">
+        <div class="oc-addr">
+          👤 {{ dh.ho_ten_nguoi_nhan }} · 📞 {{ dh.so_dien_thoai_nhan }}<br>
+          📍 {{ dh.dia_chi_giao_hang|truncatechars:52 }}
+        </div>
+        <div class="oc-acts">
+          {% if dh.trang_thai == 'cho_xac_nhan' %}
+          <form method="post" action="{% url 'huy_don_hang' dh.pk %}"
+                onsubmit="return confirm('Xác nhận hủy đơn #{{ dh.ma_don_hang }}?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-x">❌ Hủy</button>
+          </form>
+          {% endif %}
+          <a href="{% url 'theo_doi_don_hang' dh.ma_don_hang %}" class="btn-v">👁 Chi tiết</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if don_hangs.has_other_pages %}
+    <nav class="pg">
+      {% if don_hangs.has_previous %}<a href="?page={{ don_hangs.previous_page_number }}&tt={{ trang_thai_loc }}&q={{ tu_khoa }}">‹</a>{% endif %}
+      {% for n in don_hangs.paginator.page_range %}
+        {% if n == don_hangs.number %}<span>{{ n }}</span>{% else %}<a href="?page={{ n }}&tt={{ trang_thai_loc }}&q={{ tu_khoa }}">{{ n }}</a>{% endif %}
+      {% endfor %}
+      {% if don_hangs.has_next %}<a href="?page={{ don_hangs.next_page_number }}&tt={{ trang_thai_loc }}&q={{ tu_khoa }}">›</a>{% endif %}
+    </nav>
+    {% endif %}
+
+  {% else %}
+  <div class="empty-st">
+    <div class="ic">📭</div>
+    <h5>{% if trang_thai_loc or tu_khoa %}Không tìm thấy đơn hàng{% else %}Bạn chưa có đơn hàng nào{% endif %}</h5>
+    <p class="text-muted" style="font-size:.88rem;">
+      {% if trang_thai_loc or tu_khoa %}
+        <a href="?" style="color:var(--ord);font-weight:700;">← Xem tất cả</a>
+      {% else %}
+        Khám phá hàng nghìn sản phẩm cho bé yêu!
+      {% endif %}
+    </p>
+    {% if not trang_thai_loc and not tu_khoa %}
+    <a href="{% url 'danh_sach_san_pham' %}"
+       style="display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,var(--or),var(--ord));color:white;padding:.7rem 1.5rem;border-radius:12px;font-weight:800;text-decoration:none;font-size:.9rem;box-shadow:0 6px 20px rgba(230,81,0,.35);">
+      🛍️ Mua sắm ngay
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

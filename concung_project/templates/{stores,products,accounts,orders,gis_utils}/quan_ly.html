@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}Quản lý cửa hàng - Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+body { font-family:'DM Sans',sans-serif; }
+.page-header { background:linear-gradient(135deg,#1a237e,#3949ab); padding:1.5rem 0; color:white; }
+.stat-mini { background:rgba(255,255,255,.12); border-radius:12px; padding:.7rem 1rem;
+  text-align:center; }
+.stat-mini .n { font-size:1.8rem; font-weight:700; line-height:1; }
+.stat-mini .l { font-size:.7rem; opacity:.8; text-transform:uppercase; font-weight:600; }
+.ch-table { background:white; border-radius:14px; overflow:hidden;
+  box-shadow:0 2px 14px rgba(0,0,0,.07); }
+.ch-table table { margin:0; }
+.ch-table thead th { background:#f8f9fa; font-size:.78rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.05em; color:#666; border-bottom:2px solid #e0e0e0; }
+.ch-table tbody tr { transition:background .12s; }
+.ch-table tbody tr:hover { background:#fff8f3; }
+.ch-name { font-weight:700; color:#1a1a2e; font-size:.9rem; }
+.ch-code { font-size:.7rem; color:#aaa; font-family:monospace; }
+.badge-open  { background:#e8f5e9; color:#2e7d32; padding:.2rem .6rem; border-radius:8px;
+  font-size:.7rem; font-weight:700; }
+.badge-close { background:#ffebee; color:#c62828; padding:.2rem .6rem; border-radius:8px;
+  font-size:.7rem; font-weight:700; }
+.badge-gps   { background:#e3f2fd; color:#1565c0; padding:.2rem .5rem; border-radius:8px;
+  font-size:.65rem; font-weight:700; }
+.act-btn { padding:.3rem .7rem; border-radius:8px; font-size:.76rem; font-weight:600;
+  text-decoration:none; border:none; transition:all .15s; }
+.act-edit { background:#e3f2fd; color:#1565c0; }
+.act-edit:hover { background:#1565c0; color:white; }
+.act-view { background:#e8f5e9; color:#2e7d32; }
+.act-view:hover { background:#2e7d32; color:white; }
+.act-del  { background:#ffebee; color:#c62828; }
+.act-del:hover  { background:#c62828; color:white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="row align-items-center g-3">
+      <div class="col-md-6">
+        <h4 class="fw-bold mb-0">🏪 Quản lý cửa hàng</h4>
+        <p class="mb-0" style="opacity:.8;">Thêm, sửa và theo dõi hệ thống cửa hàng</p>
+      </div>
+      <div class="col-md-6">
+        <div class="row g-2">
+          <div class="col-4"><div class="stat-mini"><div class="n">{{ tong_ch }}</div><div class="l">Tổng</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="n">{{ so_hoat_dong }}</div><div class="l">Đang mở</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="n">{{ so_co_gps }}</div><div class="l">Có GPS</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Toolbar -->
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <form method="get" class="d-flex gap-2">
+      <input type="text" name="q" value="{{ tu_khoa }}"
+             class="form-control form-control-sm" placeholder="🔍 Tìm tên hoặc mã..." style="width:220px;">
+      <select name="tinh" class="form-select form-select-sm" style="width:160px;">
+        <option value="">Tất cả tỉnh/thành</option>
+        {% for tp in tinh_thanhs %}
+        <option value="{{ tp }}" {% if tinh_loc == tp %}selected{% endif %}>{{ tp }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-chinh btn-sm px-3">Lọc</button>
+    </form>
+    <div class="d-flex gap-2">
+      <a href="{% url 'ban_do' %}" class="btn btn-outline-success btn-sm" style="border-radius:10px;">
+        <i class="bi bi-map"></i> Xem bản đồ
+      </a>
+      <a href="{% url 'them_cua_hang' %}" class="btn btn-chinh btn-sm">
+        <i class="bi bi-plus-circle"></i> Thêm cửa hàng
+      </a>
+    </div>
+  </div>
+
+  <!-- Bảng -->
+  <div class="ch-table">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width:28px;padding-left:1rem;"></th>
+          <th>Cửa hàng</th>
+          <th>Địa chỉ</th>
+          <th>Liên hệ</th>
+          <th>Giờ mở</th>
+          <th>Trạng thái</th>
+          <th style="width:140px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ch in cua_hangs %}
+        <tr>
+          <td style="padding-left:1rem;">
+            <div style="width:8px;height:8px;border-radius:50%;
+              background:{% if ch.dang_hoat_dong %}#66bb6a{% else %}#ef5350{% endif %};"></div>
+          </td>
+          <td>
+            <div class="ch-name">{{ ch.ten }}</div>
+            <div class="ch-code">{{ ch.ma_cua_hang }}</div>
+          </td>
+          <td>
+            <div style="font-size:.82rem;">{{ ch.dia_chi|truncatechars:35 }}</div>
+            <div class="text-muted" style="font-size:.72rem;">{{ ch.quan_huyen }}, {{ ch.tinh_thanh }}</div>
+          </td>
+          <td style="font-size:.82rem;">
+            {{ ch.so_dien_thoai }}<br>
+            <span class="text-muted" style="font-size:.72rem;">{{ ch.email|default:'' }}</span>
+          </td>
+          <td style="font-size:.82rem; white-space:nowrap;">
+            {{ ch.gio_mo_cua|time:"H:i" }}–{{ ch.gio_dong_cua|time:"H:i" }}
+          </td>
+          <td>
+            {% if ch.dang_hoat_dong %}
+              <span class="badge-open">✓ Mở</span>
+            {% else %}
+              <span class="badge-close">✗ Đóng</span>
+            {% endif %}
+            {% if ch.vi_tri %}
+              <span class="badge-gps ms-1">📍 GPS</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'chi_tiet_cua_hang' ch.pk %}" class="act-btn act-view">👁</a>
+              <a href="{% url 'sua_cua_hang' ch.pk %}" class="act-btn act-edit">✏️</a>
+              {% if user.la_admin %}
+              <a href="{% url 'xoa_cua_hang' ch.pk %}" class="act-btn act-del">🗑</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-4 text-muted">
+            Không có cửa hàng nào. <a href="{% url 'them_cua_hang' %}">Thêm ngay?</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Phân trang -->
+  {% if cua_hangs.has_other_pages %}
+  <nav class="mt-3">
+    <ul class="pagination justify-content-center">
+      {% if cua_hangs.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ cua_hangs.previous_page_number }}&q={{ tu_khoa }}&tinh={{ tinh_loc }}">‹</a></li>
+      {% endif %}
+      {% for n in cua_hangs.paginator.page_range %}
+      <li class="page-item {% if n == cua_hangs.number %}active{% endif %}">
+        <a class="page-link" href="?page={{ n }}&q={{ tu_khoa }}&tinh={{ tinh_loc }}">{{ n }}</a>
+      </li>
+      {% endfor %}
+      {% if cua_hangs.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ cua_hangs.next_page_number }}&q={{ tu_khoa }}&tinh={{ tinh_loc }}">›</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

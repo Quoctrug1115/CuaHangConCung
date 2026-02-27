@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% block title %}Theo dõi đơn #{{ don_hang.ma_don_hang }} - Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+body { font-family:'DM Sans',sans-serif; }
+/* ── Timeline dọc ── */
+.timeline-wrap { position:relative; padding-left:2rem; }
+.timeline-wrap::before { content:''; position:absolute; left:.75rem; top:0; bottom:0;
+  width:2px; background:#e0e0e0; }
+.tl-item { position:relative; margin-bottom:1.5rem; }
+.tl-item:last-child { margin-bottom:0; }
+.tl-icon { position:absolute; left:-2rem; width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:.9rem;
+  border:2px solid #e0e0e0; background:white; z-index:1; }
+.tl-item.done .tl-icon    { background:#66bb6a; border-color:#66bb6a; color:white; }
+.tl-item.active .tl-icon  { background:#e65100; border-color:#e65100; color:white;
+  box-shadow:0 0 0 5px rgba(230,81,0,.18); }
+.tl-item.canceled .tl-icon{ background:#ef5350; border-color:#ef5350; color:white; }
+.tl-item.pending .tl-icon { background:#f9f9f9; color:#ccc; }
+.tl-content { padding:.6rem 1rem; border-radius:12px; background:#fafafa;
+  border:1px solid #f0f0f0; }
+.tl-item.active .tl-content { background:#fff8f3; border-color:#ffccb0; }
+.tl-item.done .tl-content  { background:#f9fbe7; border-color:#dcedc8; }
+.tl-item.canceled .tl-content{ background:#ffebee; border-color:#ffcdd2; }
+.tl-label  { font-weight:700; font-size:.95rem; }
+.tl-time   { font-size:.76rem; color:#999; margin-top:.15rem; }
+.tl-note   { font-size:.8rem; color:#666; margin-top:.2rem; }
+/* ── Badge trạng thái ── */
+.tt-badge { padding:.3rem .9rem; border-radius:20px; font-size:.75rem; font-weight:700; }
+.tt-cho_xac_nhan { background:#fff8e1; color:#f57f17; }
+.tt-da_xac_nhan { background:#e3f2fd; color:#1565c0; }
+.tt-dang_dong_goi { background:#f3e5f5; color:#7b1fa2; }
+.tt-ban_giao_van_chuyen { background:#e8eaf6; color:#283593; }
+.tt-dang_giao { background:#e8f5e9; color:#2e7d32; }
+.tt-da_giao { background:#e8f5e9; color:#1b5e20; }
+.tt-huy { background:#ffebee; color:#b71c1c; }
+/* ── SP ── */
+.sp-row { display:flex; align-items:center; gap:.8rem; padding:.6rem 0; border-bottom:1px solid #f5f5f5; }
+.sp-row:last-child { border-bottom:none; }
+.sp-img { width:60px; height:60px; object-fit:cover; border-radius:10px; flex-shrink:0; }
+.sp-ph  { width:60px; height:60px; border-radius:10px; background:linear-gradient(135deg,#fff3e0,#ffe0b2);
+  display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+/* ── Info grid ── */
+.info-row { display:flex; justify-content:space-between; padding:.45rem 0;
+  border-bottom:1px solid #f5f5f5; font-size:.88rem; }
+.info-row:last-child { border-bottom:none; }
+.info-lbl { color:#888; }
+.info-val { font-weight:600; text-align:right; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" style="color:#e65100;">Trang chủ</a></li>
+      {% if user.is_authenticated and don_hang.khach_hang == user %}
+      <li class="breadcrumb-item"><a href="{% url 'don_hang_cua_toi' %}" style="color:#e65100;">Đơn hàng của tôi</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active">#{{ don_hang.ma_don_hang }}</li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1">Đơn hàng <span style="color:#e65100;">#{{ don_hang.ma_don_hang }}</span></h4>
+      <span class="tt-badge tt-{{ don_hang.trang_thai }}">{{ don_hang.get_trang_thai_display }}</span>
+      <span class="text-muted small ms-2">· {{ don_hang.ngay_tao|date:"d/m/Y H:i" }}</span>
+    </div>
+    {% if don_hang.trang_thai == 'cho_xac_nhan' and user.is_authenticated and don_hang.khach_hang == user %}
+    <form method="post" action="{% url 'huy_don_hang' don_hang.pk %}"
+          onsubmit="return confirm('Xác nhận hủy đơn hàng này?')">
+      {% csrf_token %}
+      <button class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-x-circle"></i> Hủy đơn hàng
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Timeline + Sản phẩm -->
+    <div class="col-lg-7">
+
+      <!-- Timeline trạng thái -->
+      <div class="card mb-4" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-4">
+            <i class="bi bi-clock-history" style="color:#e65100;"></i> Tiến trình đơn hàng
+          </h6>
+          {% if don_hang.trang_thai == 'huy' %}
+          <div class="alert alert-danger border-0" style="border-radius:12px;">
+            <strong>❌ Đơn hàng đã bị hủy</strong><br>
+            <span class="small">Liên hệ 1800 6996 nếu cần hỗ trợ thêm.</span>
+          </div>
+          {% else %}
+          <div class="timeline-wrap">
+            {% for step in timeline_steps %}
+            <div class="tl-item {{ step.class }}">
+              <div class="tl-icon">{{ step.icon }}</div>
+              <div class="tl-content">
+                <div class="tl-label">{{ step.label }}</div>
+                {% if step.time %}
+                <div class="tl-time">{{ step.time }}</div>
+                {% elif step.class == 'pending' %}
+                <div class="tl-time text-muted">Chưa xử lý</div>
+                {% endif %}
+                {% if step.note %}
+                <div class="tl-note">{{ step.note }}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sản phẩm trong đơn -->
+      <div class="card" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-bag" style="color:#e65100;"></i>
+            Sản phẩm ({{ don_hang.chi_tiets.count }} loại)
+          </h6>
+          {% for ct in chi_tiets %}
+          <div class="sp-row">
+            {% if ct.san_pham and ct.san_pham.hinh_anh %}
+              <img src="{{ ct.san_pham.hinh_anh.url }}" class="sp-img" alt="">
+            {% else %}
+              <div class="sp-ph">👶</div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <div class="fw-semibold" style="font-size:.9rem; line-height:1.3;">
+                {% if ct.san_pham %}
+                  <a href="{% url 'chi_tiet_san_pham' ct.san_pham.pk %}"
+                     style="color:inherit; text-decoration:none;">{{ ct.san_pham.ten }}</a>
+                {% else %}Sản phẩm đã xóa{% endif %}
+              </div>
+              {% if ct.san_pham %}
+              <div class="text-muted small">{{ ct.san_pham.thuong_hieu }} · {{ ct.san_pham.xuat_xu }}</div>
+              {% endif %}
+              <div class="text-muted small">
+                {{ ct.so_luong }} × {{ ct.gia_tai_thoi_diem|floatformat:0 }}₫
+              </div>
+            </div>
+            <div class="fw-bold" style="color:#e65100; white-space:nowrap;">
+              {{ ct.thanh_tien|floatformat:0 }}₫
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- Tổng tiền -->
+          <div class="mt-3 pt-3" style="border-top:2px dashed #f0f0f0;">
+            <div class="info-row"><span class="info-lbl">Tổng sản phẩm</span>
+              <span class="info-val">{{ don_hang.tong_tien_san_pham|floatformat:0 }}₫</span></div>
+            <div class="info-row"><span class="info-lbl">Phí vận chuyển</span>
+              <span class="info-val">
+                {% if don_hang.phi_giao_hang > 0 %}{{ don_hang.phi_giao_hang|floatformat:0 }}₫
+                {% else %}<span class="text-success">Miễn phí</span>{% endif %}
+              </span></div>
+            {% if don_hang.giam_gia > 0 %}
+            <div class="info-row"><span class="info-lbl">Giảm giá</span>
+              <span class="info-val text-success">-{{ don_hang.giam_gia|floatformat:0 }}₫</span></div>
+            {% endif %}
+            <div class="info-row">
+              <span class="fw-bold" style="font-size:1rem;">Tổng thanh toán</span>
+              <span class="fw-bold" style="color:#e65100; font-size:1.2rem;">
+                {{ don_hang.tong_thanh_toan|floatformat:0 }}₫
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Thông tin -->
+    <div class="col-lg-5">
+
+      <!-- Thông tin nhận hàng -->
+      <div class="card mb-3" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-person-check" style="color:#e65100;"></i> Thông tin nhận hàng
+          </h6>
+          <div class="info-row"><span class="info-lbl">Người nhận</span>
+            <span class="info-val">{{ don_hang.ho_ten_nguoi_nhan }}</span></div>
+          <div class="info-row"><span class="info-lbl">Điện thoại</span>
+            <span class="info-val">{{ don_hang.so_dien_thoai_nhan }}</span></div>
+          <div class="info-row"><span class="info-lbl">Phương thức giao</span>
+            <span class="info-val">{{ don_hang.get_phuong_thuc_giao_display }}</span></div>
+          <div class="info-row"><span class="info-lbl">Thanh toán</span>
+            <span class="info-val">{{ don_hang.get_phuong_thuc_thanh_toan_display }}</span></div>
+          {% if don_hang.cua_hang %}
+          <div class="info-row"><span class="info-lbl">Cửa hàng</span>
+            <span class="info-val">{{ don_hang.cua_hang.ten }}</span></div>
+          {% endif %}
+          <div class="mt-2 p-2 bg-light rounded-3">
+            <div class="small text-muted">📍 Địa chỉ giao hàng</div>
+            <div class="fw-semibold small">{{ don_hang.dia_chi_giao_hang }}</div>
+          </div>
+          {% if don_hang.ghi_chu %}
+          <div class="mt-2 p-2 rounded-3" style="background:#fff8f3;">
+            <div class="small text-muted">📝 Ghi chú</div>
+            <div class="small">{{ don_hang.ghi_chu }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Mã vận đơn -->
+      {% if don_hang.ma_van_don %}
+      <div class="card mb-3" style="border-radius:16px; background:linear-gradient(135deg,#e8f5e9,#c8e6c9);">
+        <div class="card-body p-3 text-center">
+          <div class="text-muted small mb-1">🚚 Mã vận đơn</div>
+          <div class="fw-bold fs-5" style="color:#2e7d32; letter-spacing:.08em;">
+            {{ don_hang.ma_van_don }}
+          </div>
+          <div class="small text-muted mt-1">Tra cứu tại website đơn vị vận chuyển</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Lịch sử trạng thái (mini) -->
+      {% if lich_su %}
+      <div class="card mb-3" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-journal-text" style="color:#e65100;"></i> Lịch sử thay đổi
+          </h6>
+          {% for ls in lich_su %}
+          <div class="d-flex gap-2 mb-2 pb-2" style="border-bottom:1px solid #f5f5f5;">
+            <div class="text-muted" style="font-size:.7rem; width:75px; flex-shrink:0; margin-top:.1rem;">
+              {{ ls.thoi_gian|date:"d/m H:i" }}
+            </div>
+            <div>
+              <div class="small fw-semibold">{{ ls.get_trang_thai_moi_display }}</div>
+              {% if ls.ghi_chu %}
+              <div class="text-muted" style="font-size:.75rem;">{{ ls.ghi_chu }}</div>
+              {% endif %}
+              {% if ls.nguoi_thuc_hien %}
+              <div class="text-muted" style="font-size:.7rem;">
+                Bởi: {{ ls.nguoi_thuc_hien.get_full_name|default:ls.nguoi_thuc_hien.username }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Hỗ trợ -->
+      <div class="card" style="border-radius:16px; background:linear-gradient(135deg,#fff8f3,#ffeee0);">
+        <div class="card-body p-3 text-center">
+          <div style="font-size:2rem;">📞</div>
+          <div class="fw-bold">Cần hỗ trợ về đơn hàng?</div>
+          <div class="fs-5 fw-bold mt-1" style="color:#e65100;">1800 6996</div>
+          <div class="text-muted small">Miễn phí · 8:00–22:00 mỗi ngày</div>
+          <div class="mt-2">
+            <a href="{% url 'don_hang_cua_toi' %}" class="btn btn-chinh btn-sm px-4">
+              ← Về danh sách đơn hàng
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

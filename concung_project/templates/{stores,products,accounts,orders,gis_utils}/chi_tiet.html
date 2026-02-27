@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% block title %}{{ cua_hang.ten }} — Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
+:root{--or:#FF6B35;--ord:#E65100;--orp:#FFF3E8;--ink:#1A1A2E;--sub:#6B7280;--sur:#FFF;--line:#EAECF4}
+
+/* Hero */
+.c-hero{
+  background:linear-gradient(135deg,#0D1B2A 0%,#1A237E 50%,#283593 100%);
+  padding:2.5rem 0 5rem;position:relative;overflow:hidden
+}
+.c-hero::before{content:'';position:absolute;top:-80px;right:-80px;width:350px;height:350px;border-radius:50%;background:rgba(255,107,53,.14)}
+.c-hero::after{content:'🏪';position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:8rem;opacity:.07}
+.c-hero-inner{position:relative;z-index:1}
+.c-code{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:.2rem .65rem;font-size:.72rem;font-weight:800;letter-spacing:.07em;color:rgba(255,255,255,.8);margin-bottom:.7rem}
+.c-hero h1{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:800;color:white;margin:.4rem 0;line-height:1.2}
+.c-status{display:inline-flex;align-items:center;gap:.4rem;border-radius:20px;padding:.3rem .9rem;font-size:.8rem;font-weight:800}
+.c-status.open{background:#4CAF50;color:white}
+.c-status.close{background:#EF5350;color:white}
+
+/* Card float */
+.c-float{
+  background:white;border-radius:20px;
+  box-shadow:0 -8px 40px rgba(0,0,0,.12);
+  margin-top:-3.5rem;position:relative;z-index:2
+}
+
+/* Info grid */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:1.4rem}
+.ig-item{
+  display:flex;align-items:flex-start;gap:.7rem;
+  padding:.8rem;background:#FAFBFF;border-radius:13px;border:1px solid var(--line)
+}
+.ig-ic{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1rem
+}
+.ig-lbl{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);margin-bottom:.15rem}
+.ig-val{font-size:.88rem;font-weight:700;color:var(--ink);line-height:1.35}
+.ig-val a{color:#1565C0;text-decoration:none}
+.ig-val a:hover{text-decoration:underline}
+.ig-full{grid-column:span 2}
+
+/* Buttons */
+.btn-gmap{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,var(--or),var(--ord));color:white;
+  border:none;border-radius:12px;padding:.65rem 1.3rem;font-weight:800;font-size:.88rem;
+  text-decoration:none;transition:all .2s;box-shadow:0 4px 16px rgba(230,81,0,.3)
+}
+.btn-gmap:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(230,81,0,.4);color:white}
+.btn-back{
+  display:inline-flex;align-items:center;gap:.4rem;
+  color:var(--sub);text-decoration:none;font-size:.82rem;font-weight:700;
+  border:2px solid var(--line);border-radius:10px;padding:.4rem .9rem;transition:all .14s
+}
+.btn-back:hover{border-color:var(--ord);color:var(--ord)}
+
+/* Leaflet map */
+#cstore-map{height:280px;border-radius:14px;margin:0 1.4rem 1.4rem}
+
+/* Staff */
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.65rem;padding:0 1.4rem 1.4rem}
+.nv-card{
+  display:flex;align-items:center;gap:.75rem;padding:.7rem .9rem;
+  background:#FAFBFF;border-radius:12px;border:1px solid var(--line)
+}
+.nv-av{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--or),var(--ord));
+  color:white;font-weight:900;font-size:1rem;
+  display:flex;align-items:center;justify-content:center
+}
+.nv-name{font-weight:800;font-size:.84rem;color:var(--ink);line-height:1.25}
+.nv-chuc{font-size:.69rem;color:var(--sub);font-weight:600;margin-top:.1rem}
+
+/* Stock */
+.stock-table{width:100%}
+.stock-table td{padding:.5rem .6rem;font-size:.82rem;border-bottom:1px solid #F0F2F9;vertical-align:middle}
+.stock-table tr:last-child td{border-bottom:none}
+.st-badge{padding:.15rem .5rem;border-radius:8px;font-size:.67rem;font-weight:800;white-space:nowrap}
+.st-ok{background:#E8F5E9;color:#2E7D32}
+.st-low{background:#FFF8E1;color:#F57F17}
+.st-out{background:#FFEBEE;color:#B71C1C}
+
+/* Section title */
+.sec-title{
+  display:flex;align-items:center;gap:.5rem;font-weight:900;font-size:.9rem;color:var(--ink);
+  padding:.9rem 1.4rem .5rem;border-bottom:1px solid var(--line);margin-bottom:.2rem
+}
+.sec-title i{color:var(--ord)}
+
+/* Card wrapper */
+.info-card{
+  background:white;border-radius:18px;overflow:hidden;
+  box-shadow:0 3px 16px rgba(0,0,0,.07);margin-bottom:1rem
+}
+
+@media(max-width:640px){
+  .info-grid{grid-template-columns:1fr}
+  .ig-full{grid-column:span 1}
+  .c-hero h1{font-size:1.7rem}
+  #cstore-map{margin:0 .8rem .8rem;height:220px}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="c-hero">
+  <div class="container c-hero-inner">
+    <nav style="margin-bottom:1rem;">
+      <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider:'›';">
+        <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" style="color:rgba(255,255,255,.6);text-decoration:none;">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'danh_sach_cua_hang' %}" style="color:rgba(255,255,255,.6);text-decoration:none;">Cửa hàng</a></li>
+        <li class="breadcrumb-item active" style="color:rgba(255,255,255,.85);">{{ cua_hang.ten }}</li>
+      </ol>
+    </nav>
+    <div class="c-code">{{ cua_hang.ma_cua_hang }}</div>
+    <h1>{{ cua_hang.ten }}</h1>
+    <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+      <span class="c-status {% if cua_hang.dang_hoat_dong %}open{% else %}close{% endif %}">
+        {% if cua_hang.dang_hoat_dong %}
+          <i class="bi bi-check-circle-fill"></i> Đang hoạt động
+        {% else %}
+          <i class="bi bi-x-circle-fill"></i> Tạm đóng cửa
+        {% endif %}
+      </span>
+      <span style="color:rgba(255,255,255,.6);font-size:.82rem;">
+        <i class="bi bi-geo-alt"></i> {{ cua_hang.tinh_thanh }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="container py-0" style="max-width:1020px;">
+  <div class="row g-4">
+
+    <!-- Cột trái: Thông tin + Nhân viên -->
+    <div class="col-lg-5">
+
+      <!-- Info grid card -->
+      <div class="info-card">
+        <div class="sec-title"><i class="bi bi-info-circle-fill"></i> Thông tin cửa hàng</div>
+        <div class="info-grid">
+
+          <div class="ig-item ig-full">
+            <div class="ig-ic" style="background:#FFF3E0;">📍</div>
+            <div>
+              <div class="ig-lbl">Địa chỉ</div>
+              <div class="ig-val">{{ cua_hang.dia_chi }}</div>
+              <div style="font-size:.72rem;color:var(--sub);margin-top:.15rem;">
+                {{ cua_hang.quan_huyen }}, {{ cua_hang.tinh_thanh }}
+              </div>
+            </div>
+          </div>
+
+          <div class="ig-item">
+            <div class="ig-ic" style="background:#E3F2FD;">📞</div>
+            <div>
+              <div class="ig-lbl">Hotline</div>
+              <div class="ig-val">
+                <a href="tel:{{ cua_hang.so_dien_thoai }}">{{ cua_hang.so_dien_thoai }}</a>
+              </div>
+            </div>
+          </div>
+
+          {% if cua_hang.email %}
+          <div class="ig-item">
+            <div class="ig-ic" style="background:#F3E5F5;">✉️</div>
+            <div>
+              <div class="ig-lbl">Email</div>
+              <div class="ig-val" style="font-size:.8rem;">{{ cua_hang.email }}</div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="ig-item">
+            <div class="ig-ic" style="background:#E8F5E9;">🕐</div>
+            <div>
+              <div class="ig-lbl">Giờ mở cửa</div>
+              <div class="ig-val">{{ cua_hang.gio_mo_cua|time:"H:i" }} – {{ cua_hang.gio_dong_cua|time:"H:i" }}</div>
+            </div>
+          </div>
+
+          <div class="ig-item">
+            <div class="ig-ic" style="background:#F9FBE7;">📅</div>
+            <div>
+              <div class="ig-lbl">Ngày làm việc</div>
+              <div class="ig-val" style="font-size:.82rem;">{{ cua_hang.ngay_lam_viec }}</div>
+            </div>
+          </div>
+
+          {% if cua_hang.dien_tich %}
+          <div class="ig-item">
+            <div class="ig-ic" style="background:#FCE4EC;">📐</div>
+            <div>
+              <div class="ig-lbl">Diện tích</div>
+              <div class="ig-val">{{ cua_hang.dien_tich|floatformat:0 }} m²</div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if cua_hang.so_luong_nhan_vien %}
+          <div class="ig-item">
+            <div class="ig-ic" style="background:#EDE7F6;">👥</div>
+            <div>
+              <div class="ig-lbl">Nhân viên</div>
+              <div class="ig-val">{{ cua_hang.so_luong_nhan_vien }} người</div>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+
+        <!-- Chỉ đường button -->
+        {% if cua_hang.vi_tri %}
+        <div style="padding:0 1.4rem 1.2rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+          <a href="https://www.google.com/maps?q={{ cua_hang.vi_do }},{{ cua_hang.kinh_do }}"
+             target="_blank" class="btn-gmap">
+            <i class="bi bi-navigation-fill"></i> Chỉ đường Google Maps
+          </a>
+        </div>
+        {% endif %}
+
+        <div style="padding:0 1.4rem 1.2rem;">
+          <a href="{% url 'danh_sach_cua_hang' %}" class="btn-back">
+            ← Danh sách cửa hàng
+          </a>
+        </div>
+      </div>
+
+      <!-- Nhân viên -->
+      {% if nhan_viens %}
+      <div class="info-card">
+        <div class="sec-title">
+          <i class="bi bi-people-fill"></i> Đội ngũ nhân viên
+          <span style="background:#EEF1FA;color:#6B7280;padding:.15rem .5rem;border-radius:8px;font-size:.67rem;margin-left:.3rem;">
+            {{ nhan_viens|length }}
+          </span>
+        </div>
+        <div class="staff-grid">
+          {% for nv in nhan_viens %}
+          <div class="nv-card">
+            <div class="nv-av">
+              {{ nv.nguoi_dung.get_full_name|slice:":1"|upper|default:"N" }}
+            </div>
+            <div>
+              <div class="nv-name">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
+              <div class="nv-chuc">{{ nv.get_chuc_vu_display }}<br>{{ nv.ma_nhan_vien }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Cột phải: Bản đồ + Tồn kho -->
+    <div class="col-lg-7">
+
+      <!-- Bản đồ -->
+      <div class="info-card" style="padding-top:0;">
+        <div class="sec-title" style="margin-top:0;"><i class="bi bi-map-fill"></i> Vị trí trên bản đồ</div>
+        {% if cua_hang.vi_tri %}
+          <div id="cstore-map"></div>
+        {% else %}
+          <div style="text-align:center;padding:2.5rem;color:var(--sub);">
+            <div style="font-size:3rem;opacity:.3;margin-bottom:.5rem;">🗺️</div>
+            <p style="font-size:.82rem;">Cửa hàng này chưa được gắn tọa độ GPS.</p>
+            <a href="{% url 'ban_do' %}" style="color:var(--ord);font-weight:700;font-size:.82rem;text-decoration:none;">
+              Xem toàn bộ bản đồ →
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Tồn kho -->
+      {% if ton_khos %}
+      <div class="info-card">
+        <div class="sec-title"><i class="bi bi-box-seam-fill"></i> Sản phẩm có sẵn tại cửa hàng</div>
+        <div style="padding:0 .5rem .5rem;max-height:300px;overflow-y:auto;">
+          <table class="stock-table">
+            {% for tk in ton_khos %}
+            <tr>
+              <td>{{ tk.san_pham.ten|truncatechars:46 }}</td>
+              <td style="text-align:right;width:90px;">
+                {% if tk.so_luong > tk.so_luong_toi_thieu %}
+                  <span class="st-badge st-ok">Còn {{ tk.so_luong }}</span>
+                {% elif tk.so_luong > 0 %}
+                  <span class="st-badge st-low">Sắp hết ({{ tk.so_luong }})</span>
+                {% else %}
+                  <span class="st-badge st-out">Hết hàng</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Edit buttons (admin) -->
+      {% if user.is_authenticated and user.la_quan_ly %}
+      <div style="text-align:right;margin-top:.5rem;">
+        <a href="{% url 'sua_cua_hang' cua_hang.pk %}"
+           style="display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;padding:.55rem 1.1rem;border-radius:11px;font-weight:800;font-size:.83rem;text-decoration:none;">
+          <i class="bi bi-pencil-fill"></i> Chỉnh sửa
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if cua_hang.vi_tri %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const lat = {{ cua_hang.vi_do }}, lng = {{ cua_hang.kinh_do }};
+const map = L.map('cstore-map', {zoomControl: true}).setView([lat, lng], 16);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom: 19
+}).addTo(map);
+
+const pin = L.divIcon({
+  html: `<div style="
+    width:32px;height:32px;background:#E65100;
+    border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    border:4px solid white;box-shadow:0 4px 14px rgba(0,0,0,.4);"></div>`,
+  iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -36], className: ''
+});
+
+L.marker([lat, lng], {icon: pin}).addTo(map)
+  .bindPopup(`
+    <div style="font-family:sans-serif;min-width:160px;">
+      <strong style="color:#E65100;">🏪 {{ cua_hang.ten }}</strong><br>
+      <span style="font-size:.8rem;color:#666;">📍 {{ cua_hang.dia_chi }}</span><br>
+      <span style="font-size:.8rem;color:#666;">📞 {{ cua_hang.so_dien_thoai }}</span>
+    </div>`, {maxWidth: 220}
+  ).openPopup();
+
+// Hiệu ứng pulse
+L.circle([lat, lng], {
+  radius: 80, color: '#E65100', weight: 1, fillColor: '#FF6B35', fillOpacity: 0.12
+}).addTo(map);
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Quản lý nhân viên - Con Cưng{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="fw-bold mb-0">👥 Quản lý nhân viên</h4>
+    <a href="{% url 'quan_ly_cua_hang' %}" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;">
+      ← Về cửa hàng
+    </a>
+  </div>
+
+  <div class="card" style="border-radius:14px; overflow:hidden;">
+    <table class="table table-hover align-middle mb-0">
+      <thead style="background:#f8f9fa;">
+        <tr>
+          <th style="padding:1rem 1.2rem; font-size:.76rem; text-transform:uppercase; color:#666;">Nhân viên</th>
+          <th>Cửa hàng</th>
+          <th>Chức vụ</th>
+          <th>Mã NV</th>
+          <th>Ngày vào làm</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for nv in nhan_viens %}
+        <tr>
+          <td style="padding:.8rem 1.2rem;">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#e65100);
+                          color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;">
+                {{ nv.nguoi_dung.get_full_name|slice:":1"|upper|default:"?" }}
+              </div>
+              <div>
+                <div class="fw-semibold" style="font-size:.88rem;">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
+                <div class="text-muted" style="font-size:.72rem;">{{ nv.nguoi_dung.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:.85rem;">{{ nv.cua_hang.ten|truncatechars:30 }}</td>
+          <td><span class="badge bg-light text-dark" style="font-size:.75rem;">{{ nv.get_chuc_vu_display }}</span></td>
+          <td style="font-size:.82rem; font-family:monospace;">{{ nv.ma_nhan_vien }}</td>
+          <td style="font-size:.82rem;">{{ nv.ngay_vao_lam|date:"d/m/Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center py-4 text-muted">Không có nhân viên nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

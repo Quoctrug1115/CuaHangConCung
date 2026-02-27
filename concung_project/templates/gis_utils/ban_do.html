@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% block title %}Bản đồ cửa hàng - Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+body { font-family:'DM Sans',sans-serif; }
+.map-layout { display:flex; height:calc(100vh - 58px); }
+.sidebar { width:340px; min-width:280px; display:flex; flex-direction:column;
+  background:white; box-shadow:3px 0 15px rgba(0,0,0,.1); z-index:10; overflow:hidden; }
+#map { flex:1; }
+
+/* Search panel */
+.gis-panel { padding:1rem; background:linear-gradient(135deg,#1a1a2e,#16213e);
+  flex-shrink:0; }
+.gis-panel h6 { color:#ff6b35; font-weight:700; margin-bottom:.7rem; font-size:.88rem; }
+.gis-select { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+  color:white; border-radius:8px; padding:.4rem .7rem; font-size:.82rem; width:100%;
+  margin-bottom:.6rem; }
+.gis-select option { background:#1a1a2e; }
+.btn-gps { width:100%; background:linear-gradient(135deg,#ff6b35,#e65100);
+  color:white; border:none; border-radius:10px; padding:.55rem;
+  font-weight:700; font-size:.83rem; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:.4rem; }
+.btn-gps:hover:not(:disabled) { opacity:.88; transform:translateY(-1px); }
+.btn-gps:disabled { opacity:.5; cursor:wait; }
+.gps-msg { font-size:.73rem; text-align:center; margin-top:.5rem; min-height:1rem;
+  color:rgba(255,255,255,.7); }
+
+/* Tabs */
+.tab-bar { display:flex; border-bottom:2px solid #f0f0f0; flex-shrink:0; }
+.tab-bar button { flex:1; border:none; background:none; padding:.55rem .3rem;
+  font-size:.78rem; font-weight:600; color:#aaa; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; }
+.tab-bar button.on { color:#e65100; border-bottom-color:#e65100; }
+.cnt-badge { background:#e65100; color:white; font-size:.6rem;
+  padding:.1rem .35rem; border-radius:8px; margin-left:.3rem; }
+
+/* Search box */
+.q-box { padding:.55rem .8rem; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
+.q-box input { width:100%; border:1.5px solid #e0e0e0; border-radius:10px;
+  padding:.4rem .8rem; font-size:.82rem; outline:none; transition:border-color .15s; }
+.q-box input:focus { border-color:#ff6b35; }
+
+/* Store list */
+.store-list { flex:1; overflow-y:auto; }
+.store-item { padding:.75rem 1rem; border-bottom:1px solid #f5f5f5;
+  cursor:pointer; transition:background .13s; border-left:3px solid transparent; }
+.store-item:hover { background:#fff8f3; border-left-color:#ffcc99; }
+.store-item.on { background:#fff3e0; border-left-color:#e65100; }
+.store-item.near { background:#eff6ff; border-left-color:#1565c0; }
+.s-name { font-weight:700; font-size:.87rem; color:#1a1a2e; }
+.s-addr { font-size:.72rem; color:#888; margin-top:.1rem; }
+.s-meta { font-size:.69rem; color:#bbb; margin-top:.12rem; }
+.s-dist { display:inline-block; background:#1565c0; color:white;
+  font-size:.62rem; font-weight:700; padding:.1rem .4rem; border-radius:6px; margin-top:.2rem; }
+.s-open { display:inline-block; background:#2e7d32; color:white;
+  font-size:.6rem; padding:.1rem .35rem; border-radius:6px; margin-left:.3rem; }
+
+/* Map popup */
+.pop-title { font-weight:700; font-size:.95rem; color:#e65100; margin-bottom:.3rem; }
+.pop-row { font-size:.8rem; color:#555; margin-bottom:.18rem; }
+.pop-dist { font-weight:700; color:#1565c0; font-size:.88rem; margin-top:.3rem; }
+@keyframes pulse-ring {
+  0%,100%{box-shadow:0 0 0 0 rgba(46,125,50,.5)}
+  50%{box-shadow:0 0 0 10px rgba(46,125,50,0)}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- GIS tìm gần nhất -->
+    <div class="gis-panel">
+      <h6>📍 Tìm cửa hàng gần tôi</h6>
+      <select class="gis-select" id="km-sel">
+        <option value="2">Trong vòng 2 km</option>
+        <option value="5" selected>Trong vòng 5 km</option>
+        <option value="10">Trong vòng 10 km</option>
+        <option value="20">Trong vòng 20 km</option>
+      </select>
+      <button class="btn-gps" id="btn-gps">
+        <span>📡</span> Dùng vị trí hiện tại của tôi
+      </button>
+      <div class="gps-msg" id="gps-msg"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="on" id="tab-all" onclick="switchTab('all')">
+        🏪 Tất cả
+        <span class="cnt-badge">{{ tong_cua_hang }}</span>
+      </button>
+      <button id="tab-near" onclick="switchTab('near')">
+        📍 Gần nhất
+        <span class="cnt-badge" id="near-cnt" style="display:none;">0</span>
+      </button>
+    </div>
+
+    <!-- Search box -->
+    <div class="q-box">
+      <input type="text" id="q-inp" placeholder="🔍 Tìm tên cửa hàng, địa chỉ...">
+    </div>
+
+    <!-- Danh sách tất cả -->
+    <div class="store-list" id="list-all">
+      {% for ch in tat_ca_cua_hang %}
+      <div class="store-item" id="si-{{ ch.id }}"
+           onclick="zoomStore({{ ch.id }}, {{ ch.vi_do|default:'null' }}, {{ ch.kinh_do|default:'null' }})">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="s-name">{{ ch.ten }}</div>
+          <span class="s-open">Mở cửa</span>
+        </div>
+        <div class="s-addr">📍 {{ ch.dia_chi }}</div>
+        <div class="s-meta">📞 {{ ch.so_dien_thoai }} &nbsp;·&nbsp; 🕐 {{ ch.gio_mo_cua|time:"H:i" }}–{{ ch.gio_dong_cua|time:"H:i" }}</div>
+      </div>
+      {% empty %}
+      <div class="p-4 text-center text-muted small">Chưa có cửa hàng nào.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Danh sách gần nhất -->
+    <div class="store-list" id="list-near" style="display:none;">
+      <div class="p-4 text-center text-muted small" id="near-ph">
+        Nhấn nút định vị để tìm cửa hàng gần bạn.
+      </div>
+    </div>
+  </div>
+
+  <!-- Bản đồ -->
+  <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── Dữ liệu cửa hàng từ server ───────────────────────────────
+const STORES = {{ cua_hang_data_json|safe }};
+
+// ── URL API đúng (từ Django URL names) ───────────────────────
+const API_GAN_NHAT = "{% url 'api_cua_hang_gan_nhat' %}";
+const API_GEOCODE  = "{% url 'api_geocode' %}";
+
+// ── Khởi tạo bản đồ ──────────────────────────────────────────
+const map = L.map('map', {zoomControl: true}).setView([10.8231, 106.6297], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> | Con Cưng GIS',
+  maxZoom: 19
+}).addTo(map);
+
+// ── Tạo icon ──────────────────────────────────────────────────
+function mkIcon(color, sz) {
+  sz = sz || 22;
+  return L.divIcon({
+    html: `<div style="width:${sz}px;height:${sz}px;background:${color};border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>`,
+    iconSize: [sz, sz], iconAnchor: [sz/2, sz], popupAnchor: [0, -sz], className: ''
+  });
+}
+const icRed  = mkIcon('#e65100', 22);
+const icBlue = mkIcon('#1565c0', 26);
+const icGrn  = L.divIcon({
+  html: `<div style="width:18px;height:18px;background:#2e7d32;border-radius:50%;
+    border:4px solid white;box-shadow:0 0 0 6px rgba(46,125,50,.25);animation:pulse-ring 1.5s infinite;"></div>`,
+  iconSize:[18,18], iconAnchor:[9,9], className:''
+});
+
+// ── Thêm tất cả marker ────────────────────────────────────────
+const layerAll  = L.layerGroup().addTo(map);
+const layerNear = L.layerGroup().addTo(map);
+const mkMap = {};
+
+STORES.forEach(s => {
+  const m = L.marker([s.vi_do, s.kinh_do], {icon: icRed}).addTo(layerAll);
+  m.bindPopup(popupHtml(s), {maxWidth: 250, className: ''});
+  mkMap[s.id] = m;
+  m.on('click', () => activateSidebar(s.id));
+});
+
+function popupHtml(s, dist) {
+  return `<div>
+    <div class="pop-title">🏪 ${s.ten}</div>
+    <div class="pop-row">📍 ${s.dia_chi}</div>
+    <div class="pop-row">📞 ${s.so_dien_thoai}</div>
+    <div class="pop-row">🕐 ${s.gio_mo} – ${s.gio_dong}</div>
+    ${dist ? `<div class="pop-dist">📏 Cách bạn: ${dist}</div>` : ''}
+  </div>`;
+}
+
+// ── Zoom vào cửa hàng ─────────────────────────────────────────
+function zoomStore(id, lat, lng) {
+  if (lat && lng) {
+    map.setView([lat, lng], 16);
+    if (mkMap[id]) mkMap[id].openPopup();
+  } else {
+    alert('Cửa hàng này chưa có tọa độ trên bản đồ.');
+  }
+  activateSidebar(id);
+}
+
+function activateSidebar(id) {
+  document.querySelectorAll('.store-item').forEach(e => e.classList.remove('on'));
+  const el = document.getElementById('si-' + id);
+  if (el) { el.classList.add('on'); el.scrollIntoView({behavior: 'smooth', block: 'nearest'}); }
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tab-all').classList.toggle('on', tab==='all');
+  document.getElementById('tab-near').classList.toggle('on', tab==='near');
+  document.getElementById('list-all').style.display  = tab==='all'  ? '' : 'none';
+  document.getElementById('list-near').style.display = tab==='near' ? '' : 'none';
+}
+
+// ── Tìm kiếm ─────────────────────────────────────────────────
+document.getElementById('q-inp').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#list-all .store-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// ── GIS: Tìm cửa hàng gần nhất ───────────────────────────────
+let userMk = null, circleLayer = null;
+
+document.getElementById('btn-gps').addEventListener('click', function() {
+  const btn = this;
+  const msg = document.getElementById('gps-msg');
+
+  if (!navigator.geolocation) {
+    msg.innerHTML = '❌ Trình duyệt không hỗ trợ định vị.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Đang lấy vị trí...';
+  msg.textContent = '';
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const km  = document.getElementById('km-sel').value;
+
+      // Marker người dùng
+      if (userMk) map.removeLayer(userMk);
+      userMk = L.marker([lat, lng], {icon: icGrn})
+        .bindPopup('<b>📍 Vị trí hiện tại của bạn</b>').addTo(map);
+
+      // Vẽ vòng tròn bán kính
+      if (circleLayer) map.removeLayer(circleLayer);
+      circleLayer = L.circle([lat, lng], {
+        radius: km * 1000,
+        color: '#2e7d32', weight: 1.5,
+        fillColor: '#66bb6a', fillOpacity: 0.07
+      }).addTo(map);
+
+      msg.textContent = '🔍 Đang tìm kiếm cửa hàng gần bạn...';
+
+      try {
+        // Gọi API GIS
+        const url = `${API_GAN_NHAT}?vi_do=${lat}&kinh_do=${lng}&ban_kinh=${km}`;
+        const res = await fetch(url);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        layerNear.clearLayers();
+        const listNear = document.getElementById('list-near');
+        listNear.innerHTML = '';
+
+        if (!data.cua_hangs || data.cua_hangs.length === 0) {
+          msg.innerHTML = `⚠️ Không có cửa hàng trong ${km} km.`;
+          listNear.innerHTML = `<div class="p-4 text-center text-muted small">
+            Không tìm thấy cửa hàng trong ${km} km.<br>Thử mở rộng phạm vi tìm kiếm.
+          </div>`;
+          switchTab('near');
+        } else {
+          msg.innerHTML = `✅ Tìm được <b style="color:#ff6b35">${data.cua_hangs.length}</b> cửa hàng!`;
+
+          const bounds = [[lat, lng]];
+
+          data.cua_hangs.forEach((ch, i) => {
+            bounds.push([ch.vi_do, ch.kinh_do]);
+
+            // Marker xanh
+            const mk = L.marker([ch.vi_do, ch.kinh_do], {icon: icBlue}).addTo(layerNear);
+            mk.bindPopup(popupHtml({
+              ten: ch.ten, dia_chi: ch.dia_chi,
+              so_dien_thoai: ch.so_dien_thoai,
+              gio_mo: ch.gio_mo, gio_dong: ch.gio_dong
+            }, ch.khoang_cach_hien_thi), {maxWidth: 250});
+
+            // Card sidebar
+            const card = document.createElement('div');
+            card.className = 'store-item near';
+            card.id = 'ni-' + ch.id;
+            card.innerHTML = `
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="s-name">#${i+1} ${ch.ten}</div>
+                <span class="s-dist">📏 ${ch.khoang_cach_hien_thi}</span>
+              </div>
+              <div class="s-addr">📍 ${ch.dia_chi}</div>
+              <div class="s-meta">📞 ${ch.so_dien_thoai} · 🕐 ${ch.gio_mo}–${ch.gio_dong}</div>
+            `;
+            card.onclick = () => { map.setView([ch.vi_do, ch.kinh_do], 16); mk.openPopup(); };
+            listNear.appendChild(card);
+          });
+
+          document.getElementById('near-cnt').textContent = data.cua_hangs.length;
+          document.getElementById('near-cnt').style.display = 'inline';
+          switchTab('near');
+          map.fitBounds(bounds, {padding: [50, 50], maxZoom: 15});
+        }
+      } catch (err) {
+        console.error('GIS API error:', err);
+        msg.innerHTML = `❌ Lỗi kết nối API: ${err.message}`;
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<span>📡</span> Dùng vị trí hiện tại của tôi';
+    },
+    (err) => {
+      const msgs = {
+        1: 'Bạn đã từ chối cấp quyền vị trí.',
+        2: 'Không xác định được vị trí.',
+        3: 'Quá thời gian. Thử lại sau.'
+      };
+      msg.innerHTML = '❌ ' + (msgs[err.code] || 'Không lấy được vị trí.');
+      btn.disabled = false;
+      btn.innerHTML = '<span>📡</span> Dùng vị trí hiện tại của tôi';
+    },
+    { timeout: 15000, enableHighAccuracy: true }
+  );
+});
+</script>
+{% endblock %}

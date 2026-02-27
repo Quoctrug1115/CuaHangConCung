@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block title %}Đặt hàng - Con Cưng{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+* { font-family: 'Be Vietnam Pro', sans-serif; }
+:root {
+  --or: #FF6B35; --ord: #E65100; --orp: #FFF3E8; --orb: #FFD5B0;
+  --ink: #1C1C2E; --mu: #8A8FAF; --sf: #F7F8FC;
+}
+body { background: var(--sf); }
+.sc { background:white; border-radius:18px; box-shadow:0 1px 0 #E4E8F5,0 6px 24px rgba(0,0,0,.06); margin-bottom:1rem; overflow:hidden; }
+.sc-head { padding:.9rem 1.4rem; border-bottom:1px solid #F0F2F9; display:flex; align-items:center; gap:.7rem; }
+.sc-num { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--or),var(--ord)); color:white; font-size:.78rem; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(230,81,0,.3); flex-shrink:0; }
+.sc-title { font-weight:800; font-size:.93rem; color:var(--ink); }
+.sc-body { padding:1.1rem 1.4rem; }
+.form-label { font-size:.75rem; font-weight:800; color:var(--mu); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.35rem; }
+.form-control, .form-select { border:2px solid #E4E8F5; border-radius:11px; padding:.6rem .9rem; font-size:.9rem; font-weight:600; transition:border-color .15s,box-shadow .15s; background:#FAFBFF; }
+.form-control:focus, .form-select:focus { border-color:var(--or); box-shadow:0 0 0 4px rgba(255,107,53,.12); background:white; }
+.f-err { border-color:#EF5350 !important; }
+.ferr-msg { font-size:.75rem; color:#C62828; font-weight:700; margin-top:.3rem; }
+/* Error banner */
+.err-banner { background:#FFF5F5; border:2px solid #FFCDD2; border-radius:14px; padding:1rem 1.2rem; margin-bottom:1.3rem; }
+.err-banner strong { display:block; font-weight:800; color:#C62828; font-size:.88rem; margin-bottom:.4rem; }
+.err-banner ul { margin:0; padding-left:1.2rem; font-size:.82rem; color:#C62828; }
+/* Delivery */
+.dm { border:2px solid #E4E8F5; border-radius:13px; padding:.9rem 1.1rem; cursor:pointer; display:flex; align-items:center; gap:.9rem; margin-bottom:.6rem; transition:all .16s; background:#FAFBFF; }
+.dm:hover { border-color:var(--or); background:var(--orp); }
+.dm.sel { border-color:var(--ord); background:var(--orp); box-shadow:0 0 0 3px rgba(230,81,0,.1); }
+.dm input[type=radio] { accent-color:var(--ord); width:17px; height:17px; flex-shrink:0; }
+.dm-ic { font-size:1.7rem; flex-shrink:0; }
+.dm-nm { font-weight:800; font-size:.9rem; color:var(--ink); }
+.dm-ds { font-size:.73rem; color:var(--mu); margin-top:.1rem; }
+.dm-bj { margin-left:auto; font-size:.7rem; font-weight:800; padding:.18rem .5rem; border-radius:8px; }
+.dm-bj.f { background:#E8F5E9; color:#2E7D32; }
+.dm-bj.p { background:#FFF3E0; color:#E65100; }
+/* Payment */
+.pm { border:2px solid #E4E8F5; border-radius:11px; padding:.75rem 1rem; cursor:pointer; display:flex; align-items:center; gap:.75rem; margin-bottom:.45rem; transition:all .15s; }
+.pm:hover { border-color:var(--or); }
+.pm.sel { border-color:var(--ord); background:var(--orp); }
+.pm input { accent-color:var(--ord); flex-shrink:0; }
+.pm-ic { width:36px; height:36px; border-radius:9px; background:#F0F2FA; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; }
+.pm-nm { font-weight:700; font-size:.86rem; color:var(--ink); }
+.pm-nt { font-size:.71rem; color:var(--mu); }
+/* Summary */
+.sum-card { background:white; border-radius:20px; box-shadow:0 1px 0 #E4E8F5,0 6px 24px rgba(0,0,0,.06); position:sticky; top:78px; overflow:hidden; }
+.sum-hd { background:linear-gradient(135deg,#1A237E,#3949AB); padding:1.1rem 1.4rem; color:white; display:flex; align-items:center; gap:.6rem; }
+.sum-hd h6 { font-weight:800; margin:0; font-size:.92rem; }
+.sum-hd .badge2 { background:rgba(255,255,255,.2); border-radius:7px; padding:.1rem .45rem; font-size:.7rem; }
+.sum-bd { padding:1.1rem 1.4rem; }
+.spi { display:flex; align-items:center; gap:.65rem; padding:.45rem 0; border-bottom:1px dashed #EEF0F9; }
+.spi:last-child { border-bottom:none; }
+.spi-img { width:46px; height:46px; border-radius:10px; object-fit:cover; flex-shrink:0; }
+.spi-ph { width:46px; height:46px; border-radius:10px; background:linear-gradient(135deg,#FFF3E0,#FFE0B2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+.spi-nm { font-weight:700; font-size:.8rem; line-height:1.25; color:var(--ink); }
+.spi-q { font-size:.69rem; color:var(--mu); margin-top:.1rem; }
+.spi-p { font-weight:800; color:var(--ord); font-size:.83rem; white-space:nowrap; margin-left:auto; }
+.pr { display:flex; justify-content:space-between; align-items:center; padding:.35rem 0; font-size:.85rem; }
+.pr .l { color:var(--mu); font-weight:600; }
+.pr .v { font-weight:700; }
+.pr.grand { border-top:2px dashed #EEF0F9; margin-top:.5rem; padding-top:.8rem; }
+.pr.grand .v { font-size:1.35rem; color:var(--ord); font-weight:900; }
+.btn-co { width:100%; padding:.95rem; background:linear-gradient(135deg,var(--or),var(--ord)); border:none; border-radius:13px; color:white; font-weight:900; font-size:1rem; letter-spacing:.02em; box-shadow:0 6px 20px rgba(230,81,0,.38); transition:all .2s; margin-top:.9rem; cursor:pointer; }
+.btn-co:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 30px rgba(230,81,0,.46); }
+.btn-co:disabled { opacity:.65; cursor:not-allowed; }
+.btn-bk { display:block; width:100%; text-align:center; padding:.6rem; border:2px solid #E4E8F5; border-radius:13px; color:var(--mu); font-weight:700; font-size:.86rem; margin-top:.5rem; text-decoration:none; transition:all .15s; }
+.btn-bk:hover { border-color:var(--mu); color:var(--ink); }
+.trust { display:flex; gap:.4rem; flex-wrap:wrap; justify-content:center; margin-top:.85rem; }
+.trust span { font-size:.66rem; color:#AAB; background:#F5F6FC; border-radius:7px; padding:.2rem .5rem; font-weight:700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width:1040px;">
+  <div class="d-flex align-items-center gap-2 mb-3" style="font-size:.8rem; color:#aaa;">
+    <a href="{% url 'trang_chu' %}" style="color:#aaa;text-decoration:none;">Trang chủ</a> ›
+    <a href="{% url 'xem_gio_hang' %}" style="color:#aaa;text-decoration:none;">Giỏ hàng</a> ›
+    <span style="color:var(--ink);font-weight:700;">Đặt hàng</span>
+  </div>
+  <h4 style="font-weight:900;margin-bottom:1.4rem;color:var(--ink);">🛍️ Xác nhận đặt hàng</h4>
+
+  {% if form_errors %}
+  <div class="err-banner">
+    <strong>⚠️ Vui lòng kiểm tra lại thông tin:</strong>
+    <ul>{% for k,v in form_errors.items %}<li>{{ v }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'warning' }} alert-dismissible fade show" style="border-radius:12px;font-weight:600;">
+    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+
+  <form method="post" id="fo">
+    {% csrf_token %}
+    <div class="row g-4">
+      <div class="col-lg-7">
+
+        <!-- 1. Người nhận -->
+        <div class="sc">
+          <div class="sc-head"><div class="sc-num">1</div><div class="sc-title">Thông tin người nhận</div></div>
+          <div class="sc-body">
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label">Họ và tên *</label>
+                <input type="text" name="ho_ten" id="inp-ht"
+                  class="form-control {% if form_errors.ho_ten %}f-err{% endif %}"
+                  value="{{ post_data.ho_ten|default:nguoi_dung.get_full_name }}"
+                  placeholder="Nguyễn Văn A">
+                {% if form_errors.ho_ten %}<div class="ferr-msg">⚠ {{ form_errors.ho_ten }}</div>{% endif %}
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Số điện thoại *</label>
+                <input type="tel" name="so_dien_thoai" id="inp-sdt"
+                  class="form-control {% if form_errors.so_dien_thoai %}f-err{% endif %}"
+                  value="{{ post_data.so_dien_thoai|default:nguoi_dung.so_dien_thoai }}"
+                  placeholder="0901 234 567">
+                {% if form_errors.so_dien_thoai %}<div class="ferr-msg">⚠ {{ form_errors.so_dien_thoai }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Giao hàng -->
+        <div class="sc">
+          <div class="sc-head"><div class="sc-num">2</div><div class="sc-title">Phương thức giao hàng</div></div>
+          <div class="sc-body">
+            <label class="dm {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}sel{% endif %}" id="lbl-g" onclick="setG('giao_tan_noi')">
+              <input type="radio" name="phuong_thuc_giao" value="giao_tan_noi" {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}checked{% endif %}>
+              <span class="dm-ic">🚚</span>
+              <div><div class="dm-nm">Giao tận nơi</div><div class="dm-ds">Nhận hàng trong 2–4 ngày làm việc</div></div>
+              <span class="dm-bj p">30.000₫</span>
+            </label>
+            <label class="dm {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}sel{% endif %}" id="lbl-c" onclick="setG('nhan_tai_cua_hang')">
+              <input type="radio" name="phuong_thuc_giao" value="nhan_tai_cua_hang" {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}checked{% endif %}>
+              <span class="dm-ic">🏪</span>
+              <div><div class="dm-nm">Nhận tại cửa hàng</div><div class="dm-ds">Sẵn sàng sau 2 giờ · Hoàn toàn miễn phí</div></div>
+              <span class="dm-bj f">Miễn phí</span>
+            </label>
+            <!-- Địa chỉ -->
+            <div id="s-dc" {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}style="display:none"{% endif %}>
+              <label class="form-label mt-2">Địa chỉ giao hàng *</label>
+              <textarea name="dia_chi" id="inp-dc" rows="2"
+                class="form-control {% if form_errors.dia_chi %}f-err{% endif %}"
+                placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố">{{ post_data.dia_chi|default:nguoi_dung.dia_chi }}</textarea>
+              {% if form_errors.dia_chi %}<div class="ferr-msg">⚠ {{ form_errors.dia_chi }}</div>{% endif %}
+            </div>
+            <!-- Cửa hàng -->
+            <div id="s-ch" {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}style="display:none"{% endif %}>
+              <label class="form-label mt-2">Chọn cửa hàng *</label>
+              {% if cua_hangs %}
+              <select name="cua_hang" id="inp-ch" class="form-select {% if form_errors.cua_hang %}f-err{% endif %}">
+                <option value="">— Chọn cửa hàng nhận hàng —</option>
+                {% for ch in cua_hangs %}
+                <option value="{{ ch.pk }}" {% if post_data.cua_hang == ch.pk|stringformat:"d" %}selected{% endif %}>
+                  {{ ch.ten }} · {{ ch.quan_huyen }}, {{ ch.tinh_thanh }}
+                </option>
+                {% endfor %}
+              </select>
+              {% else %}
+              <div class="form-control" style="background:#FFF5F5;color:#C62828;font-size:.85rem;font-weight:600;">
+                ⚠️ Chưa có cửa hàng hoạt động. Vui lòng chọn <b>Giao tận nơi</b>.
+              </div>
+              {% endif %}
+              {% if form_errors.cua_hang %}<div class="ferr-msg">⚠ {{ form_errors.cua_hang }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Thanh toán -->
+        <div class="sc">
+          <div class="sc-head"><div class="sc-num">3</div><div class="sc-title">Phương thức thanh toán</div></div>
+          <div class="sc-body">
+            <label class="pm sel" onclick="selP(this)"><input type="radio" name="thanh_toan" value="tien_mat" checked><div class="pm-ic">💵</div><div><div class="pm-nm">Tiền mặt khi nhận hàng (COD)</div><div class="pm-nt">Trả tiền khi nhận được hàng</div></div></label>
+            <label class="pm" onclick="selP(this)"><input type="radio" name="thanh_toan" value="chuyen_khoan"><div class="pm-ic">🏦</div><div><div class="pm-nm">Chuyển khoản ngân hàng</div><div class="pm-nt">Thông tin tài khoản gửi qua email sau khi đặt</div></div></label>
+            <label class="pm" onclick="selP(this)"><input type="radio" name="thanh_toan" value="the_ngan_hang"><div class="pm-ic">💳</div><div><div class="pm-nm">Thẻ / Ví điện tử</div><div class="pm-nt">Visa, MasterCard, MoMo, ZaloPay</div></div></label>
+          </div>
+        </div>
+
+        <!-- 4. Ghi chú -->
+        <div class="sc">
+          <div class="sc-head"><div class="sc-num">4</div><div class="sc-title">Ghi chú (tuỳ chọn)</div></div>
+          <div class="sc-body">
+            <textarea name="ghi_chu" class="form-control" rows="2" placeholder="Yêu cầu đặc biệt, thời gian giao hàng...">{{ post_data.ghi_chu|default:'' }}</textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tóm tắt -->
+      <div class="col-lg-5">
+        <div class="sum-card">
+          <div class="sum-hd"><h6>🛒 Đơn hàng</h6><span class="badge2">{{ items|length }} SP</span></div>
+          <div class="sum-bd">
+            <div style="max-height:230px;overflow-y:auto;margin-bottom:.7rem;">
+              {% for item in items %}
+              <div class="spi">
+                {% if item.san_pham.hinh_anh %}<img src="{{ item.san_pham.hinh_anh.url }}" class="spi-img" alt="">
+                {% else %}<div class="spi-ph">👶</div>{% endif %}
+                <div style="flex:1;min-width:0;">
+                  <div class="spi-nm">{{ item.san_pham.ten|truncatechars:36 }}</div>
+                  <div class="spi-q">× {{ item.so_luong }} đơn vị</div>
+                </div>
+                <div class="spi-p">{{ item.thanh_tien|floatformat:0 }}₫</div>
+              </div>
+              {% endfor %}
+            </div>
+            <div style="border-top:2px dashed #EEF0F9;padding-top:.75rem;">
+              <div class="pr"><span class="l">Tạm tính</span><span class="v">{{ tong_tien|floatformat:0 }}₫</span></div>
+              <div class="pr" id="r-ship"><span class="l">Phí vận chuyển</span><span class="v" id="v-ship">30.000₫</span></div>
+              <div class="pr grand"><span style="font-weight:800;">Tổng thanh toán</span><span class="v" id="v-total">—</span></div>
+            </div>
+            <button type="submit" class="btn-co" id="btn-ok">✅ Đặt hàng ngay</button>
+            <a href="{% url 'xem_gio_hang' %}" class="btn-bk">← Quay lại giỏ hàng</a>
+            <div class="trust">
+              <span>🔒 SSL bảo mật</span>
+              <span>🔄 Đổi trả 7 ngày</span>
+              <span>✅ Hàng chính hãng</span>
+              <span>📞 1800 6996</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const RAW_TONG = "{{ tong_tien|floatformat:0 }}";
+const TONG_SP = parseInt(RAW_TONG.replace(/[^\d]/g,'')) || 0;
+let phi = 30000;
+const fvn = n => n.toLocaleString('vi-VN') + '₫';
+
+function updTotal() {
+  document.getElementById('v-total').textContent = fvn(TONG_SP + phi);
+}
+updTotal();
+
+function setG(val) {
+  const isG = val === 'giao_tan_noi';
+  document.getElementById('s-dc').style.display = isG ? '' : 'none';
+  document.getElementById('s-ch').style.display = isG ? 'none' : '';
+  document.getElementById('lbl-g').classList.toggle('sel', isG);
+  document.getElementById('lbl-c').classList.toggle('sel', !isG);
+  document.querySelector('[value="giao_tan_noi"]').checked = isG;
+  document.querySelector('[value="nhan_tai_cua_hang"]').checked = !isG;
+  phi = isG ? 30000 : 0;
+  document.getElementById('v-ship').textContent = isG ? '30.000₫' : 'Miễn phí 🎉';
+  updTotal();
+}
+
+// Đồng bộ với server POST data khi tải lại trang
+(function(){ const c = document.querySelector('[name="phuong_thuc_giao"]:checked'); if(c) setG(c.value); })();
+
+function selP(lb) {
+  document.querySelectorAll('.pm').forEach(e => e.classList.remove('sel'));
+  lb.classList.add('sel');
+  lb.querySelector('input').checked = true;
+}
+
+document.getElementById('fo').addEventListener('submit', function(e) {
+  const modeEl = document.querySelector('[name="phuong_thuc_giao"]:checked');
+  if (!modeEl) return;
+  const mode = modeEl.value;
+  let ok = true;
+  document.querySelectorAll('.f-err').forEach(el => el.classList.remove('f-err'));
+
+  // Validate họ tên
+  const ht = document.getElementById('inp-ht');
+  if (ht && !ht.value.trim()) { ht.classList.add('f-err'); ht.focus(); ok = false; }
+
+  // Validate SĐT
+  const sdt = document.getElementById('inp-sdt');
+  if (sdt && !sdt.value.trim()) { sdt.classList.add('f-err'); if(ok) sdt.focus(); ok = false; }
+
+  if (mode === 'giao_tan_noi') {
+    // Giao tận nơi: cần địa chỉ
+    const dc = document.getElementById('inp-dc');
+    if (dc && !dc.value.trim()) { dc.classList.add('f-err'); if(ok) dc.focus(); ok = false; }
+  } else {
+    // Nhận tại cửa hàng: inp-dc hidden, không validate; cần chọn cửa hàng
+    const ch = document.getElementById('inp-ch');
+    if (ch && !ch.value) { ch.classList.add('f-err'); if(ok) ch.focus(); ok = false; }
+    // Đảm bảo dia_chi hidden field không block server-side
+    const dc = document.getElementById('inp-dc');
+    if (dc && !dc.value.trim()) dc.value = 'Nhận tại cửa hàng (không cần địa chỉ)';
+  }
+
+  if (!ok) { e.preventDefault(); return; }
+  const btn = document.getElementById('btn-ok');
+  btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
+  // Fallback: re-enable sau 10s nếu server không redirect
+  setTimeout(() => { btn.disabled = false; btn.textContent = '✅ Đặt hàng ngay'; }, 10000);
+});
+</script>
+{% endblock %}

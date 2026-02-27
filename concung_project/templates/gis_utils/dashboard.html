@@ -1,0 +1,610 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Con Cưng Admin{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#F1F5F9}
+:root{
+  --or:#FF469e;--ord:#f54282;--ink:#0F172A;--sub:#64748B;
+  --sur:#FFFFFF;--line:#ff379b;--sb:#1E293B;--sb2:#0F172A;
+}
+
+/* ══ LAYOUT ══ */
+.admin-wrap{display:flex;min-height:100vh}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:256px;min-height:100vh;background:var(--sb2);
+  display:flex;flex-direction:column;position:sticky;top:0;
+  flex-shrink:0;overflow-y:auto;
+}
+.sb-logo{
+  padding:1.4rem 1.2rem 1rem;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.sb-logo-inner{display:flex;align-items:center;gap:.75rem}
+.sb-icon{
+  width:40px;height:40px;background:var(--or);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
+}
+.sb-brand{font-weight:800;font-size:.95rem;color:white;line-height:1.2}
+.sb-brand small{display:block;font-size:.68rem;font-weight:500;color:#94A3B8;margin-top:.1rem}
+.sb-user{
+  padding:.9rem 1.2rem;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:.7rem;
+}
+.sb-avatar{
+  width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);
+  display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.85rem;
+  flex-shrink:0;
+}
+.sb-uname{font-size:.8rem;font-weight:700;color:white;line-height:1.2}
+.sb-urole{font-size:.65rem;color:#94A3B8;font-weight:500}
+
+/* Nav sections */
+.sb-section{padding:.8rem 1rem .2rem}
+.sb-section-lbl{
+  font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+  color:#475569;padding:0 .2rem .4rem;margin-bottom:.1rem;
+}
+.sb-nav{list-style:none;margin:0;padding:0 0 .5rem;display:flex;flex-direction:column;gap:.15rem}
+.sb-nav a{
+  display:flex;align-items:center;gap:.7rem;padding:.52rem .7rem;
+  color:#94A3B8;text-decoration:none;border-radius:7px;font-size:.83rem;font-weight:600;
+  transition:all .15s;position:relative;
+}
+.sb-nav a:hover{background:rgba(244, 6, 149, 0.46);color:#E2E8F0}
+.sb-nav a.on{background:rgba(244, 6, 149, 0.46);color:#ff379b}
+.sb-nav a .ic{width:22px;text-align:center;font-size:.9rem;flex-shrink:0}
+.sb-nav a .badge-dot{
+  margin-left:auto;width:7px;height:7px;border-radius:50%;background:#EF4444;
+}
+.sb-nav a .cnt{
+  margin-left:auto;background:rgba(255,107,53,.25);color:#FB8C5D;
+  border-radius:10px;padding:.05rem .45rem;font-size:.65rem;font-weight:800;
+}
+.sb-divider{height:1px;background:rgba(255,255,255,.06);margin:.4rem 1.2rem}
+
+/* Bottom nav */
+.sb-bottom{
+  margin-top:auto;border-top:1px solid rgba(255,255,255,.07);
+  padding:.6rem 1rem;
+}
+.sb-bottom a{
+  display:flex;align-items:center;gap:.65rem;padding:.5rem .7rem;
+  color:#64748B;text-decoration:none;border-radius:7px;font-size:.82rem;font-weight:600;
+  transition:all .15s;
+}
+.sb-bottom a:hover{background:rgba(255,255,255,.07);color:#E2E8F0}
+
+/* ══ MAIN CONTENT ══ */
+.main-area{flex:1;padding:2rem;min-width:0}
+.main-header{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+  margin-bottom:1.8rem;
+}
+.main-header h4{font-size:1.3rem;font-weight:800;color:var(--ink);margin:0}
+.main-header .sub{font-size:.83rem;color:var(--sub);margin-top:.2rem}
+.now-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:var(--sur);border:1px solid var(--line);border-radius:20px;
+  padding:.3rem .85rem;font-size:.75rem;font-weight:700;color:var(--sub);
+}
+
+/* ══ STAT CARDS ══ */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{
+  background:var(--sur);border-radius:14px;padding:1.3rem 1.2rem;
+  border:1px solid var(--line);transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden;
+}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.stat-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+}
+.stat-card.c0::after{background:linear-gradient(90deg,#FF6B35,#E65100)}
+.stat-card.c1::after{background:linear-gradient(90deg,#F59E0B,#D97706)}
+.stat-card.c2::after{background:linear-gradient(90deg,#10B981,#059669)}
+.stat-card.c3::after{background:linear-gradient(90deg,#EF4444,#DC2626)}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.7rem}
+.sc-ico{
+  width:44px;height:44px;border-radius:11px;display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;
+}
+.c0 .sc-ico{background:#FFF3E0;color:#E65100}
+.c1 .sc-ico{background:#FFFBEB;color:#D97706}
+.c2 .sc-ico{background:#ECFDF5;color:#059669}
+.c3 .sc-ico{background:#FEF2F2;color:#DC2626}
+.sc-n{font-size:2rem;font-weight:900;color:var(--ink);line-height:1}
+.sc-l{font-size:.75rem;color:var(--sub);font-weight:600;margin-top:.3rem}
+.sc-change{font-size:.72rem;font-weight:700;margin-top:.4rem}
+.sc-change.up{color:#10B981}
+.sc-change.warn{color:#F59E0B}
+.sc-change.bad{color:#EF4444}
+
+/* ══ CHART AREA ══ */
+.content-grid{display:grid;grid-template-columns:1fr 380px;gap:1.2rem;margin-bottom:1.2rem}
+.panel{
+  background:var(--sur);border-radius:14px;border:1px solid var(--line);overflow:hidden;
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.2rem;border-bottom:1px solid var(--line);
+}
+.panel-title{font-size:.9rem;font-weight:800;color:var(--ink)}
+.panel-sub{font-size:.72rem;color:var(--sub);margin-top:.1rem}
+.panel-body{padding:1.2rem}
+
+/* Quick actions */
+.qa-grid{display:flex;flex-direction:column;gap:.5rem}
+.qa-btn{
+  display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;
+  border-radius:10px;text-decoration:none;transition:all .16s;
+  border:1.5px solid var(--line);background:var(--sur);
+}
+.qa-btn:hover{border-color:transparent;transform:translateX(4px)}
+.qa-btn.primary{background:linear-gradient(135deg,var(--or),var(--ord));border-color:transparent;color:white}
+.qa-btn.primary:hover{opacity:.92;transform:translateX(4px)}
+.qa-btn.blue{border-color:#BFDBFE}
+.qa-btn.blue:hover{background:#EFF6FF;border-color:#3B82F6}
+.qa-btn.green{border-color:#BBF7D0}
+.qa-btn.green:hover{background:#F0FDF4;border-color:#22C55E}
+.qa-btn.orange{border-color:#FED7AA}
+.qa-btn.orange:hover{background:#FFF7ED;border-color:#F97316}
+.qa-btn.purple{border-color:#DDD6FE}
+.qa-btn.purple:hover{background:#F5F3FF;border-color:#8B5CF6}
+.qa-btn.red{border-color:#FECACA}
+.qa-btn.red:hover{background:#FEF2F2;border-color:#EF4444}
+.qa-btn.slate{border-color:#CBD5E1}
+.qa-btn.slate:hover{background:#F8FAFC;border-color:#64748B}
+.qa-ico{
+  width:38px;height:38px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:1rem;flex-shrink:0;
+}
+.qa-btn.primary .qa-ico{background:rgba(255,255,255,.2);color:white}
+.qa-btn.blue .qa-ico{background:#DBEAFE;color:#2563EB}
+.qa-btn.green .qa-ico{background:#DCFCE7;color:#16A34A}
+.qa-btn.orange .qa-ico{background:#FFEDD5;color:#EA580C}
+.qa-btn.purple .qa-ico{background:#EDE9FE;color:#7C3AED}
+.qa-btn.red .qa-ico{background:#FEE2E2;color:#DC2626}
+.qa-btn.slate .qa-ico{background:#F1F5F9;color:#475569}
+.qa-text{flex:1;min-width:0}
+.qa-nm{font-size:.83rem;font-weight:700;line-height:1.25}
+.qa-btn.primary .qa-nm{color:white}
+.qa-btn:not(.primary) .qa-nm{color:var(--ink)}
+.qa-desc{font-size:.69rem;color:var(--sub);margin-top:.08rem}
+.qa-btn.primary .qa-desc{color:rgba(255,255,255,.75)}
+.qa-arr{color:var(--sub);font-size:.8rem;flex-shrink:0}
+.qa-btn.primary .qa-arr{color:rgba(255,255,255,.6)}
+
+/* Recent orders */
+.ord-table{width:100%;border-collapse:collapse}
+.ord-table th{
+  font-size:.7rem;font-weight:800;color:var(--sub);text-transform:uppercase;
+  letter-spacing:.06em;padding:.5rem .7rem;border-bottom:2px solid var(--line);
+  background:#F8FAFC;
+}
+.ord-table td{padding:.65rem .7rem;border-bottom:1px solid #F1F5F9;font-size:.82rem;vertical-align:middle}
+.ord-table tr:last-child td{border-bottom:none}
+.ord-table tr:hover td{background:#F8FAFC}
+.o-code{font-weight:800;color:var(--or);font-family:monospace;font-size:.8rem}
+.tt-badge{padding:.18rem .6rem;border-radius:20px;font-size:.66rem;font-weight:800;white-space:nowrap}
+.tt-cho_xac_nhan{background:#FFF8E1;color:#F57F17}
+.tt-da_xac_nhan{background:#E3F2FD;color:#1565C0}
+.tt-dang_dong_goi{background:#F3E5F5;color:#7B1FA2}
+.tt-ban_giao_van_chuyen{background:#E8EAF6;color:#283593}
+.tt-dang_giao{background:#E0F2F1;color:#00695C}
+.tt-da_giao{background:#E8F5E9;color:#1B5E20}
+.tt-huy{background:#FFEBEE;color:#B71C1C}
+
+/* Chart */
+#chart-wrap{height:180px;position:relative}
+
+@media(max-width:1100px){
+  .content-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .main-area{padding:1rem}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrap">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sb-logo">
+      <div class="sb-logo-inner">
+        <div class="sb-icon">🐾</div>
+        <div>
+          <div class="sb-brand">Con Cưng<small>Admin Panel</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User info -->
+    <div class="sb-user">
+      <div class="sb-avatar">{{ user.get_full_name|slice:":1"|upper|default:"A" }}</div>
+      <div>
+        <div class="sb-uname">{{ user.get_full_name|default:user.username|truncatechars:20 }}</div>
+        <div class="sb-urole">{{ user.get_vai_tro_display }}</div>
+      </div>
+    </div>
+
+    <!-- Nav: Tổng quan -->
+    <div class="sb-section">
+      <div class="sb-section-lbl">Tổng quan</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'dashboard' %}" class="on">
+          <span class="ic">📊</span> Dashboard
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <!-- Nav: Bán hàng -->
+    <div class="sb-section">
+      <div class="sb-section-lbl">Bán hàng</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_don_hang' %}">
+          <span class="ic">📋</span> Đơn hàng
+          {% if don_cho_xu_ly > 0 %}<span class="cnt">{{ don_cho_xu_ly }}</span>{% endif %}
+        </a></li>
+        <li><a href="{% url 'quan_ly_don_hang' %}?trang_thai=cho_xac_nhan">
+          <span class="ic">⏳</span> Chờ xác nhận
+        </a></li>
+        <li><a href="{% url 'quan_ly_don_hang' %}?trang_thai=dang_giao">
+          <span class="ic">🚚</span> Đang giao hàng
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <!-- Nav: Sản phẩm & Kho -->
+    <div class="sb-section">
+      <div class="sb-section-lbl">Sản phẩm & Kho</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_san_pham' %}">
+          <span class="ic">📦</span> Sản phẩm
+        </a></li>
+        <li><a href="{% url 'them_san_pham' %}">
+          <span class="ic">➕</span> Thêm sản phẩm
+        </a></li>
+        <li><a href="{% url 'quan_ly_kho' %}">
+          <span class="ic">🏭</span> Tồn kho
+          {% if so_canh_bao_kho > 0 %}<span class="badge-dot"></span>{% endif %}
+        </a></li>
+        <li><a href="{% url 'quan_ly_kho' %}?canh_bao=1">
+          <span class="ic">⚠️</span> Cảnh báo kho
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <!-- Nav: Cửa hàng -->
+    <div class="sb-section">
+      <div class="sb-section-lbl">Cửa hàng & Nhân sự</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_cua_hang' %}">
+          <span class="ic">🏪</span> Quản lý cửa hàng
+        </a></li>
+        <li><a href="{% url 'them_cua_hang' %}">
+          <span class="ic">🆕</span> Thêm cửa hàng
+        </a></li>
+        <li><a href="{% url 'quan_ly_nhan_vien' %}">
+          <span class="ic">👥</span> Nhân viên
+        </a></li>
+        <li><a href="{% url 'ban_do' %}">
+          <span class="ic">🗺️</span> Bản đồ GPS
+        </a></li>
+      </ul>
+    </div>
+
+    {% if user.la_admin %}
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-section-lbl">Hệ thống</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_nguoi_dung' %}">
+          <span class="ic">👤</span> Người dùng
+        </a></li>
+        <li><a href="/admin/">
+          <span class="ic">⚙️</span> Django Admin
+        </a></li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Bottom -->
+    <div class="sb-bottom">
+      <a href="{% url 'trang_chu' %}">
+        <i class="bi bi-house-fill"></i> Về trang chủ
+      </a>
+      <a href="{% url 'dang_xuat' %}" style="margin-top:.15rem;">
+        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="main-area">
+
+    <!-- Header -->
+    <div class="main-header">
+      <div>
+        <h4>📊 Tổng quan hệ thống</h4>
+        <div class="sub">Xin chào, {{ user.get_full_name|default:user.username }} · Hôm nay có {{ tong_don_hom_nay }} đơn mới</div>
+      </div>
+      <div class="now-badge">
+        <i class="bi bi-clock"></i>
+        <span id="clock">--:--</span>
+      </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card c0">
+        <div class="sc-top">
+          <div class="sc-ico"><i class="bi bi-receipt"></i></div>
+        </div>
+        <div class="sc-n">{{ tong_don_hom_nay }}</div>
+        <div class="sc-l">Đơn hàng hôm nay</div>
+        <div class="sc-change up">↑ Mới nhất hôm nay</div>
+      </div>
+      <div class="stat-card c1">
+        <div class="sc-top">
+          <div class="sc-ico"><i class="bi bi-hourglass-split"></i></div>
+        </div>
+        <div class="sc-n">{{ don_cho_xu_ly }}</div>
+        <div class="sc-l">Đơn chờ xử lý</div>
+        <div class="sc-change {% if don_cho_xu_ly > 0 %}warn{% else %}up{% endif %}">
+          {% if don_cho_xu_ly > 0 %}⚠ Cần xử lý ngay{% else %}✓ Đã xử lý hết{% endif %}
+        </div>
+      </div>
+      <div class="stat-card c2">
+        <div class="sc-top">
+          <div class="sc-ico"><i class="bi bi-graph-up-arrow"></i></div>
+        </div>
+        <div class="sc-n" style="font-size:1.4rem;">{{ doanh_thu_thang|floatformat:0 }}₫</div>
+        <div class="sc-l">Doanh thu tháng này</div>
+        <div class="sc-change up">↑ Đơn đã giao thành công</div>
+      </div>
+      <div class="stat-card c3">
+        <div class="sc-top">
+          <div class="sc-ico"><i class="bi bi-exclamation-triangle"></i></div>
+        </div>
+        <div class="sc-n">{{ so_canh_bao_kho }}</div>
+        <div class="sc-l">Cảnh báo tồn kho</div>
+        <div class="sc-change {% if so_canh_bao_kho > 0 %}bad{% else %}up{% endif %}">
+          {% if so_canh_bao_kho > 0 %}
+          <a href="{% url 'quan_ly_kho' %}?canh_bao=1" style="color:inherit;">Xem chi tiết →</a>
+          {% else %}✓ Kho ổn định{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart + Quick actions -->
+    <div class="content-grid">
+
+      <!-- Biểu đồ -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">📈 Đơn hàng 7 ngày gần nhất</div>
+            <div class="panel-sub">Số đơn tạo mới mỗi ngày</div>
+          </div>
+          <a href="{% url 'quan_ly_don_hang' %}"
+             style="font-size:.76rem;font-weight:700;color:var(--or);text-decoration:none;">
+            Xem tất cả →
+          </a>
+        </div>
+        <div class="panel-body">
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <div id="chart-wrap"><canvas id="bieu-do-don-hang"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Thao tác nhanh -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">⚡ Thao tác nhanh</div>
+            <div class="panel-sub">Các chức năng hay dùng nhất</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:.8rem;">
+          <div class="qa-grid">
+
+            <a href="{% url 'quan_ly_don_hang' %}?trang_thai=cho_xac_nhan" class="qa-btn primary">
+              <div class="qa-ico"><i class="bi bi-check2-circle"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Xác nhận đơn hàng</div>
+                <div class="qa-desc">{{ don_cho_xu_ly }} đơn đang chờ xử lý</div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+            <a href="{% url 'them_san_pham' %}" class="qa-btn green">
+              <div class="qa-ico"><i class="bi bi-plus-circle-fill"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Thêm sản phẩm mới</div>
+                <div class="qa-desc">Đăng sản phẩm vào hệ thống</div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+            <a href="{% url 'quan_ly_kho' %}?canh_bao=1" class="qa-btn {% if so_canh_bao_kho > 0 %}red{% else %}slate{% endif %}">
+              <div class="qa-ico"><i class="bi bi-archive-fill"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Kiểm tra tồn kho</div>
+                <div class="qa-desc">
+                  {% if so_canh_bao_kho > 0 %}⚠ {{ so_canh_bao_kho }} mặt hàng cần nhập{% else %}Tồn kho đang ổn định{% endif %}
+                </div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+            <a href="{% url 'them_cua_hang' %}" class="qa-btn orange">
+              <div class="qa-ico"><i class="bi bi-shop-window"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Thêm cửa hàng</div>
+                <div class="qa-desc">Mở điểm bán hàng mới</div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+            <a href="{% url 'ban_do' %}" class="qa-btn blue">
+              <div class="qa-ico"><i class="bi bi-geo-alt-fill"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Bản đồ cửa hàng</div>
+                <div class="qa-desc">Xem {{ tong_cua_hang }} cửa hàng trên bản đồ GPS</div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+            <a href="{% url 'quan_ly_san_pham' %}" class="qa-btn purple">
+              <div class="qa-ico"><i class="bi bi-box-seam-fill"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Quản lý sản phẩm</div>
+                <div class="qa-desc">Xem, sửa, xóa sản phẩm</div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+            <a href="{% url 'quan_ly_don_hang' %}" class="qa-btn slate">
+              <div class="qa-ico"><i class="bi bi-list-ul"></i></div>
+              <div class="qa-text">
+                <div class="qa-nm">Tất cả đơn hàng</div>
+                <div class="qa-desc">Xem toàn bộ lịch sử đơn</div>
+              </div>
+              <i class="bi bi-arrow-right qa-arr"></i>
+            </a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent orders table -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">🧾 Đơn hàng gần đây</div>
+          <div class="panel-sub">10 đơn hàng mới nhất</div>
+        </div>
+        <a href="{% url 'quan_ly_don_hang' %}"
+           style="font-size:.76rem;font-weight:700;color:var(--or);text-decoration:none;">
+          Xem tất cả →
+        </a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="ord-table">
+          <thead>
+            <tr>
+              <th>Mã đơn</th>
+              <th>Khách hàng</th>
+              <th>Trạng thái</th>
+              <th>Tổng tiền</th>
+              <th>Ngày đặt</th>
+              <th style="text-align:center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dh in don_hangs_moi %}
+            <tr>
+              <td><span class="o-code">#{{ dh.ma_don_hang }}</span></td>
+              <td style="font-weight:600;font-size:.82rem;">
+                {{ dh.ho_ten_nguoi_nhan|truncatechars:20 }}<br>
+                <span style="color:var(--sub);font-weight:400;font-size:.72rem;">{{ dh.so_dien_thoai_nhan }}</span>
+              </td>
+              <td><span class="tt-badge tt-{{ dh.trang_thai }}">{{ dh.get_trang_thai_display }}</span></td>
+              <td style="font-weight:800;color:var(--or);">{{ dh.tong_thanh_toan|floatformat:0 }}₫</td>
+              <td style="color:var(--sub);font-size:.77rem;">{{ dh.ngay_tao|date:"d/m H:i" }}</td>
+              <td style="text-align:center;">
+                <div style="display:flex;gap:.3rem;justify-content:center;">
+                  <a href="{% url 'theo_doi_don_hang' dh.ma_don_hang %}"
+                     style="padding:.2rem .5rem;background:#F0F9FF;color:#0369A1;border-radius:5px;font-size:.72rem;font-weight:700;text-decoration:none;">
+                    👁 Xem
+                  </a>
+                  {% if dh.trang_thai == 'cho_xac_nhan' %}
+                  <form method="post" action="{% url 'cap_nhat_trang_thai' dh.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="trang_thai" value="da_xac_nhan">
+                    <button type="submit"
+                       style="padding:.2rem .5rem;background:#F0FDF4;color:#15803D;border:none;border-radius:5px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">
+                      ✓ XN
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align:center;padding:2rem;color:var(--sub);">
+                Chưa có đơn hàng nào
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Chart
+const bieudoData = {{ bieu_do_data_json|safe }};
+const ctx = document.getElementById('bieu-do-don-hang').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: bieudoData.map(d => d.ngay),
+    datasets: [{
+      label: 'Đơn hàng',
+      data: bieudoData.map(d => d.so_don),
+      backgroundColor: ctx => {
+        const g = ctx.chart.ctx.createLinearGradient(0,0,0,200);
+        g.addColorStop(0, 'rgba(255, 53, 174, 0.9)');
+        g.addColorStop(1, 'rgba(242, 38, 198, 0.94)');
+        return g;
+      },
+      borderColor: '#FF3379',
+      borderWidth: 0,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {legend:{display:false},tooltip:{callbacks:{label: c=>`${c.raw} đơn`}}},
+    scales: {
+      x: {grid:{display:false},ticks:{font:{size:11,weight:'600'},color:'#94A3B8'}},
+      y: {grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11},color:'#94A3B8'},beginAtZero:true,precision:0}
+    }
+  }
+});
+</script>
+{% endblock %}

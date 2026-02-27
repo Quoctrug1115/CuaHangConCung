@@ -1,0 +1,847 @@
+{% extends 'base.html' %}
+{% block title %}{{ san_pham.ten }} - Con Cưng{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Fonts ─────────────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  body { font-family: 'DM Sans', sans-serif; }
+
+  /* ── Hero sản phẩm ─────────────────────────────────── */
+  .sp-gallery-wrap {
+    position: sticky;
+    top: 80px;
+  }
+  .sp-main-img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: 20px;
+    background: #f8f3ee;
+    transition: transform .4s ease;
+    cursor: zoom-in;
+  }
+  .sp-main-img:hover { transform: scale(1.03); }
+  .img-placeholder {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #fef3e2 0%, #fde8d0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+  }
+
+  /* ── Thông tin sản phẩm ─────────────────────────────── */
+  .sp-brand-badge {
+    display: inline-block;
+    background: #fff3e0;
+    color: #e65100;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #ffcc80;
+  }
+  .sp-ten {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    line-height: 1.3;
+    color: #1a1a2e;
+  }
+  .sp-gia-km {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #e53935;
+  }
+  .sp-gia-goc {
+    font-size: 1.1rem;
+    color: #9e9e9e;
+    text-decoration: line-through;
+  }
+  .sp-gia-chinh {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #e53935;
+  }
+  .badge-km {
+    background: #e53935;
+    color: white;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    vertical-align: middle;
+  }
+
+  /* ── Tabs ───────────────────────────────────────────── */
+  .tab-custom .nav-link {
+    color: #666;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: .75rem 1.25rem;
+    transition: all .2s;
+  }
+  .tab-custom .nav-link:hover { color: #e65100; }
+  .tab-custom .nav-link.active {
+    color: #e65100;
+    border-bottom-color: #e65100;
+    background: transparent;
+    font-weight: 600;
+  }
+
+  /* ── Mô tả ──────────────────────────────────────────── */
+  .mo-ta-content {
+    font-size: 1rem;
+    line-height: 1.9;
+    color: #444;
+  }
+  .mo-ta-content p { margin-bottom: 1rem; }
+
+  /* ── Thông số kỹ thuật ──────────────────────────────── */
+  .thong-so-table tr:nth-child(even) td { background: #fafafa; }
+  .thong-so-table td {
+    padding: .7rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+  .thong-so-table td:first-child {
+    font-weight: 600;
+    color: #555;
+    width: 35%;
+    background: #fff8f3;
+  }
+
+  /* ── Tồn kho ────────────────────────────────────────── */
+  .ton-kho-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .6rem .8rem;
+    border-radius: 10px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    margin-bottom: .5rem;
+    transition: background .2s;
+  }
+  .ton-kho-item:hover { background: #fff3e0; }
+
+  /* ── Đánh giá ───────────────────────────────────────── */
+  .star-rating .bi-star-fill { color: #ffc107; font-size: 1.1rem; }
+  .star-rating .bi-star { color: #ddd; font-size: 1.1rem; }
+  .danh-gia-card {
+    border: none;
+    background: #fafafa;
+    border-radius: 14px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .danh-gia-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8a65, #ff6b35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Nút thêm giỏ hàng ──────────────────────────────── */
+  .btn-them-gio {
+    background: linear-gradient(135deg, #ff6b35, #e65100);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: .9rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: .02em;
+    transition: all .3s;
+    box-shadow: 0 4px 15px rgba(230,81,0,.3);
+  }
+  .btn-them-gio:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(230,81,0,.4);
+    color: white;
+  }
+  .btn-mua-ngay {
+    background: #1a1a2e;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: .9rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all .3s;
+  }
+  .btn-mua-ngay:hover {
+    background: #16213e;
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  /* ── SP liên quan ───────────────────────────────────── */
+  .sp-lq-card {
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all .3s;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  }
+  .sp-lq-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  }
+  .sp-lq-img {
+    height: 160px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  /* ── Breadcrumb ─────────────────────────────────────── */
+  .breadcrumb-item a { color: #e65100; text-decoration: none; }
+  .breadcrumb-item a:hover { text-decoration: underline; }
+
+  /* ── Sticky buy box mobile ──────────────────────────── */
+  @media (max-width: 768px) {
+    .sp-ten { font-size: 1.4rem; }
+    .sp-gia-km, .sp-gia-chinh { font-size: 1.6rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}">Trang chủ</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'danh_sach_san_pham' %}">Sản phẩm</a></li>
+      {% if san_pham.danh_muc %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'danh_sach_san_pham' %}?danh_muc={{ san_pham.danh_muc.pk }}">
+          {{ san_pham.danh_muc.ten }}
+        </a>
+      </li>
+      {% endif %}
+      <li class="breadcrumb-item active text-truncate" style="max-width:200px;">{{ san_pham.ten }}</li>
+    </ol>
+  </nav>
+
+  <!-- ════ HERO: ẢNH + THÔNG TIN ════ -->
+  <div class="row g-5 mb-5">
+
+    <!-- Cột ảnh -->
+    <div class="col-lg-5">
+      <div class="sp-gallery-wrap">
+        {% if san_pham.hinh_anh %}
+          <img src="{{ san_pham.hinh_anh.url }}"
+               alt="{{ san_pham.ten }}"
+               class="sp-main-img"
+               id="main-img">
+        {% else %}
+          <div class="img-placeholder">👶</div>
+        {% endif %}
+
+        <!-- Thông tin nhanh bên dưới ảnh -->
+        <div class="row g-2 mt-3 text-center">
+          <div class="col-4">
+            <div class="bg-white rounded-3 p-2 shadow-sm">
+              <div style="font-size:1.3rem;">🚚</div>
+              <div style="font-size:.7rem; color:#666; font-weight:600;">Giao nhanh</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="bg-white rounded-3 p-2 shadow-sm">
+              <div style="font-size:1.3rem;">✅</div>
+              <div style="font-size:.7rem; color:#666; font-weight:600;">Hàng chính hãng</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="bg-white rounded-3 p-2 shadow-sm">
+              <div style="font-size:1.3rem;">🔄</div>
+              <div style="font-size:.7rem; color:#666; font-weight:600;">Đổi trả 7 ngày</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột thông tin -->
+    <div class="col-lg-7">
+
+      <!-- Brand + mã SP -->
+      <div class="d-flex align-items-center gap-2 mb-2">
+        {% if san_pham.thuong_hieu %}
+          <span class="sp-brand-badge">{{ san_pham.thuong_hieu }}</span>
+        {% endif %}
+        <span class="text-muted" style="font-size:.8rem;">Mã: {{ san_pham.ma_san_pham }}</span>
+        {% if san_pham.xuat_xu %}
+          <span class="text-muted" style="font-size:.8rem;">🌏 {{ san_pham.xuat_xu }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Tên sản phẩm -->
+      <h1 class="sp-ten mb-3">{{ san_pham.ten }}</h1>
+
+      <!-- Đánh giá sao tổng quan -->
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="star-rating">
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+        </span>
+        <span class="text-muted small">(128 đánh giá)</span>
+        <span class="text-muted small">|</span>
+        <span class="text-success small fw-semibold">✓ Đã bán 1.2k+</span>
+      </div>
+
+      <!-- Giá -->
+      <div class="mb-4 p-3 rounded-3" style="background:#fff8f3; border:1px solid #ffe0cc;">
+        {% if san_pham.co_khuyen_mai %}
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <span class="sp-gia-km">{{ san_pham.gia_khuyen_mai|floatformat:0 }}₫</span>
+            <span class="sp-gia-goc">{{ san_pham.gia_ban|floatformat:0 }}₫</span>
+            {% with pct=san_pham.gia_khuyen_mai|divisibleby:san_pham.gia_ban %}
+            <span class="badge-km">SALE</span>
+            {% endwith %}
+          </div>
+          <div class="text-success small mt-1 fw-semibold">
+            🎉 Tiết kiệm {{ san_pham.gia_ban|add:"-"|add:san_pham.gia_khuyen_mai|floatformat:0 }}₫ so với giá gốc
+          </div>
+        {% else %}
+          <span class="sp-gia-chinh">{{ san_pham.gia_ban|floatformat:0 }}₫</span>
+        {% endif %}
+      </div>
+
+      <!-- Mô tả ngắn -->
+      {% if san_pham.mo_ta_ngan %}
+      <p class="mb-4" style="color:#555; font-size:1.05rem; line-height:1.7; border-left:3px solid #ff6b35; padding-left:1rem;">
+        {{ san_pham.mo_ta_ngan }}
+      </p>
+      {% endif %}
+
+      <!-- Chọn số lượng + Thêm giỏ -->
+      <form method="post" action="{% url 'them_vao_gio' san_pham.pk %}">
+        {% csrf_token %}
+        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+          <label class="fw-semibold">Số lượng:</label>
+          <div class="d-flex align-items-center border rounded-3 overflow-hidden">
+            <button type="button" class="btn px-3 py-2" id="btn-minus"
+                    style="background:#f5f5f5; border:none;">−</button>
+            <input type="number" name="so_luong" id="so_luong" value="1" min="1" max="99"
+                   class="form-control text-center border-0"
+                   style="width:56px; box-shadow:none; font-weight:600;">
+            <button type="button" class="btn px-3 py-2" id="btn-plus"
+                    style="background:#f5f5f5; border:none;">+</button>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 flex-wrap">
+          <button type="submit" class="btn btn-them-gio flex-grow-1">
+            <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+          </button>
+          <a href="{% url 'dat_hang' %}" class="btn btn-mua-ngay flex-grow-1">
+            ⚡ Mua ngay
+          </a>
+        </div>
+      </form>
+
+      <!-- Tồn kho cửa hàng -->
+      {% if ton_khos %}
+      <div class="mt-4">
+        <div class="fw-semibold mb-2">
+          <i class="bi bi-geo-alt text-danger"></i> Tình trạng tồn kho:
+        </div>
+        {% for tk in ton_khos|slice:":3" %}
+        <div class="ton-kho-item">
+          <span class="small">🏪 {{ tk.cua_hang.ten }}</span>
+          {% if tk.so_luong > tk.so_luong_toi_thieu %}
+            <span class="badge bg-success rounded-pill">Còn {{ tk.so_luong }} sản phẩm</span>
+          {% elif tk.so_luong > 0 %}
+            <span class="badge bg-warning text-dark rounded-pill">Còn ít ({{ tk.so_luong }})</span>
+          {% else %}
+            <span class="badge bg-secondary rounded-pill">Hết hàng</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if ton_khos.count > 3 %}
+        <div class="text-muted small mt-1">
+          + {{ ton_khos.count|add:"-3" }} cửa hàng khác có sẵn
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- ════ TABS CHI TIẾT ════ -->
+  <div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-body p-0">
+
+      <!-- Tab headers -->
+      <ul class="nav tab-custom border-bottom px-3" id="spTab">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-mo-ta">
+            📝 Mô tả sản phẩm
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-thong-so">
+            📊 Thông số kỹ thuật
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-danh-gia">
+            ⭐ Đánh giá (128)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-van-chuyen">
+            🚚 Vận chuyển & Đổi trả
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab content -->
+      <div class="tab-content p-4">
+
+        <!-- Tab 1: Mô tả -->
+        <div class="tab-pane fade show active" id="tab-mo-ta">
+          <div class="row">
+            <div class="col-lg-8">
+              <div class="mo-ta-content">
+                {% if san_pham.mo_ta_chi_tiet %}
+                  <!-- Chia mô tả thành đoạn văn -->
+                  {% for dong in san_pham.mo_ta_chi_tiet.split|slice:":200" %}{% endfor %}
+                  <p>{{ san_pham.mo_ta_chi_tiet }}</p>
+                {% else %}
+                  <p class="text-muted">Chưa có mô tả chi tiết cho sản phẩm này.</p>
+                {% endif %}
+              </div>
+
+              <!-- Điểm nổi bật -->
+              <div class="mt-4 p-4 rounded-3" style="background: linear-gradient(135deg,#fff8f3,#ffeee0);">
+                <h6 class="fw-bold mb-3">✨ Điểm nổi bật</h6>
+                <div class="row g-2">
+                  {% if san_pham.thuong_hieu %}
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2">
+                      <span style="color:#e65100; font-size:1.1rem;">✓</span>
+                      <span class="small">Thương hiệu: <strong>{{ san_pham.thuong_hieu }}</strong></span>
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% if san_pham.xuat_xu %}
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2">
+                      <span style="color:#e65100; font-size:1.1rem;">✓</span>
+                      <span class="small">Xuất xứ: <strong>{{ san_pham.xuat_xu }}</strong></span>
+                    </div>
+                  </div>
+                  {% endif %}
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2">
+                      <span style="color:#e65100; font-size:1.1rem;">✓</span>
+                      <span class="small"><strong>Hàng chính hãng</strong> 100%</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2">
+                      <span style="color:#e65100; font-size:1.1rem;">✓</span>
+                      <span class="small"><strong>Đổi trả</strong> trong 7 ngày</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2">
+                      <span style="color:#e65100; font-size:1.1rem;">✓</span>
+                      <span class="small"><strong>Giao hàng</strong> toàn quốc</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2">
+                      <span style="color:#e65100; font-size:1.1rem;">✓</span>
+                      <span class="small"><strong>Tư vấn</strong> miễn phí 24/7</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sidebar cam kết -->
+            <div class="col-lg-4 mt-4 mt-lg-0">
+              <div class="p-3 border rounded-3 mb-3" style="border-color:#ffe0cc !important;">
+                <h6 class="fw-bold mb-3" style="color:#e65100;">🛡️ Cam kết Con Cưng</h6>
+                {% for cam_ket in cam_kets %}
+                <div class="d-flex gap-2 mb-2">
+                  <span>{{ cam_ket.icon }}</span>
+                  <div>
+                    <div class="fw-semibold small">{{ cam_ket.tieu_de }}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{{ cam_ket.mo_ta }}</div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+
+              <div class="p-3 bg-light rounded-3 text-center">
+                <div style="font-size:2rem;">📞</div>
+                <div class="fw-bold">Hotline tư vấn</div>
+                <div class="fs-4 fw-bold" style="color:#e65100;">1800 6996</div>
+                <div class="text-muted small">Miễn phí · 8:00 - 22:00 hàng ngày</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Thông số kỹ thuật -->
+        <div class="tab-pane fade" id="tab-thong-so">
+          <div class="row">
+            <div class="col-lg-7">
+              <h6 class="fw-bold mb-3">📋 Thông số chi tiết</h6>
+              <table class="table thong-so-table border rounded-3 overflow-hidden">
+                <tbody>
+                  <tr>
+                    <td>Tên sản phẩm</td>
+                    <td>{{ san_pham.ten }}</td>
+                  </tr>
+                  <tr>
+                    <td>Mã sản phẩm</td>
+                    <td><code>{{ san_pham.ma_san_pham }}</code></td>
+                  </tr>
+                  {% if san_pham.danh_muc %}
+                  <tr>
+                    <td>Danh mục</td>
+                    <td>{{ san_pham.danh_muc.ten }}</td>
+                  </tr>
+                  {% endif %}
+                  {% if san_pham.thuong_hieu %}
+                  <tr>
+                    <td>Thương hiệu</td>
+                    <td><strong>{{ san_pham.thuong_hieu }}</strong></td>
+                  </tr>
+                  {% endif %}
+                  {% if san_pham.xuat_xu %}
+                  <tr>
+                    <td>Xuất xứ</td>
+                    <td>{{ san_pham.xuat_xu }}</td>
+                  </tr>
+                  {% endif %}
+                  {% if san_pham.trong_luong %}
+                  <tr>
+                    <td>Trọng lượng</td>
+                    <td>
+                      {% if san_pham.trong_luong >= 1000 %}
+                        {{ san_pham.trong_luong|divisibleby:1000 }} kg ({{ san_pham.trong_luong|floatformat:0 }}g)
+                      {% else %}
+                        {{ san_pham.trong_luong|floatformat:0 }} g
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td>Giá niêm yết</td>
+                    <td class="fw-semibold">{{ san_pham.gia_ban|floatformat:0 }} ₫</td>
+                  </tr>
+                  {% if san_pham.gia_khuyen_mai %}
+                  <tr>
+                    <td>Giá khuyến mãi</td>
+                    <td class="fw-semibold text-danger">{{ san_pham.gia_khuyen_mai|floatformat:0 }} ₫</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td>Trạng thái</td>
+                    <td>
+                      {% if san_pham.dang_ban %}
+                        <span class="badge bg-success">Đang kinh doanh</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Ngừng kinh doanh</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Ngày cập nhật</td>
+                    <td>{{ san_pham.ngay_cap_nhat|date:"d/m/Y" }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="col-lg-5 mt-4 mt-lg-0">
+              <h6 class="fw-bold mb-3">🏪 Có mặt tại</h6>
+              {% if ton_khos %}
+                {% for tk in ton_khos %}
+                <div class="ton-kho-item mb-2">
+                  <div>
+                    <div class="fw-semibold small">{{ tk.cua_hang.ten }}</div>
+                    <div class="text-muted" style="font-size:.75rem;">{{ tk.cua_hang.dia_chi|truncatechars:40 }}</div>
+                  </div>
+                  {% if tk.so_luong > 0 %}
+                    <span class="badge bg-success">{{ tk.so_luong }} SP</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Hết</span>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted">Liên hệ để biết tình trạng hàng.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Đánh giá -->
+        <div class="tab-pane fade" id="tab-danh-gia">
+
+          <!-- Tổng quan đánh giá -->
+          <div class="row g-4 mb-4">
+            <div class="col-md-3 text-center">
+              <div style="font-size:4rem; font-weight:700; color:#1a1a2e; font-family:'Playfair Display',serif;">5.0</div>
+              <div class="star-rating mb-1">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <div class="text-muted small">128 đánh giá</div>
+            </div>
+            <div class="col-md-9">
+              {% for row in danh_gia_summary %}
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="small text-nowrap">{{ row.sao }} ⭐</span>
+                <div class="progress flex-grow-1" style="height:8px; border-radius:10px;">
+                  <div class="progress-bar" role="progressbar"
+                       style="width:{{ row.pct }}%; background:#ffc107; border-radius:10px;"></div>
+                </div>
+                <span class="small text-muted text-nowrap">{{ row.so_luong }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Danh sách đánh giá mẫu -->
+          {% for dg in danh_gias %}
+          <div class="danh-gia-card">
+            <div class="d-flex gap-3">
+              <div class="danh-gia-avatar">{{ dg.ten_viet_tat }}</div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
+                  <div>
+                    <div class="fw-semibold">{{ dg.ten }}</div>
+                    <div class="star-rating">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= dg.sao %}
+                          <i class="bi bi-star-fill" style="font-size:.85rem;"></i>
+                        {% else %}
+                          <i class="bi bi-star" style="font-size:.85rem;"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <span class="text-muted small">{{ dg.ngay }}</span>
+                </div>
+                <p class="mt-2 mb-1 small" style="line-height:1.6; color:#444;">{{ dg.noi_dung }}</p>
+                {% if dg.da_mua %}
+                <span class="badge rounded-pill" style="background:#e8f5e9; color:#2e7d32; font-size:.7rem;">
+                  ✓ Đã mua tại Con Cưng
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- Form viết đánh giá -->
+          {% if user.is_authenticated %}
+          <div class="mt-4 p-4 rounded-3" style="background:#fafafa;">
+            <h6 class="fw-bold mb-3">✍️ Viết đánh giá của bạn</h6>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Đánh giá sao</label>
+              <div class="d-flex gap-2" id="star-selector">
+                {% for i in "12345" %}
+                <i class="bi bi-star-fill" data-star="{{ forloop.counter }}"
+                   style="font-size:1.5rem; color:#ddd; cursor:pointer;"
+                   class="star-btn"></i>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="mb-3">
+              <textarea class="form-control" rows="3"
+                        placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
+            </div>
+            <button class="btn btn-them-gio">Gửi đánh giá</button>
+          </div>
+          {% else %}
+          <div class="text-center py-3 text-muted">
+            <a href="{% url 'dang_nhap' %}">Đăng nhập</a> để viết đánh giá
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Tab 4: Vận chuyển & Đổi trả -->
+        <div class="tab-pane fade" id="tab-van-chuyen">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h6 class="fw-bold mb-3">🚚 Chính sách vận chuyển</h6>
+              <div class="d-flex gap-3 mb-3 p-3 rounded-3 bg-light">
+                <span style="font-size:1.5rem;">📦</span>
+                <div>
+                  <div class="fw-semibold">Giao hàng tiêu chuẩn</div>
+                  <div class="text-muted small">2-4 ngày làm việc · Phí 30.000₫</div>
+                  <div class="text-muted small">Miễn phí cho đơn từ 500.000₫</div>
+                </div>
+              </div>
+              <div class="d-flex gap-3 mb-3 p-3 rounded-3 bg-light">
+                <span style="font-size:1.5rem;">⚡</span>
+                <div>
+                  <div class="fw-semibold">Giao hàng nhanh (nội thành)</div>
+                  <div class="text-muted small">Trong ngày · Phí 50.000₫</div>
+                  <div class="text-muted small">Áp dụng cho HCM, HN, Đà Nẵng</div>
+                </div>
+              </div>
+              <div class="d-flex gap-3 p-3 rounded-3 bg-light">
+                <span style="font-size:1.5rem;">🏪</span>
+                <div>
+                  <div class="fw-semibold">Nhận tại cửa hàng</div>
+                  <div class="text-muted small">Miễn phí · Sẵn sàng sau 2 giờ</div>
+                  <div class="text-muted small">Hơn 500 cửa hàng toàn quốc</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold mb-3">🔄 Chính sách đổi trả</h6>
+              <div class="d-flex gap-3 mb-3 p-3 rounded-3" style="background:#e8f5e9;">
+                <span style="font-size:1.5rem;">✅</span>
+                <div>
+                  <div class="fw-semibold text-success">Đổi trả trong 7 ngày</div>
+                  <div class="text-muted small">Kể từ ngày nhận hàng</div>
+                  <div class="text-muted small">Sản phẩm còn nguyên tem, hộp</div>
+                </div>
+              </div>
+              <div class="d-flex gap-3 mb-3 p-3 rounded-3" style="background:#e3f2fd;">
+                <span style="font-size:1.5rem;">💰</span>
+                <div>
+                  <div class="fw-semibold" style="color:#1565c0;">Hoàn tiền 100%</div>
+                  <div class="text-muted small">Nếu hàng bị lỗi do nhà sản xuất</div>
+                  <div class="text-muted small">Hoàn tiền trong 24-48 giờ</div>
+                </div>
+              </div>
+              <div class="d-flex gap-3 p-3 rounded-3" style="background:#fff8e1;">
+                <span style="font-size:1.5rem;">📞</span>
+                <div>
+                  <div class="fw-semibold" style="color:#f57f17;">Hỗ trợ khách hàng</div>
+                  <div class="text-muted small">Hotline: 1800 6996 (miễn phí)</div>
+                  <div class="text-muted small">8:00 - 22:00 · 7 ngày/tuần</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SẢN PHẨM LIÊN QUAN ════ -->
+  {% if san_pham_lien_quan %}
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="fw-bold mb-0" style="font-family:'Playfair Display',serif;">
+        Sản phẩm liên quan
+      </h4>
+      <a href="{% url 'danh_sach_san_pham' %}?danh_muc={{ san_pham.danh_muc.pk }}"
+         class="text-decoration-none" style="color:#e65100;">Xem tất cả →</a>
+    </div>
+    <div class="row g-3">
+      {% for sp in san_pham_lien_quan %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card sp-lq-card h-100">
+          {% if sp.hinh_anh %}
+            <img src="{{ sp.hinh_anh.url }}" alt="{{ sp.ten }}" class="sp-lq-img">
+          {% else %}
+            <div class="sp-lq-img bg-light d-flex align-items-center
+                        justify-content-center" style="font-size:2.5rem;">👶</div>
+          {% endif %}
+          <div class="card-body p-3">
+            <p class="card-title small fw-semibold mb-1 lh-sm">
+              <a href="{% url 'chi_tiet_san_pham' sp.pk %}"
+                 class="text-dark text-decoration-none stretched-link">
+                {{ sp.ten|truncatechars:55 }}
+              </a>
+            </p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div>
+                {% if sp.co_khuyen_mai %}
+                  <div class="fw-bold text-danger small">{{ sp.gia_khuyen_mai|floatformat:0 }}₫</div>
+                  <div class="text-muted text-decoration-line-through" style="font-size:.75rem;">
+                    {{ sp.gia_ban|floatformat:0 }}₫
+                  </div>
+                {% else %}
+                  <div class="fw-bold text-danger small">{{ sp.gia_ban|floatformat:0 }}₫</div>
+                {% endif %}
+              </div>
+              <form method="post" action="{% url 'them_vao_gio' sp.pk %}"
+                    style="position:relative; z-index:1;">
+                {% csrf_token %}
+                <input type="hidden" name="so_luong" value="1">
+                <button type="submit" class="btn btn-sm"
+                        style="background:#ff6b35; color:white; border-radius:8px; padding:4px 10px;">
+                  <i class="bi bi-cart-plus"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Tăng/giảm số lượng ──────────────────────────────────
+document.getElementById('btn-minus').addEventListener('click', () => {
+  const inp = document.getElementById('so_luong');
+  if (parseInt(inp.value) > 1) inp.value = parseInt(inp.value) - 1;
+});
+document.getElementById('btn-plus').addEventListener('click', () => {
+  const inp = document.getElementById('so_luong');
+  if (parseInt(inp.value) < 99) inp.value = parseInt(inp.value) + 1;
+});
+
+// ── Star selector (viết đánh giá) ───────────────────────
+const stars = document.querySelectorAll('#star-selector .bi-star-fill');
+if (stars.length) {
+  stars.forEach((star, idx) => {
+    star.addEventListener('mouseenter', () => {
+      stars.forEach((s, i) => s.style.color = i <= idx ? '#ffc107' : '#ddd');
+    });
+    star.addEventListener('mouseleave', () => {
+      stars.forEach(s => s.style.color = '#ddd');
+    });
+    star.addEventListener('click', () => {
+      stars.forEach((s, i) => {
+        s.style.color = i <= idx ? '#ffc107' : '#ddd';
+        s.dataset.selected = i <= idx ? '1' : '0';
+      });
+    });
+  });
+}
+</script>
+{% endblock %}
