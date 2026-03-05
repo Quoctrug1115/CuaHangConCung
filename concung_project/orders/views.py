@@ -327,14 +327,39 @@ def quan_ly_don_hang(request):
     if trang_thai:
         qs = qs.filter(trang_thai=trang_thai)
 
+    # Tìm kiếm
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(
+            Q(ma_don_hang__icontains=q) |
+            Q(ho_ten_nguoi_nhan__icontains=q) |
+            Q(so_dien_thoai_nhan__icontains=q)
+        )
+
+    # Lọc theo hình thức giao
+    phuong_thuc_giao = request.GET.get('phuong_thuc_giao', '').strip()
+    if phuong_thuc_giao:
+        qs = qs.filter(phuong_thuc_giao=phuong_thuc_giao)
+
     if not request.user.la_admin and hasattr(request.user, 'nhan_vien'):
         qs = qs.filter(cua_hang=request.user.nhan_vien.cua_hang)
+
+    # Stats
+    all_qs = DonHang.objects.all()
+    if not request.user.la_admin and hasattr(request.user, 'nhan_vien'):
+        all_qs = all_qs.filter(cua_hang=request.user.nhan_vien.cua_hang)
 
     paginator = Paginator(qs.order_by('-ngay_tao'), 20)
     return render(request, 'orders/quan_ly.html', {
         'don_hangs':           paginator.get_page(request.GET.get('page', 1)),
         'trang_thai_hien_tai': trang_thai,
+        'tu_khoa':             q,
         'TRANG_THAI':          DonHang.TRANG_THAI,
+        'tong_don':            all_qs.count(),
+        'cho_xac_nhan':        all_qs.filter(trang_thai='cho_xac_nhan').count(),
+        'dang_giao':           all_qs.filter(trang_thai='dang_giao').count(),
+        'da_giao':             all_qs.filter(trang_thai='da_giao').count(),
+        'da_huy':              all_qs.filter(trang_thai='huy').count(),
     })
 
 

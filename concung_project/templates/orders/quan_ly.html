@@ -1,0 +1,318 @@
+{% extends 'admin_base.html' %}
+{% block title %}Quản lý đơn hàng - Con Cưng{% endblock %}
+{% block breadcrumb %} › Đơn hàng{% endblock %}
+{% block nav_don_hang %}class="on"{% endblock %}
+
+{% block extra_css %}
+<style>
+.order-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-bottom:1.1rem}
+.os-card{background:white;border-radius:11px;border:1px solid var(--line);padding:.75rem .9rem;display:flex;align-items:center;gap:.6rem;transition:transform .15s}
+.os-card:hover{transform:translateY(-2px)}
+.os-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.os-val{font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1}
+.os-lbl{font-size:.63rem;color:var(--sub);font-weight:600;margin-top:.1rem}
+
+.tt-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.22rem .6rem;border-radius:20px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.tt-cho_xac_nhan{background:#FFFBEB;color:#92400E}
+.tt-da_xac_nhan{background:#EFF6FF;color:#1E40AF}
+.tt-dang_dong_goi{background:#F5F3FF;color:#5B21B6}
+.tt-ban_giao_van_chuyen{background:#E0F2FE;color:#075985}
+.tt-dang_giao{background:#FDF4FF;color:#7E22CE}
+.tt-da_giao{background:#ECFDF5;color:#065F46}
+.tt-huy{background:#FEF2F2;color:#991B1B}
+
+.order-row{cursor:pointer}
+.order-row:hover td{background:#FFF8FD !important}
+
+/* Modal cập nhật */
+.modal-adm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1050;align-items:center;justify-content:center;padding:1rem}
+.modal-adm.show{display:flex}
+.modal-box{background:white;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-hdr{padding:1.1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-hdr h6{font-size:.95rem;font-weight:800;color:var(--ink);margin:0}
+.modal-close{background:none;border:none;font-size:1.4rem;color:var(--sub);cursor:pointer;line-height:1;padding:0}
+.modal-body{padding:1.2rem 1.3rem}
+.modal-foot{padding:.9rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.5rem;justify-content:flex-end}
+
+/* Progress steps */
+.tt-steps{display:flex;align-items:center;gap:0;margin:1rem 0;overflow-x:auto}
+.tt-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:52px}
+.tt-step-dot{width:28px;height:28px;border-radius:50%;border:2.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;transition:all .2s;background:white;flex-shrink:0}
+.tt-step-dot.done{background:var(--green);border-color:var(--green);color:white}
+.tt-step-dot.active{background:var(--or);border-color:var(--or);color:white;box-shadow:0 0 0 3px rgba(255,70,158,.2)}
+.tt-step-lbl{font-size:.6rem;color:var(--sub);margin-top:.3rem;text-align:center;font-weight:600;max-width:54px}
+.tt-line{flex:1;height:2px;background:var(--line);margin-bottom:1.1rem;transition:background .2s}
+.tt-line.done{background:var(--green)}
+
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem .8rem;background:#F8FAFC;border-radius:10px;padding:.9rem;margin-bottom:1rem;font-size:.8rem}
+.info-row .lbl{color:var(--sub);font-size:.7rem;font-weight:700;margin-bottom:.15rem;text-transform:uppercase}
+.info-row .val{color:var(--ink);font-weight:600}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+{% with tts=TRANG_THAI %}
+
+<!-- Stats -->
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem">
+  <div>
+    <h4 style="margin:0;font-size:1.15rem;font-weight:800;color:var(--ink)">📋 Quản lý đơn hàng</h4>
+    <p style="margin:.2rem 0 0;font-size:.77rem;color:var(--sub)">Xem và cập nhật trạng thái tất cả đơn hàng</p>
+  </div>
+</div>
+
+<div class="order-stats">
+  <a href="?" class="os-card" style="text-decoration:none">
+    <div class="os-ic" style="background:#FFF7ED">📋</div>
+    <div><div class="os-val">{{ tong_don|default:"0" }}</div><div class="os-lbl">Tổng đơn</div></div>
+  </a>
+  <a href="?trang_thai=cho_xac_nhan" class="os-card" style="text-decoration:none">
+    <div class="os-ic" style="background:#FFFBEB">⏳</div>
+    <div><div class="os-val" style="color:#D97706">{{ cho_xac_nhan|default:"0" }}</div><div class="os-lbl">Chờ xác nhận</div></div>
+  </a>
+  <a href="?trang_thai=dang_giao" class="os-card" style="text-decoration:none">
+    <div class="os-ic" style="background:#F5F3FF">🚚</div>
+    <div><div class="os-val" style="color:#7C3AED">{{ dang_giao|default:"0" }}</div><div class="os-lbl">Đang giao</div></div>
+  </a>
+  <a href="?trang_thai=da_giao" class="os-card" style="text-decoration:none">
+    <div class="os-ic" style="background:#ECFDF5">✅</div>
+    <div><div class="os-val" style="color:#065F46">{{ da_giao|default:"0" }}</div><div class="os-lbl">Đã giao</div></div>
+  </a>
+  <a href="?trang_thai=huy" class="os-card" style="text-decoration:none">
+    <div class="os-ic" style="background:#FEF2F2">❌</div>
+    <div><div class="os-val" style="color:#991B1B">{{ da_huy|default:"0" }}</div><div class="os-lbl">Đã huỷ</div></div>
+  </a>
+</div>
+
+<!-- Filter bar -->
+<form method="get" class="filter-bar">
+  <input type="text" name="q" class="fi-sm" style="width:220px" placeholder="🔍 Mã đơn, tên KH, SĐT..." value="{{ tu_khoa }}">
+  <select name="trang_thai" class="fi-sm">
+    <option value="">Tất cả trạng thái</option>
+    {% for val, label in TRANG_THAI %}
+    <option value="{{ val }}" {% if trang_thai_hien_tai == val %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="phuong_thuc_giao" class="fi-sm">
+    <option value="">Tất cả hình thức</option>
+    <option value="giao_tan_noi" {% if request.GET.phuong_thuc_giao == 'giao_tan_noi' %}selected{% endif %}>Giao tận nơi</option>
+    <option value="nhan_tai_cua_hang" {% if request.GET.phuong_thuc_giao == 'nhan_tai_cua_hang' %}selected{% endif %}>Nhận tại cửa hàng</option>
+  </select>
+  <button type="submit" class="btn-adm btn-gray">Lọc</button>
+  {% if trang_thai_hien_tai or tu_khoa %}<a href="?" class="btn-adm btn-gray">✕ Xoá lọc</a>{% endif %}
+</form>
+
+<!-- Table -->
+<div class="card-adm">
+  <div class="tbl-head">
+    <span class="tbl-title">
+      {% if trang_thai_hien_tai %}{{ trang_thai_hien_tai|capfirst }}{% else %}Tất cả đơn hàng{% endif %}
+      <span style="font-size:.75rem;color:var(--sub);font-weight:500;margin-left:.4rem">({{ don_hangs.paginator.count }} đơn)</span>
+    </span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="adm-tbl">
+      <thead>
+        <tr>
+          <th>Mã đơn</th>
+          <th>Khách hàng</th>
+          <th>Sản phẩm</th>
+          <th>Tổng tiền</th>
+          <th>Thanh toán</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dh in don_hangs %}
+        <tr class="order-row" onclick="moModal('{{ dh.pk }}')">
+          <td>
+            <code style="background:#F1F5F9;padding:.15rem .45rem;border-radius:5px;font-size:.72rem;color:var(--or);font-weight:700">{{ dh.ma_don_hang }}</code>
+          </td>
+          <td>
+            <div style="font-weight:700;font-size:.82rem">{{ dh.ho_ten_nguoi_nhan }}</div>
+            <div style="font-size:.68rem;color:var(--sub)">{{ dh.so_dien_thoai_nhan }}</div>
+          </td>
+          <td>
+            <span style="font-size:.8rem;color:var(--sub)">{{ dh.chi_tiets.count }} sản phẩm</span>
+          </td>
+          <td>
+            <span style="font-weight:800;color:var(--or);font-size:.88rem">{{ dh.tong_thanh_toan|floatformat:0 }}đ</span>
+          </td>
+          <td>
+            <span style="font-size:.76rem;color:var(--sub)">{{ dh.get_phuong_thuc_thanh_toan_display }}</span>
+          </td>
+          <td>
+            <span class="tt-badge tt-{{ dh.trang_thai }}">{{ dh.get_trang_thai_display }}</span>
+          </td>
+          <td style="font-size:.74rem;color:var(--sub);white-space:nowrap">
+            {{ dh.ngay_tao|date:"d/m/Y" }}<br>
+            <span style="font-size:.68rem">{{ dh.ngay_tao|date:"H:i" }}</span>
+          </td>
+          <td onclick="event.stopPropagation()">
+            <div class="td-actions">
+              <a href="{% url 'theo_doi_don_hang' dh.ma_don_hang %}" class="btn-adm btn-blue btn-sm" target="_blank">👁</a>
+              <button onclick="moModal('{{ dh.pk }}')" class="btn-adm btn-gray btn-sm">✏️ Cập nhật</button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <div class="empty-icon">📭</div>
+              <div style="font-weight:700;margin-bottom:.3rem">Không có đơn hàng nào</div>
+              {% if trang_thai_hien_tai or tu_khoa %}<a href="?" class="btn-adm btn-gray" style="margin-top:.4rem">Xoá bộ lọc</a>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Phân trang -->
+{% if don_hangs.has_other_pages %}
+<div class="pg">
+  {% if don_hangs.has_previous %}<a href="?page={{ don_hangs.previous_page_number }}&trang_thai={{ trang_thai_hien_tai }}&q={{ tu_khoa }}">←</a>{% endif %}
+  {% for p in don_hangs.paginator.page_range %}
+    {% if don_hangs.number == p %}<span class="cur">{{ p }}</span>
+    {% elif p > don_hangs.number|add:"-3" and p < don_hangs.number|add:"3" %}<a href="?page={{ p }}&trang_thai={{ trang_thai_hien_tai }}&q={{ tu_khoa }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if don_hangs.has_next %}<a href="?page={{ don_hangs.next_page_number }}&trang_thai={{ trang_thai_hien_tai }}&q={{ tu_khoa }}">→</a>{% endif %}
+</div>
+{% endif %}
+
+{% endwith %}
+
+<!-- ══ MODAL CẬP NHẬT ══ -->
+<div class="modal-adm" id="modalCapNhat">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <h6 id="modalTieuDe">📦 Cập nhật đơn hàng</h6>
+      <button class="modal-close" onclick="dongModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div style="text-align:center;padding:2rem;color:var(--sub)">⏳ Đang tải...</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TRANG_THAI_STEPS = [
+  {key:'cho_xac_nhan', label:'Chờ xác nhận'},
+  {key:'da_xac_nhan', label:'Đã xác nhận'},
+  {key:'dang_dong_goi', label:'Đóng gói'},
+  {key:'ban_giao_van_chuyen', label:'Bàn giao VC'},
+  {key:'dang_giao', label:'Đang giao'},
+  {key:'da_giao', label:'Đã giao'},
+];
+
+const donHangData = {
+  {% for dh in don_hangs %}
+  '{{ dh.pk }}': {
+    id: '{{ dh.pk }}',
+    ma: '{{ dh.ma_don_hang }}',
+    ten: '{{ dh.ho_ten_nguoi_nhan|escapejs }}',
+    sdt: '{{ dh.so_dien_thoai_nhan }}',
+    dia_chi: '{{ dh.dia_chi_giao_hang|escapejs }}',
+    tong: '{{ dh.tong_thanh_toan|floatformat:0 }}',
+    tt: '{{ dh.trang_thai }}',
+    tt_label: '{{ dh.get_trang_thai_display }}',
+    van_don: '{{ dh.ma_van_don|escapejs }}',
+    tt_url: '{% url "cap_nhat_trang_thai" dh.pk %}',
+    csrfToken: '{{ csrf_token }}',
+  },
+  {% endfor %}
+};
+
+function moModal(pk) {
+  const dh = donHangData[pk];
+  if (!dh) return;
+  document.getElementById('modalTieuDe').textContent = '📦 Đơn hàng ' + dh.ma;
+  const curIdx = TRANG_THAI_STEPS.findIndex(s => s.key === dh.tt);
+
+  // Build progress steps
+  let stepsHtml = '<div class="tt-steps">';
+  TRANG_THAI_STEPS.forEach((s, i) => {
+    const isDone = i < curIdx;
+    const isActive = i === curIdx;
+    const cls = isDone ? 'done' : isActive ? 'active' : '';
+    stepsHtml += `<div class="tt-step">
+      <div class="tt-step-dot ${cls}">${isDone ? '✓' : i+1}</div>
+      <div class="tt-step-lbl">${s.label}</div>
+    </div>`;
+    if (i < TRANG_THAI_STEPS.length - 1) {
+      stepsHtml += `<div class="tt-line ${isDone ? 'done' : ''}"></div>`;
+    }
+  });
+  stepsHtml += '</div>';
+
+  // Build form
+  let optionsHtml = '';
+  {% for val, label in TRANG_THAI %}
+  optionsHtml += `<option value="{{ val }}"${dh.tt==='{{ val }}'?' selected':''}>{{ label }}</option>`;
+  {% endfor %}
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="info-row">
+      <div><div class="lbl">Khách hàng</div><div class="val">${dh.ten}</div></div>
+      <div><div class="lbl">Số điện thoại</div><div class="val">${dh.sdt}</div></div>
+      <div><div class="lbl">Tổng thanh toán</div><div class="val" style="color:var(--or);font-size:.95rem">${parseInt(dh.tong).toLocaleString('vi-VN')}đ</div></div>
+      <div><div class="lbl">Trạng thái hiện tại</div><div class="val"><span class="tt-badge tt-${dh.tt}">${dh.tt_label}</span></div></div>
+      <div style="grid-column:1/-1"><div class="lbl">Địa chỉ giao hàng</div><div class="val">${dh.dia_chi}</div></div>
+    </div>
+    ${stepsHtml}
+    <form method="post" action="${dh.tt_url}" id="formCapNhat">
+      <input type="hidden" name="csrfmiddlewaretoken" value="${dh.csrfToken}">
+      <div class="form-adm">
+        <div class="form-group">
+          <label>Cập nhật trạng thái</label>
+          <select name="trang_thai" class="form-control">${optionsHtml}</select>
+        </div>
+        <div class="form-group">
+          <label>Mã vận đơn (nếu có)</label>
+          <input type="text" name="ma_van_don" class="form-control" value="${dh.van_don}" placeholder="VD: GHTK123456789">
+        </div>
+        <div class="form-group">
+          <label>Ghi chú nội bộ</label>
+          <textarea name="ghi_chu" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng này..."></textarea>
+        </div>
+      </div>
+    </form>
+  `;
+  // Attach footer buttons
+  document.getElementById('modalBody').insertAdjacentHTML('afterend', `
+    <div class="modal-foot" id="modalFoot">
+      <button class="btn-adm btn-gray" onclick="dongModal()">Huỷ</button>
+      <button class="btn-adm btn-or" onclick="document.getElementById('formCapNhat').submit()">💾 Lưu thay đổi</button>
+    </div>
+  `);
+  // Remove old footer if any
+  const oldFoot = document.querySelectorAll('#modalCapNhat .modal-foot');
+  if (oldFoot.length > 1) oldFoot[0].remove();
+
+  document.getElementById('modalCapNhat').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function dongModal() {
+  document.getElementById('modalCapNhat').classList.remove('show');
+  document.body.style.overflow = '';
+  // Clean up footer
+  const foot = document.getElementById('modalFoot');
+  if (foot) foot.remove();
+}
+
+document.getElementById('modalCapNhat').addEventListener('click', function(e) {
+  if (e.target === this) dongModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') dongModal(); });
+</script>
+{% endblock %}

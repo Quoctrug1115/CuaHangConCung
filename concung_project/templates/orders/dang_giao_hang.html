@@ -1,0 +1,266 @@
+{% extends 'admin_base.html' %}
+{% block title %}Đang giao hàng - Con Cưng{% endblock %}
+{% block page_title %}Đang giao hàng{% endblock %}
+{% block breadcrumb %} › Đơn hàng › Đang giao{% endblock %}
+{% block extra_css %}
+<style>
+.dg-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.7rem;margin-bottom:1rem}
+.dgs{background:white;border-radius:12px;border:1px solid var(--line);padding:.8rem .9rem;display:flex;align-items:center;gap:.6rem}
+.dgs-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+/* Delivery card */
+.dg-card{background:white;border-radius:14px;border:1.5px solid #DBEAFE;margin-bottom:.8rem;overflow:hidden;transition:all .15s}
+.dg-card:hover{border-color:#93C5FD;box-shadow:0 4px 18px rgba(59,130,246,.12)}
+.dg-head{padding:.75rem 1.1rem;background:#EFF6FF;border-bottom:1px solid #DBEAFE;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.dg-code{font-size:.88rem;font-weight:800;color:var(--ink)}
+/* Progress steps */
+.progress-steps{display:flex;align-items:center;padding:.85rem 1.1rem;background:#F8FAFC;border-bottom:1px solid var(--line);gap:0}
+.step{display:flex;align-items:center;flex:1}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;border:2px solid var(--line);background:white;flex-shrink:0;transition:all .2s}
+.step-dot.done{background:#22C55E;border-color:#22C55E;color:white}
+.step-dot.active{background:var(--or);border-color:var(--or);color:white;box-shadow:0 0 0 3px rgba(255,107,53,.2)}
+.step-line{flex:1;height:2px;background:var(--line)}
+.step-line.done{background:#22C55E}
+.step-label{font-size:.62rem;font-weight:700;color:var(--sub);text-align:center;margin-top:.25rem;white-space:nowrap}
+.step.active .step-label{color:var(--or)}
+.step.done .step-label{color:#166534}
+.step-wrap{display:flex;flex-direction:column;align-items:center;flex:1}
+/* Delivery body */
+.dg-body{padding:.9rem 1.1rem;display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.dg-sect label{display:block;font-size:.64rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem}
+.dg-sect-val{font-size:.81rem;font-weight:600;color:var(--ink)}
+/* Shipper info */
+.shipper-box{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:.75rem .9rem;display:flex;align-items:center;gap:.65rem;margin:.7rem 1.1rem;margin-top:0}
+.shipper-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#22C55E,#16A34A);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0}
+/* Map pin quick view */
+.addr-box{background:#F8FAFC;border-radius:9px;padding:.6rem .8rem;margin:.5rem 1.1rem;font-size:.78rem;color:var(--sub);display:flex;gap:.5rem;align-items:flex-start}
+.dg-foot{padding:.75rem 1.1rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+/* Timeline for status history */
+.timeline{padding:.8rem 1.1rem;background:#FAFBFD;border-top:1px solid var(--line)}
+.tl-item{display:flex;gap:.6rem;padding:.3rem 0}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--or);flex-shrink:0;margin-top:.22rem}
+.tl-done{background:#22C55E}
+.tl-content{flex:1;font-size:.74rem}
+.tl-title{font-weight:700;color:var(--ink)}
+.tl-time{color:var(--sub);font-size:.67rem}
+/* Tabs for filtering by delivery status */
+.dg-tabs{display:flex;gap:.3rem;overflow-x:auto;margin-bottom:.8rem;flex-wrap:nowrap}
+.dg-tab{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;border:1.5px solid var(--line);color:var(--sub);background:white;transition:all .14s}
+.dg-tab:hover{background:#F8FAFC}
+.dg-tab.active{border-color:var(--blue);background:#EFF6FF;color:var(--blue)}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hd{padding:1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
+.modal-body{padding:1.3rem}
+.modal-ft{padding:.85rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.5rem;justify-content:flex-end}
+.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.fg{margin-bottom:.8rem}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.25rem}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="dg-stats">
+  <div class="dgs"><div class="dgs-ic" style="background:#EFF6FF">🚚</div><div><div style="font-size:1.5rem;font-weight:800;color:var(--blue);line-height:1">{{ dang_giao|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Đang giao</div></div></div>
+  <div class="dgs"><div class="dgs-ic" style="background:#F3E8FF">📦</div><div><div style="font-size:1.5rem;font-weight:800;color:#7C3AED;line-height:1">{{ dang_dong_goi|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Đang đóng gói</div></div></div>
+  <div class="dgs"><div class="dgs-ic" style="background:#FFEDD5">🏷</div><div><div style="font-size:1.5rem;font-weight:800;color:#C2410C;line-height:1">{{ ban_giao_vc|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Bàn giao VC</div></div></div>
+  <div class="dgs"><div class="dgs-ic" style="background:#F0FDF4">✅</div><div><div style="font-size:1.5rem;font-weight:800;color:var(--green);line-height:1">{{ giao_xong_hom_nay|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Giao xong hôm nay</div></div></div>
+  <div class="dgs"><div class="dgs-ic" style="background:#EFF6FF">💰</div><div><div style="font-size:1rem;font-weight:800;color:var(--or);line-height:1.1">{{ doanh_thu_hom_nay|floatformat:0|default:"0" }}đ</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Doanh thu hôm nay</div></div></div>
+</div>
+
+<!-- Status tabs -->
+<div class="dg-tabs">
+  <a href="{% url 'dang_giao_hang' %}" class="dg-tab {% if not request.GET.trang_thai %}active{% endif %}">🚀 Tất cả đang vận chuyển</a>
+  <a href="?trang_thai=dang_dong_goi" class="dg-tab {% if request.GET.trang_thai == 'dang_dong_goi' %}active{% endif %}">📦 Đang đóng gói</a>
+  <a href="?trang_thai=ban_giao_van_chuyen" class="dg-tab {% if request.GET.trang_thai == 'ban_giao_van_chuyen' %}active{% endif %}">🏷 Bàn giao VC</a>
+  <a href="?trang_thai=dang_giao" class="dg-tab {% if request.GET.trang_thai == 'dang_giao' %}active{% endif %}">🚚 Đang giao</a>
+</div>
+
+<div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap">
+  <input style="border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none;width:200px" type="text" placeholder="🔍 Mã đơn, tên khách, mã vận đơn..." id="dgSearch">
+  <select style="border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none">
+    <option>Tất cả cửa hàng</option>
+    {% for ch in cua_hangs %}<option>{{ ch.ten }}</option>{% endfor %}
+  </select>
+  <div style="flex:1"></div>
+  <span style="font-size:.75rem;color:var(--sub)">{{ don_hangs|length }} đơn đang vận chuyển</span>
+</div>
+
+{% for dh in don_hangs %}
+{% with ts=dh.trang_thai %}
+<div class="dg-card">
+  <div class="dg-head">
+    <span style="font-size:.75rem">🚚</span>
+    <span class="dg-code">#{{ dh.ma_don_hang }}</span>
+    <span class="tt-pill tt-{{ ts }}">
+      {% if ts == 'dang_dong_goi' %}📦 Đóng gói{% elif ts == 'ban_giao_van_chuyen' %}🏷 Bàn giao VC{% elif ts == 'dang_giao' %}🚚 Đang giao{% endif %}
+    </span>
+    {% if dh.ma_van_don %}<span style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;padding:.18rem .5rem;border-radius:6px;font-size:.68rem;font-weight:700">📋 {{ dh.ma_van_don }}</span>{% endif %}
+    <span style="margin-left:auto;font-size:.7rem;color:var(--sub)">{{ dh.ngay_tao|date:"d/m H:i" }}</span>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-steps">
+    {% with steps_data="da_xac_nhan,dang_dong_goi,ban_giao_van_chuyen,dang_giao,da_giao" %}
+    <div class="step-wrap">
+      <div class="step-dot done">✓</div>
+      <div class="step-label">Xác nhận</div>
+    </div>
+    <div class="step-line done"></div>
+    <div class="step-wrap">
+      <div class="step-dot {% if ts in 'dang_dong_goi,ban_giao_van_chuyen,dang_giao,da_giao' %}done{% elif ts == 'dang_dong_goi' %}active{% endif %}">📦</div>
+      <div class="step-label">Đóng gói</div>
+    </div>
+    <div class="step-line {% if ts in 'ban_giao_van_chuyen,dang_giao,da_giao' %}done{% endif %}"></div>
+    <div class="step-wrap">
+      <div class="step-dot {% if ts in 'dang_giao,da_giao' %}done{% elif ts == 'ban_giao_van_chuyen' %}active{% endif %}">🏷</div>
+      <div class="step-label">Bàn giao</div>
+    </div>
+    <div class="step-line {% if ts == 'da_giao' %}done{% endif %}"></div>
+    <div class="step-wrap">
+      <div class="step-dot {% if ts == 'da_giao' %}done{% elif ts == 'dang_giao' %}active{% endif %}">🚚</div>
+      <div class="step-label">Đang giao</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-wrap">
+      <div class="step-dot">🎉</div>
+      <div class="step-label">Hoàn thành</div>
+    </div>
+    {% endwith %}
+  </div>
+
+  <div class="dg-body">
+    <div>
+      <div class="dg-sect">
+        <label>Người nhận</label>
+        <div class="dg-sect-val">{{ dh.ho_ten_nguoi_nhan }}</div>
+        <div style="font-size:.73rem;color:var(--sub)">📱 {{ dh.so_dien_thoai_nhan }}</div>
+      </div>
+    </div>
+    <div>
+      <div class="dg-sect">
+        <label>Cửa hàng xử lý</label>
+        <div class="dg-sect-val">{{ dh.cua_hang.ten|default:"—" }}</div>
+      </div>
+    </div>
+    <div>
+      <div class="dg-sect">
+        <label>Phương thức</label>
+        <div class="dg-sect-val">{{ dh.get_phuong_thuc_giao_display }}</div>
+        <div style="font-size:.72rem;color:var(--sub)">💳 {{ dh.get_phuong_thuc_thanh_toan_display }}</div>
+      </div>
+    </div>
+    <div>
+      <div class="dg-sect">
+        <label>Sản phẩm</label>
+        <div class="dg-sect-val">{{ dh.chi_tiets.count }} mặt hàng</div>
+        <div style="font-size:.72rem;color:var(--or);font-weight:700">{{ dh.tong_thanh_toan|floatformat:0 }}đ</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="addr-box">
+    📍 <span>{{ dh.dia_chi_giao_hang }}</span>
+  </div>
+
+  <div class="dg-foot">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      {% if dh.ma_van_don %}
+      <span style="font-size:.75rem;color:var(--sub)">Mã VĐ: <b style="color:var(--ink)">{{ dh.ma_van_don }}</b></span>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <a href="{% url 'chi_tiet_don_hang' dh.pk %}" class="btn-adm btn-blue btn-sm">👁 Chi tiết</a>
+      <button class="btn-adm btn-gray btn-sm" onclick="openCapNhatModal({{ dh.id }},'{{ dh.ma_don_hang }}','{{ ts }}')">✏️ Cập nhật</button>
+      {% if ts == 'dang_giao' %}
+      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+        {% csrf_token %}<input type="hidden" name="trang_thai" value="da_giao">
+        <button type="submit" class="btn-adm btn-or">🎉 Đã giao thành công</button>
+      </form>
+      {% elif ts == 'dang_dong_goi' %}
+      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+        {% csrf_token %}<input type="hidden" name="trang_thai" value="ban_giao_van_chuyen">
+        <button type="submit" class="btn-adm btn-green btn-sm">→ Bàn giao VC</button>
+      </form>
+      {% elif ts == 'ban_giao_van_chuyen' %}
+      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+        {% csrf_token %}<input type="hidden" name="trang_thai" value="dang_giao">
+        <button type="submit" class="btn-adm btn-green btn-sm">🚚 Bắt đầu giao</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% empty %}
+<div class="empty-state" style="padding:3rem">
+  <div style="font-size:3.5rem;margin-bottom:.6rem">🚚</div>
+  <div style="font-weight:800;color:var(--ink);font-size:1rem;margin-bottom:.3rem">Không có đơn hàng đang giao</div>
+  <div style="font-size:.8rem">Tất cả đơn hàng đã được giao hoặc chưa có đơn mới</div>
+</div>
+{% endfor %}
+
+{% if don_hangs.has_other_pages %}
+<div class="pg">{% if don_hangs.has_previous %}<a href="?page={{ don_hangs.previous_page_number }}">←</a>{% endif %}{% for p in don_hangs.paginator.page_range %}{% if don_hangs.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}">{{ p }}</a>{% endif %}{% endfor %}{% if don_hangs.has_next %}<a href="?page={{ don_hangs.next_page_number }}">→</a>{% endif %}</div>
+{% endif %}
+
+<!-- Cap nhat trang thai modal -->
+<div class="modal-overlay" id="capNhatModal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div style="width:32px;height:32px;border-radius:8px;background:#EFF6FF;display:flex;align-items:center;justify-content:center">🚚</div>
+      <div style="font-size:.9rem;font-weight:800;color:var(--ink);flex:1">Cập nhật trạng thái</div>
+      <button onclick="document.getElementById('capNhatModal').classList.remove('open')" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--sub)">✕</button>
+    </div>
+    <form method="POST" id="capNhatForm">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div id="capNhatDonInfo" style="font-weight:700;margin-bottom:.9rem;color:var(--ink)"></div>
+        <div class="fg">
+          <label>Trạng thái mới</label>
+          <select name="trang_thai" class="fi" id="newStatusSel">
+            <option value="dang_dong_goi">📦 Đang đóng gói</option>
+            <option value="ban_giao_van_chuyen">🏷 Bàn giao vận chuyển</option>
+            <option value="dang_giao">🚚 Đang giao hàng</option>
+            <option value="da_giao">✅ Đã giao hàng</option>
+            <option value="huy">🚫 Hủy đơn</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Mã vận đơn</label>
+          <input type="text" name="ma_van_don" class="fi" placeholder="VD: GHTK123456789">
+        </div>
+        <div class="fg">
+          <label>Ghi chú</label>
+          <textarea name="ghi_chu" class="fi" rows="2" placeholder="Ghi chú thêm..."></textarea>
+        </div>
+      </div>
+      <div class="modal-ft">
+        <button type="button" class="btn-adm btn-gray" onclick="document.getElementById('capNhatModal').classList.remove('open')">Hủy</button>
+        <button type="submit" class="btn-adm btn-or">✅ Cập nhật</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.tt-pill{display:inline-flex;align-items:center;gap:.2rem;padding:.22rem .55rem;border-radius:6px;font-size:.69rem;font-weight:700}
+.tt-dang_dong_goi{background:#F3E8FF;color:#5B21B6}
+.tt-ban_giao_van_chuyen{background:#FFEDD5;color:#9A3412}
+.tt-dang_giao{background:#DBEAFE;color:#1E40AF}
+.tt-da_giao{background:#DCFCE7;color:#166534}
+</style>
+<script>
+function openCapNhatModal(id,ma,status){
+  document.getElementById('capNhatDonInfo').textContent='Đơn hàng #'+ma;
+  document.getElementById('capNhatForm').action='/orders/'+id+'/cap-nhat-trang-thai/';
+  document.getElementById('newStatusSel').value=status;
+  document.getElementById('capNhatModal').classList.add('open');
+}
+document.getElementById('capNhatModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open')});
+document.getElementById('dgSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){const q=e.target.value;window.location='?q='+encodeURIComponent(q)}});
+</script>
+{% endblock %}

@@ -306,9 +306,107 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
 .pbtn{background:linear-gradient(135deg,var(--orb),#C94A0E);color:white;border:none;border-radius:6px;padding:.27rem .6rem;font-size:.69rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .12s}
 .pbtn:hover{opacity:.88}
 
+/* Stats row in header */
+.sb-stats-row{display:flex;gap:.4rem;margin-top:.5rem}
+.sb-stat{flex:1;background:rgba(255,255,255,.08);border-radius:6px;padding:.3rem .4rem;text-align:center}
+.sb-stat-val{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:700;color:#fff}
+.sb-stat-lbl{font-size:.54rem;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:.05em;margin-top:.05rem}
+.sb-stat.green .sb-stat-val{color:#3FB950}
+.sb-stat.blue .sb-stat-val{color:#74C0FC}
+.sb-stat.orange .sb-stat-val{color:#FF9B6A}
+
+/* Section blocks */
+.sec-title{font-size:.63rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.45rem;display:flex;align-items:center;justify-content:space-between;gap:.28rem}
+.sec-divider{height:1px;background:var(--border);margin:.3rem -.9rem 0}
+
+/* Swap A↔B button */
+.btn-swap{width:30px;flex:0 0 30px!important;background:var(--card)!important;border-color:var(--border)!important;color:var(--muted)!important;font-size:.9rem!important}
+.btn-swap:hover{border-color:var(--or)!important;color:var(--or)!important}
+
+/* Share route button */
+.btn-share-route{background:rgba(25,113,194,.08);border:1.5px solid rgba(25,113,194,.2);color:var(--blue);border-radius:5px;padding:.2rem .42rem;font-size:.63rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s;flex-shrink:0}
+.btn-share-route:hover{background:rgba(25,113,194,.18)}
+.rr-actions{display:flex;gap:.25rem;flex-shrink:0}
+
+/* Filter system */
+.filter-row{display:flex;gap:.25rem;flex-wrap:wrap;margin-bottom:.3rem}
+.fpill{padding:.23rem .52rem;border-radius:20px;font-size:.69rem;font-weight:700;border:1.5px solid var(--border);background:white;color:var(--muted);cursor:pointer;transition:all .14s;font-family:inherit;display:flex;align-items:center;gap:.22rem}
+.fpill:hover{border-color:var(--blue);color:var(--blue)}
+.fpill.active{background:var(--blue);border-color:var(--blue);color:white}
+.fdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.filter-select{width:100%;background:white;border:1.5px solid var(--border);border-radius:7px;padding:.28rem .55rem;font-size:.71rem;color:var(--text);font-family:inherit;outline:none;cursor:pointer;margin-top:.3rem}
+.filter-select:focus{border-color:var(--blue)}
+
+/* Sort select in qbox */
+.sort-select{background:white;border:1.5px solid var(--border);border-radius:6px;padding:.32rem .38rem;font-size:.67rem;color:var(--muted);font-family:inherit;outline:none;cursor:pointer;flex-shrink:0}
+.sort-select:focus{border-color:var(--blue)}
+
+/* Map type switcher */
+.map-type-row{display:flex;gap:.22rem}
+.mtpill{flex:1;padding:.28rem .25rem;border-radius:7px;font-size:.66rem;font-weight:700;border:1.5px solid var(--border);background:white;color:var(--muted);cursor:pointer;transition:all .14s;font-family:inherit;text-align:center}
+.mtpill:hover{border-color:var(--blue);color:var(--blue)}
+.mtpill.active{background:var(--blue);border-color:var(--blue);color:white;box-shadow:0 2px 8px rgba(25,113,194,.22)}
+
+/* Route history */
+.hist-item{display:flex;align-items:center;gap:.45rem;padding:.38rem .55rem;border-radius:8px;cursor:pointer;border:1px solid var(--line);margin-bottom:.22rem;transition:background .12s}
+.hist-item:hover{background:rgba(25,113,194,.05);border-color:rgba(25,113,194,.2)}
+.hist-ic{font-size:.82rem;flex-shrink:0}
+.hist-info{flex:1;min-width:0}
+.hist-dest{font-size:.73rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:.6rem;color:var(--muted);margin-top:.04rem;font-family:'DM Mono',monospace}
+.hist-replay{flex-shrink:0;background:rgba(232,93,47,.08);border:1px solid rgba(232,93,47,.2);color:var(--or);border-radius:4px;padding:.13rem .33rem;font-size:.59rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .1s}
+.hist-replay:hover{background:rgba(232,93,47,.18)}
+.hist-empty{padding:.85rem;text-align:center;font-size:.73rem;color:var(--muted);font-style:italic}
+
+/* Open/closed badge variants */
+.bdg.closed{background:rgba(201,42,42,.08);color:#C92A2A;border:1px solid rgba(201,42,42,.15)}
+
+/* Step active highlight */
+.step{cursor:pointer}.step:hover{background:rgba(25,113,194,.04)}
+.step.active-step{background:rgba(25,113,194,.09)!important}
+
+/* Popup copy row */
+.p-copy-row{display:flex;gap:.22rem;margin-top:.22rem}
+.p-copy{flex:1;background:var(--card);border:1px solid var(--border);border-radius:5px;padding:.19rem .3rem;font-size:.57rem;color:var(--muted);cursor:pointer;text-align:center;font-family:inherit;transition:all .1s;white-space:nowrap}
+.p-copy:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Popup open/closed status badge */
+.pstatus{font-size:.64rem;font-weight:700;padding:.07rem .3rem;border-radius:4px;margin-left:.3rem;vertical-align:middle}
+.pstatus.open{background:rgba(47,158,68,.1);color:var(--green)}
+.pstatus.closed{background:rgba(201,42,42,.08);color:#C92A2A}
+
+/* Leaflet tooltip */
+.leaflet-tooltip-custom{background:rgba(26,26,46,.88)!important;border:none!important;color:white!important;font-family:'DM Sans',sans-serif!important;font-size:.72rem!important;font-weight:700!important;border-radius:6px!important;padding:.22rem .5rem!important;white-space:nowrap!important;box-shadow:0 3px 10px rgba(0,0,0,.2)!important}
+.leaflet-tooltip-custom::before{display:none!important}
+
+/* Toast notification */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(16px);background:#1A1A2E;color:white;padding:.52rem 1.1rem;border-radius:10px;font-size:.76rem;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.22);z-index:9999;opacity:0;transition:all .25s ease;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Scroll to top button inside sidebar */
+.scroll-top-sb{position:sticky;bottom:.6rem;margin:.35rem .6rem 0;align-self:flex-end;width:28px;height:28px;background:white;border:1px solid var(--border);border-radius:7px;box-shadow:0 2px 8px rgba(0,0,0,.1);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);transition:all .14s;z-index:10}
+.scroll-top-sb:hover{background:var(--card);color:var(--or)}
+.scroll-top-sb.visible{display:flex}
+
+/* Ghim vị trí */
+.ghim-item{display:flex;align-items:center;gap:.45rem;padding:.48rem .55rem;border-radius:8px;border:1px solid var(--border);margin-bottom:.3rem;background:white;transition:all .14s}
+.ghim-item:hover{border-color:var(--or);background:#FFFAF7}
+.ghim-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0;border:2px solid rgba(255,255,255,.8);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.ghim-info{flex:1;min-width:0}
+.ghim-name{font-size:.75rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghim-coord{font-size:.63rem;color:var(--muted);margin-top:.05rem}
+.ghim-actions{display:flex;gap:.2rem;flex-shrink:0}
+.ghim-btn{background:none;border:none;cursor:pointer;font-size:.75rem;padding:.1rem .2rem;border-radius:5px;transition:background .12s}
+.ghim-btn:hover{background:#F1F5F9}
+.ghim-ic-btn.sel{border-color:var(--or)!important;background:#FFF7ED!important;transform:scale(1.15)}
+.ghim-clr-btn.sel{transform:scale(1.3);box-shadow:0 0 0 2.5px var(--or)!important}
+.fab.active{background:rgba(25,113,194,.1);border-color:var(--blue);color:var(--blue)}
+
 .spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,.1);border-top-color:currentColor;border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
 @keyframes sp{to{transform:rotate(360deg)}}
 @keyframes pr{0%{transform:rotate(-45deg) scale(.9);opacity:.35}70%{transform:rotate(-45deg) scale(2.2);opacity:0}100%{transform:rotate(-45deg) scale(.9);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.rresult.show{animation:fadeUp .2s ease}
 
 @media(max-width:768px){
   .sidebar{
@@ -335,10 +433,15 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
     </button>
 
     <div class="sb-inner">
-      <!-- Header -->
+      <!-- Header với stats -->
       <div class="sb-head">
         <div class="sb-title"><span class="dot"></span>Con Cưng · Bản đồ & Tìm đường</div>
         <div class="sb-sub">{{ tong_cua_hang }} cửa hàng · {{ so_co_ban_do }} có GPS · OSRM Routing</div>
+        <div class="sb-stats-row">
+          <div class="sb-stat orange"><div class="sb-stat-val">{{ tong_cua_hang }}</div><div class="sb-stat-lbl">Cửa hàng</div></div>
+          <div class="sb-stat green"><div class="sb-stat-val" id="stat-open">—</div><div class="sb-stat-lbl">Đang mở</div></div>
+          <div class="sb-stat blue"><div class="sb-stat-val">{{ so_co_ban_do }}</div><div class="sb-stat-lbl">Có GPS</div></div>
+        </div>
       </div>
 
       <!-- Scrollable body -->
@@ -366,9 +469,9 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
           </div>
 
           <div class="route-progress" id="route-progress"></div>
-
           <div class="btn-row">
             <button class="btnx btn-gps" id="btn-gps"><i class="bi bi-crosshair2"></i> GPS</button>
+            <button class="btnx btn-swap" title="Đổi điểm A↔B" onclick="swapAB()">⇅</button>
             <button class="btnx btn-near" id="btn-near"><i class="bi bi-radar"></i> Gần nhất</button>
             <button class="btnx btn-go" id="btn-route" disabled>
               <i class="bi bi-signpost-split-fill"></i> Tìm đường
@@ -397,7 +500,10 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
                   <div class="rr-dest-from" id="rr-dest-from">Từ: —</div>
                 </div>
               </div>
-              <button class="btn-clear-route" onclick="clearRoute()">✕ Xóa</button>
+              <div class="rr-actions">
+                <button class="btn-share-route" onclick="shareRoute()" title="Sao chép link chia sẻ">📤</button>
+                <button class="btn-clear-route" onclick="clearRoute()">✕ Xóa</button>
+              </div>
             </div>
             <div class="steps-header">
               <span>📋 Chỉ dẫn chi tiết</span>
@@ -408,8 +514,8 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
         </div>
 
         <!-- ── RADIUS PICKER ── -->
-        <div class="radius-section">
-          <div class="radius-label">📡 Bán kính tìm kiếm</div>
+        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+          <div class="radius-label">📡 Bán kính tìm kiếm cửa hàng gần nhất</div>
           <div class="radius-pills">
             <button class="rpill" onclick="setRadius(1)">1 km</button>
             <button class="rpill" onclick="setRadius(2)">2 km</button>
@@ -420,26 +526,109 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
           </div>
           <div class="radius-custom">
             <label for="radius-slider">Tùy chỉnh:</label>
-            <input type="range" id="radius-slider" class="radius-slider"
-              min="1" max="50" step="1" value="5"
-              oninput="onSliderChange(this.value)">
+            <input type="range" id="radius-slider" class="radius-slider" min="1" max="50" step="1" value="5" oninput="onSliderChange(this.value)">
             <span class="radius-val" id="radius-val">5 km</span>
           </div>
         </div>
 
-        <!-- Tabs -->
+        <!-- ── LỌC CỬA HÀNG ── -->
+        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+          <div class="sec-title">🔍 Lọc & Sắp xếp cửa hàng</div>
+          <div class="filter-row">
+            <button class="fpill active" id="filter-all" onclick="setFilter('all')"><span class="fdot"></span>Tất cả</button>
+            <button class="fpill" id="filter-open" onclick="setFilter('open')"><span class="fdot" style="background:var(--green)"></span>Đang mở</button>
+            <button class="fpill" id="filter-gps" onclick="setFilter('gps')">📍 Có GPS</button>
+          </div>
+          <select class="filter-select" id="filter-quan" onchange="applyFilters()">
+            <option value="">— Tất cả quận/huyện —</option>
+            {% for ch in tat_ca_cua_hang %}<option value="{{ ch.quan_huyen }}">{{ ch.quan_huyen }}</option>{% endfor %}
+          </select>
+        </div>
+
+        <!-- ── LOẠI BẢN ĐỒ ── -->
+        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+          <div class="sec-title">🗺 Kiểu bản đồ nền</div>
+          <div class="map-type-row">
+            <button class="mtpill active" id="mt-osm" onclick="setMapType('osm')">🗺 Bản đồ</button>
+            <button class="mtpill" id="mt-sat" onclick="setMapType('sat')">🛰 Vệ tinh</button>
+            <button class="mtpill" id="mt-topo" onclick="setMapType('topo')">⛰ Địa hình</button>
+            <button class="mtpill" id="mt-dark" onclick="setMapType('dark')">🌙 Tối</button>
+          </div>
+        </div>
+
+        <!-- ── LỊCH SỬ TÌM ĐƯỜNG ── -->
+        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+          <div class="sec-title">
+            🕐 Lịch sử tìm đường
+            <button onclick="clearHistory()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600">Xóa tất cả</button>
+          </div>
+          <div id="hist-list"><div class="hist-empty">Chưa có lịch sử</div></div>
+        </div>
+
+        <!-- ── GHIM VỊ TRÍ TÙY CHỈNH ── -->
+        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+          <div class="sec-title">
+            📌 Ghim vị trí của tôi
+            <div style="display:flex;gap:.25rem">
+              <button onclick="xoaHetGhim()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600">Xóa hết</button>
+              <button onclick="toggleGhimPanel()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600" id="ghim-toggle-lbl">Thu gọn ▲</button>
+            </div>
+          </div>
+          <div id="ghim-panel">
+            <!-- Form thêm ghim -->
+            <div style="background:#F8FAFC;border:1.5px dashed var(--border);border-radius:9px;padding:.65rem .75rem;margin-bottom:.55rem">
+              <div style="font-size:.69rem;font-weight:700;color:var(--text);margin-bottom:.4rem">➕ Thêm ghim mới</div>
+              <input id="ghim-name" type="text" placeholder="Tên ghim (VD: Nhà tôi, Văn phòng...)"
+                style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:.38rem .6rem;font-size:.76rem;font-family:inherit;outline:none;margin-bottom:.35rem">
+              <div style="display:flex;gap:.3rem;margin-bottom:.35rem;flex-wrap:wrap;align-items:center">
+                <span style="font-size:.68rem;color:var(--muted);font-weight:600">Biểu tượng:</span>
+                <button class="ghim-ic-btn" data-ic="📍" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">📍</button>
+                <button class="ghim-ic-btn" data-ic="🏠" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏠</button>
+                <button class="ghim-ic-btn" data-ic="🏢" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏢</button>
+                <button class="ghim-ic-btn" data-ic="⭐" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">⭐</button>
+                <button class="ghim-ic-btn" data-ic="❤️" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">❤️</button>
+                <button class="ghim-ic-btn" data-ic="🎯" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🎯</button>
+                <button class="ghim-ic-btn" data-ic="🚩" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🚩</button>
+                <button class="ghim-ic-btn" data-ic="🏥" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏥</button>
+              </div>
+              <div style="display:flex;gap:.3rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap">
+                <span style="font-size:.68rem;color:var(--muted);font-weight:600">Màu:</span>
+                <button class="ghim-clr-btn" data-clr="#E85D2F" style="width:20px;height:20px;border-radius:50%;background:#E85D2F;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                <button class="ghim-clr-btn" data-clr="#2563EB" style="width:20px;height:20px;border-radius:50%;background:#2563EB;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                <button class="ghim-clr-btn" data-clr="#16A34A" style="width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                <button class="ghim-clr-btn" data-clr="#7C3AED" style="width:20px;height:20px;border-radius:50%;background:#7C3AED;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                <button class="ghim-clr-btn" data-clr="#DB2777" style="width:20px;height:20px;border-radius:50%;background:#DB2777;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                <button class="ghim-clr-btn" data-clr="#D97706" style="width:20px;height:20px;border-radius:50%;background:#D97706;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                <button class="ghim-clr-btn" data-clr="#0891B2" style="width:20px;height:20px;border-radius:50%;background:#0891B2;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+              </div>
+              <div style="display:flex;gap:.35rem">
+                <button onclick="addGhimByGPS()" style="flex:1;background:var(--green);color:white;border:none;border-radius:7px;padding:.38rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">📡 GPS</button>
+                <button onclick="addGhimByClick()" id="btn-ghim-click" style="flex:1;background:var(--blue);color:white;border:none;border-radius:7px;padding:.38rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🗺 Click bản đồ</button>
+              </div>
+            </div>
+            <!-- Danh sách ghim -->
+            <div id="ghim-list"><div class="hist-empty">Chưa có ghim nào</div></div>
+          </div>
+        </div>
         <div class="tab-bar">
-          <button class="on" id="tab-all" onclick="sw('all')">🏪 Tất cả <span class="cnt-bj">{{ tong_cua_hang }}</span></button>
+          <button class="on" id="tab-all" onclick="sw('all')">🏪 Tất cả <span class="cnt-bj" id="cnt-all">{{ tong_cua_hang }}</span></button>
           <button id="tab-near" onclick="sw('near')">📡 Gần nhất <span class="cnt-bj" id="near-cnt" style="display:none">0</span></button>
         </div>
-        <div class="qbox">
-          <input type="text" id="qinp" placeholder="Tìm tên, địa chỉ cửa hàng...">
+        <div class="qbox" style="display:flex;gap:.3rem;align-items:center">
+          <input type="text" id="qinp" placeholder="Tìm tên, địa chỉ cửa hàng..." style="flex:1">
+          <select class="sort-select" id="sort-sel" onchange="applyFilters()">
+            <option value="default">↕ Sắp xếp</option>
+            <option value="name">A-Z Tên</option>
+            <option value="dist">📏 Gần nhất</option>
+          </select>
         </div>
 
         <!-- All stores list -->
         <div class="slist" id="list-all">
           {% for ch in tat_ca_cua_hang %}
           <div class="sitem" id="si-{{ ch.id }}"
+               data-id="{{ ch.id }}" data-lat="{{ ch.vi_do|default:'' }}" data-lng="{{ ch.kinh_do|default:'' }}"
+               data-name="{{ ch.ten|escapejs }}" data-quan="{{ ch.quan_huyen }}"
                onclick="selStore({{ ch.id }},{{ ch.vi_do|default:'null' }},{{ ch.kinh_do|default:'null' }},'{{ ch.ten|escapejs }}')">
             <div class="sn">
               <div class="sname">{{ ch.ten }}</div>
@@ -451,7 +640,7 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
             <div class="saddr">📍 {{ ch.dia_chi }}, {{ ch.quan_huyen }}</div>
             <div class="smeta">📞 {{ ch.so_dien_thoai }} · 🕐 {{ ch.gio_mo_cua|time:"H:i" }}–{{ ch.gio_dong_cua|time:"H:i" }}</div>
             <div class="sbadges">
-              <span class="bdg open">● Mở cửa</span>
+              <span class="bdg open status-bdg" id="sb-{{ ch.id }}">● Mở cửa</span>
               {% if not ch.vi_tri %}<span class="bdg nogps">⚠ Chưa có GPS</span>{% endif %}
             </div>
           </div>
@@ -472,6 +661,10 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
         </div>
 
       </div><!-- /sb-scroll -->
+
+      <!-- Scroll to top sticky button -->
+      <button class="scroll-top-sb" id="scroll-top-btn" onclick="scrollToTop()" title="Về đầu trang">▲</button>
+
     </div><!-- /sb-inner -->
   </aside>
 
@@ -494,10 +687,14 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
     <div class="map-fabs">
       <button class="fab" id="fab-myloc" title="Vị trí của tôi">📍</button>
       <button class="fab" title="Thu về TP.HCM" onclick="map.setView([10.8231,106.6297],12)">🏙</button>
+      <button class="fab" id="fab-all" title="Hiện tất cả cửa hàng" onclick="showAllMarkers()">👁</button>
     </div>
   </div>
 
 </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 {% endblock %}
 
 {% block extra_js %}
@@ -507,60 +704,79 @@ const API_NEAR  = "{% url 'api_cua_hang_gan_nhat' %}";
 const API_SUGG  = "{% url 'api_goi_y_dia_chi' %}";
 const API_ROUTE = "{% url 'api_duong_di' %}";
 
+// ── TOAST ──────────────────────────────────────────────────────
+function toast(msg,dur=2400){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);
+}
+
 // ── SIDEBAR TOGGLE ─────────────────────────────────────────────
-let sbOpen = true;
+let sbOpen=true;
 function toggleSidebar(){
-  sbOpen = !sbOpen;
-  const sb = document.getElementById('sidebar');
-  const icon = document.getElementById('sb-toggle-icon');
-  sb.classList.toggle('collapsed', !sbOpen);
-  icon.textContent = sbOpen ? '◀' : '▶';
-  // Invalidate map size after transition
+  sbOpen=!sbOpen;
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('collapsed',!sbOpen);
+  document.getElementById('sb-toggle-icon').textContent=sbOpen?'◀':'▶';
   setTimeout(()=>map.invalidateSize(),320);
 }
 
-// ── RADIUS STATE ───────────────────────────────────────────────
-let currentRadius = 5;
-function setRadius(km){
-  currentRadius = km;
-  // update pills
-  document.querySelectorAll('.rpill').forEach(p=>{
-    p.classList.toggle('active', parseInt(p.textContent) === km);
+// ── SCROLL TO TOP (sidebar) ────────────────────────────────────
+const sbScroll=document.getElementById('sb-scroll');
+if(sbScroll){
+  sbScroll.addEventListener('scroll',()=>{
+    const btn=document.getElementById('scroll-top-btn');
+    if(btn)btn.classList.toggle('visible',sbScroll.scrollTop>220);
   });
-  // update slider
-  const sl = document.getElementById('radius-slider');
-  sl.value = Math.min(km, 50);
-  updateSliderBg(sl);
-  document.getElementById('radius-val').textContent = km + ' km';
+}
+function scrollToTop(){if(sbScroll)sbScroll.scrollTo({top:0,behavior:'smooth'})}
+
+// ── RADIUS STATE ───────────────────────────────────────────────
+let currentRadius=5;
+function setRadius(km){
+  currentRadius=km;
+  document.querySelectorAll('.rpill').forEach(p=>p.classList.toggle('active',parseInt(p.textContent)===km));
+  const sl=document.getElementById('radius-slider');
+  sl.value=Math.min(km,50);updateSliderBg(sl);
+  document.getElementById('radius-val').textContent=km+' km';
 }
 function onSliderChange(val){
-  currentRadius = parseInt(val);
-  document.getElementById('radius-val').textContent = val + ' km';
-  // deactivate all pills
+  currentRadius=parseInt(val);
+  document.getElementById('radius-val').textContent=val+' km';
   document.querySelectorAll('.rpill').forEach(p=>p.classList.remove('active'));
-  // activate matching pill if exists
-  document.querySelectorAll('.rpill').forEach(p=>{
-    if(parseInt(p.textContent) === currentRadius) p.classList.add('active');
-  });
+  document.querySelectorAll('.rpill').forEach(p=>{if(parseInt(p.textContent)===currentRadius)p.classList.add('active')});
   updateSliderBg(document.getElementById('radius-slider'));
 }
 function updateSliderBg(sl){
-  const pct = ((sl.value - sl.min)/(sl.max - sl.min)*100).toFixed(1);
-  sl.style.background = `linear-gradient(to right,var(--or) 0%,var(--or) ${pct}%,var(--border) ${pct}%)`;
+  const pct=((sl.value-sl.min)/(sl.max-sl.min)*100).toFixed(1);
+  sl.style.background=`linear-gradient(to right,var(--or) 0%,var(--or) ${pct}%,var(--border) ${pct}%)`;
 }
-// Init slider bg
 updateSliderBg(document.getElementById('radius-slider'));
 
-// ── MAP (light tiles) ──────────────────────────────────────────
-const map = L.map('map',{zoomControl:false}).setView([10.8231,106.6297],12);
-L.control.zoom({position:'bottomright'}).addTo(map);
-// Light map: OpenStreetMap standard
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> · OSRM · Con Cưng',
-  maxZoom:19
-}).addTo(map);
+// ── MAP TYPE SWITCHER ─────────────────────────────────────────
+const TILES={
+  osm:  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}),
+  sat:  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19}),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{attribution:'© OpenTopoMap',maxZoom:17}),
+  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO',maxZoom:19,subdomains:'abcd'})
+};
+let currentTile='osm';
 
-// Pulse animation keyframe
+// ── MAP ────────────────────────────────────────────────────────
+const map=L.map('map',{zoomControl:false}).setView([10.8231,106.6297],12);
+L.control.zoom({position:'bottomright'}).addTo(map);
+TILES.osm.addTo(map);
+
+function setMapType(type){
+  map.removeLayer(TILES[currentTile]);
+  TILES[type].addTo(map);currentTile=type;
+  document.querySelectorAll('.mtpill').forEach(p=>p.classList.remove('active'));
+  document.getElementById('mt-'+type).classList.add('active');
+  const labels={osm:'🗺 Bản đồ thường',sat:'🛰 Chế độ vệ tinh',topo:'⛰ Bản đồ địa hình',dark:'🌙 Chế độ tối'};
+  toast(labels[type]);
+}
+
+// Pulse keyframe
 const _ks=document.createElement('style');
 _ks.textContent='@keyframes pr{0%{transform:rotate(-45deg) scale(.9);opacity:.35}70%{transform:rotate(-45deg) scale(2.2);opacity:0}100%{transform:rotate(-45deg) scale(.9);opacity:0}}';
 document.head.appendChild(_ks);
@@ -579,40 +795,156 @@ function dot(c,sz=15){
     iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],className:''
   });
 }
-const ICO={
-  s:pin('#E85D2F',22),
-  n:pin('#1971C2',25,true),
-  a:pin('#E67700',27,true),
-  u:dot('#2F9E44',15)
-};
+const ICO={s:pin('#E85D2F',22),n:pin('#1971C2',25,true),a:pin('#E67700',27,true),u:dot('#2F9E44',15)};
 
 // ── LAYERS ────────────────────────────────────────────────────
 const ly={all:L.layerGroup().addTo(map),near:L.layerGroup().addTo(map),user:L.layerGroup().addTo(map),route:L.layerGroup().addTo(map)};
 const mkMap={};
 
+// ── MỞ/ĐÓNG CỬA THEO GIỜ THỰC TẾ ────────────────────────────
+function isOpen(gioMo,gioDong){
+  if(!gioMo||!gioDong)return null;
+  const now=new Date(),cur=now.getHours()*60+now.getMinutes();
+  const [mh,mm]=(gioMo+'').split(':').map(Number);
+  const [dh,dm]=(gioDong+'').split(':').map(Number);
+  const mo=mh*60+mm,dong=dh*60+dm;
+  return dong>mo?(cur>=mo&&cur<dong):(cur>=mo||cur<dong);
+}
+let openCount=0;
 STORES.forEach(s=>{
+  const open=isOpen(s.gio_mo,s.gio_dong);
+  if(open===true)openCount++;
   const m=L.marker([s.vi_do,s.kinh_do],{icon:ICO.s}).addTo(ly.all);
-  m.bindPopup(()=>pop(s),{maxWidth:275,className:''});
+  // Tooltip hover — hiện tên cửa hàng nhanh khi hover
+  m.bindTooltip(s.ten,{direction:'top',offset:[0,-24],className:'leaflet-tooltip-custom',sticky:false});
+  m.bindPopup(()=>pop(s),{maxWidth:280,className:''});
   mkMap[s.id]=m;
-  m.on('click',()=>hl('si-'+s.id,'on'));
+  m.on('click',()=>{hl('si-'+s.id,'on');sw('all')});
+});
+document.getElementById('stat-open').textContent=openCount;
+
+// Cập nhật badge mở/đóng trong danh sách
+STORES.forEach(s=>{
+  const el=document.getElementById('sb-'+s.id);
+  if(!el)return;
+  const open=isOpen(s.gio_mo,s.gio_dong);
+  if(open===true){el.className='bdg open status-bdg';el.textContent='● Mở cửa'}
+  else if(open===false){el.className='bdg closed status-bdg';el.textContent='● Đã đóng'}
+  else el.style.display='none';
 });
 
+// Cập nhật quận select
+const quanSet=new Set(STORES.map(s=>s.quan_huyen).filter(Boolean));
+const quanSel=document.getElementById('filter-quan');
+if(quanSel){quanSel.innerHTML='<option value="">— Tất cả quận/huyện —</option>';quanSet.forEach(q=>{const o=document.createElement('option');o.value=q;o.textContent=q;quanSel.appendChild(o)})}
+
 function pop(s,dkm,tmin){
-  const btn=`<button class="pbtn" onclick="tapR(${s.id},${s.vi_do},${s.kinh_do},'${esc(s.ten)}')">↗ Tìm đường đến đây</button>`;
-  const dist=(dkm!=null)
-    ?`<div class="pdivider"></div><div class="pdrow"><div><div class="pkm">${dkm} km</div><div class="pmin">${tmin||''}${tmin?' phút':''}</div></div>${btn}</div>`
+  const open=isOpen(s.gio_mo,s.gio_dong);
+  const badge=open!==null?`<span class="pstatus ${open?'open':'closed'}">${open?'Mở cửa':'Đã đóng'}</span>`:'';
+  const btn=`<button class="pbtn" onclick="tapR(${s.id},${s.vi_do},${s.kinh_do},'${esc(s.ten)}')">↗ Tìm đường</button>`;
+  const dist=(dkm!=null)?`<div class="pdivider"></div><div class="pdrow"><div><div class="pkm">${dkm} km</div><div class="pmin">≈${tmin||''} phút</div></div>${btn}</div>`
     :`<div class="pdivider"></div><div style="text-align:right">${btn}</div>`;
-  return `<div class="pbox"><div class="pname">${s.ten}</div>
+  return `<div class="pbox">
+    <div class="pname">${s.ten}${badge}</div>
     <div class="prow">📍 <span>${s.dia_chi}, ${s.quan_huyen}</span></div>
     <div class="prow">📞 <span>${s.so_dien_thoai}</span></div>
     <div class="prow">🕐 <span>${(s.gio_mo||'').slice(0,5)} – ${(s.gio_dong||'').slice(0,5)}</span></div>
-    ${dist}</div>`;
+    ${dist}
+    <div class="p-copy-row">
+      <button class="p-copy" onclick="copyCoords(${s.vi_do},${s.kinh_do})">📋 Tọa độ</button>
+      <button class="p-copy" onclick="copyAddr('${esc(s.dia_chi)}, ${esc(s.quan_huyen)}')">📋 Địa chỉ</button>
+    </div>
+  </div>`;
 }
 function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"')}
+function copyCoords(lat,lng){navigator.clipboard.writeText(`${lat}, ${lng}`).then(()=>toast('✓ Đã sao chép tọa độ'));document.querySelector('.leaflet-popup-close-button')?.click()}
+function copyAddr(addr){navigator.clipboard.writeText(addr).then(()=>toast('✓ Đã sao chép địa chỉ'));document.querySelector('.leaflet-popup-close-button')?.click()}
+
+// ── FILTER SYSTEM ─────────────────────────────────────────────
+let activeFilter='all';
+function setFilter(f){
+  activeFilter=f;
+  ['all','open','gps'].forEach(k=>{const el=document.getElementById('filter-'+k);if(el)el.classList.toggle('active',k===f)});
+  applyFilters();
+}
+function dist2(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function applyFilters(){
+  const quan=(document.getElementById('filter-quan')||{}).value||'';
+  const q=document.getElementById('qinp').value.toLowerCase();
+  const sort=(document.getElementById('sort-sel')||{}).value||'default';
+  const items=[...document.querySelectorAll('#list-all .sitem')];
+  let visible=[];
+  items.forEach(el=>{
+    const name=(el.querySelector('.sname')||{}).textContent||'';
+    const addr=(el.querySelector('.saddr')||{}).textContent||'';
+    const elQuan=el.dataset.quan||'';
+    const hasGps=el.dataset.lat&&el.dataset.lng;
+    const id=parseInt(el.dataset.id);
+    const s=STORES.find(x=>x.id===id);
+    const open=s?isOpen(s.gio_mo,s.gio_dong):null;
+    let show=true;
+    if(q&&!name.toLowerCase().includes(q)&&!addr.toLowerCase().includes(q))show=false;
+    if(activeFilter==='open'&&open!==true)show=false;
+    if(activeFilter==='gps'&&!hasGps)show=false;
+    if(quan&&!elQuan.includes(quan))show=false;
+    el.style.display=show?'':'none';
+    if(show)visible.push(el);
+  });
+  if(sort==='name'){
+    visible.sort((a,b)=>(a.querySelector('.sname').textContent||'').localeCompare(b.querySelector('.sname').textContent||'','vi'));
+    const list=document.getElementById('list-all');
+    visible.forEach(el=>list.appendChild(el));
+  } else if(sort==='dist'&&ST.fLat){
+    visible.sort((a,b)=>dist2(ST.fLat,ST.fLng,parseFloat(a.dataset.lat)||0,parseFloat(a.dataset.lng)||0)-dist2(ST.fLat,ST.fLng,parseFloat(b.dataset.lat)||0,parseFloat(b.dataset.lng)||0));
+    const list=document.getElementById('list-all');
+    visible.forEach(el=>list.appendChild(el));
+  }
+  const cntEl=document.getElementById('cnt-all');
+  if(cntEl)cntEl.textContent=visible.length;
+}
+document.getElementById('qinp').addEventListener('input',applyFilters);
+
+// ── ROUTE HISTORY ─────────────────────────────────────────────
+let routeHistory=[];
+try{routeHistory=JSON.parse(localStorage.getItem('concung_hist')||'[]')}catch(e){}
+function renderHistory(){
+  const el=document.getElementById('hist-list');if(!el)return;
+  if(!routeHistory.length){el.innerHTML='<div class="hist-empty">Chưa có lịch sử</div>';return}
+  el.innerHTML=routeHistory.map((h,i)=>`
+    <div class="hist-item">
+      <span class="hist-ic">🗺</span>
+      <div class="hist-info">
+        <div class="hist-dest">→ ${h.to}</div>
+        <div class="hist-meta">${h.km} km · ${h.min} phút · ${relTime(h.ts)}</div>
+      </div>
+      <button class="hist-replay" onclick="replayRoute(${i})">↗ Đi lại</button>
+    </div>`).join('');
+}
+function relTime(ts){const d=Math.round((Date.now()-ts)/60000);if(d<1)return'vừa xong';if(d<60)return d+'p trước';return Math.round(d/60)+'h trước'}
+function clearHistory(){routeHistory=[];try{localStorage.removeItem('concung_hist')}catch(e){}renderHistory();toast('Đã xóa lịch sử')}
+function replayRoute(idx){
+  const h=routeHistory[idx];if(!h||!h.fLat)return toast('Không đủ dữ liệu để phát lại');
+  ST.fLat=h.fLat;ST.fLng=h.fLng;ST.fName=h.from;
+  ST.tLat=h.tLat;ST.tLng=h.tLng;ST.tName=h.to;
+  document.getElementById('inp-from').value=h.from;
+  document.getElementById('inp-to').value=h.to;
+  chkBtn();doRoute();
+}
+renderHistory();
+
+// ── SHOW ALL MARKERS ──────────────────────────────────────────
+function showAllMarkers(){
+  const bounds=STORES.filter(s=>s.vi_do&&s.kinh_do).map(s=>[s.vi_do,s.kinh_do]);
+  if(bounds.length)map.fitBounds(bounds,{padding:[40,40]});
+  toast('👁 Hiển thị tất cả '+bounds.length+' cửa hàng');
+}
 
 // ── STATE ─────────────────────────────────────────────────────
 const ST={fLat:null,fLng:null,fName:'',tLat:null,tLng:null,tName:'',aid:null};
-
 function selStore(id,lat,lng,name){
   if(!lat||!lng){setSt('Cửa hàng này chưa có tọa độ GPS.','err');return}
   map.setView([lat,lng],16);
@@ -623,21 +955,29 @@ function selStore(id,lat,lng,name){
 function tapR(id,lat,lng,name){
   if(!lat||!lng){setSt('Cửa hàng này chưa có GPS.','err');return}
   setDest(lat,lng,name);
-  if(ST.fLat)doRoute();
-  else{setSt('Đang lấy GPS...','info');getGPS(true)}
+  if(ST.fLat)doRoute();else{setSt('Đang lấy GPS...','info');getGPS(true)}
 }
-function setDest(lat,lng,name){
-  ST.tLat=lat;ST.tLng=lng;ST.tName=name;
-  document.getElementById('inp-to').value=name;chkBtn();
-}
+function setDest(lat,lng,name){ST.tLat=lat;ST.tLng=lng;ST.tName=name;document.getElementById('inp-to').value=name;chkBtn()}
 function chkBtn(){document.getElementById('btn-route').disabled=!(ST.fLat&&ST.tLat)}
 
-// ── AUTOCOMPLETE ──────────────────────────────────────────────
-let _tm=null;
+// ── SWAP A ↔ B ────────────────────────────────────────────────
+function swapAB(){
+  [ST.fLat,ST.tLat]=[ST.tLat,ST.fLat];
+  [ST.fLng,ST.tLng]=[ST.tLng,ST.fLng];
+  [ST.fName,ST.tName]=[ST.tName,ST.fName];
+  document.getElementById('inp-from').value=ST.fName||'';
+  document.getElementById('inp-to').value=ST.tName||'';
+  chkBtn();
+  if(ST.fLat&&ST.fLng)setUMk(ST.fLat,ST.fLng);
+  toast('⇅ Đã đổi điểm A ↔ B');
+}
+
+// ── AUTOCOMPLETE (với keyboard navigation) ────────────────────
+let _tm=null,_dropIdx=-1;
 const inpF=document.getElementById('inp-from');
 const drF=document.getElementById('drop-from');
 inpF.addEventListener('input',function(){
-  clearTimeout(_tm);const q=this.value.trim();
+  clearTimeout(_tm);const q=this.value.trim();_dropIdx=-1;
   if(q.length<3){drF.classList.remove('show');return}
   _tm=setTimeout(async()=>{
     try{
@@ -647,24 +987,32 @@ inpF.addEventListener('input',function(){
       ]);
       let h='';
       sM.forEach(s=>{h+=`<div class="sg" onclick="pickF(${s.vi_do},${s.kinh_do},'${esc(s.ten)}')">`
-        +`<span class="sg-ic">🏪</span><div><div style="margin-bottom:.12rem"><span class="sg-badge">Con Cưng</span></div>`
+        +`<span class="sg-ic">🏪</span><div><div style="margin-bottom:.1rem"><span class="sg-badge">Con Cưng</span></div>`
         +`<div class="sg-main">${s.ten}</div><div class="sg-sub">${s.dia_chi}</div></div></div>`;});
       (oR.goi_y||[]).forEach(it=>{h+=`<div class="sg" onclick="pickF(${it.vi_do},${it.kinh_do},'${esc(it.ten)}')">`
         +`<span class="sg-ic">📍</span><div><div class="sg-main">${it.ten}</div>`
         +`<div class="sg-sub">${it.day_du.length>65?it.day_du.slice(0,65)+'…':it.day_du}</div></div></div>`;});
       if(!h){drF.classList.remove('show');return}
-      drF.innerHTML=h;drF.classList.add('show');
+      drF.innerHTML=h;drF.classList.add('show');_dropIdx=-1;
     }catch(_){}
   },320);
 });
+// Keyboard: ↑↓ navigate, Enter select, Escape close
+inpF.addEventListener('keydown',ev=>{
+  const items=drF.querySelectorAll('.sg');
+  if(!items.length)return;
+  if(ev.key==='ArrowDown'){ev.preventDefault();_dropIdx=Math.min(_dropIdx+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('sel',i===_dropIdx));if(items[_dropIdx])items[_dropIdx].scrollIntoView({block:'nearest'})}
+  else if(ev.key==='ArrowUp'){ev.preventDefault();_dropIdx=Math.max(_dropIdx-1,0);items.forEach((el,i)=>el.classList.toggle('sel',i===_dropIdx))}
+  else if(ev.key==='Enter'&&_dropIdx>=0){ev.preventDefault();items[_dropIdx].click()}
+  else if(ev.key==='Escape'){drF.classList.remove('show');_dropIdx=-1}
+});
 function pickF(lat,lng,name){
   ST.fLat=lat;ST.fLng=lng;ST.fName=name;
-  inpF.value=name;drF.classList.remove('show');
+  inpF.value=name;drF.classList.remove('show');_dropIdx=-1;
   setUMk(lat,lng);setSt('✓ Điểm xuất phát đã đặt','ok');chkBtn();
-  findNear(lat,lng,currentRadius,false);
+  findNear(lat,lng,currentRadius,false);applyFilters();
 }
-document.addEventListener('click',ev=>{if(!inpF.contains(ev.target)&&!drF.contains(ev.target))drF.classList.remove('show')});
-inpF.addEventListener('keydown',ev=>{if(ev.key==='Escape')drF.classList.remove('show')});
+document.addEventListener('click',ev=>{if(!inpF.contains(ev.target)&&!drF.contains(ev.target)){drF.classList.remove('show');_dropIdx=-1}});
 
 // ── GPS ───────────────────────────────────────────────────────
 let _ag=false;
@@ -685,6 +1033,7 @@ function getGPS(ar=false){
     findNear(lat,lng,currentRadius,true);
     if(_ag&&ST.tLat)doRoute();
     btn.disabled=false;btn.innerHTML='<i class="bi bi-crosshair2"></i> GPS';
+    applyFilters();
   },err=>{
     const m={1:'Đã từ chối quyền GPS.',2:'Không xác định được vị trí.',3:'Quá thời gian.'};
     setSt(m[err.code]||'Lỗi GPS.','err');
@@ -693,13 +1042,11 @@ function getGPS(ar=false){
 }
 function setUMk(lat,lng){
   ly.user.clearLayers();
-  L.marker([lat,lng],{icon:ICO.u})
-    .bindPopup('<div class="pbox"><div class="pname" style="color:var(--green)">📍 Vị trí của bạn</div></div>',{className:''})
-    .addTo(ly.user);
+  L.marker([lat,lng],{icon:ICO.u}).bindPopup('<div class="pbox"><div class="pname" style="color:var(--green)">📍 Vị trí của bạn</div></div>',{className:''}).addTo(ly.user);
   L.circle([lat,lng],{radius:60,color:'#2F9E44',weight:1,fillColor:'#2F9E44',fillOpacity:.06}).addTo(ly.user);
 }
 
-// ── FIND NEAR (dùng currentRadius) ───────────────────────────
+// ── FIND NEAR ─────────────────────────────────────────────────
 document.getElementById('btn-near').addEventListener('click',()=>{
   if(ST.fLat)findNear(ST.fLat,ST.fLng,currentRadius,true);
   else{setSt('Cần điểm xuất phát — nhấn GPS...','info');getGPS(false)}
@@ -707,18 +1054,9 @@ document.getElementById('btn-near').addEventListener('click',()=>{
 async function findNear(lat,lng,km,swTab){
   const btn=document.getElementById('btn-near');
   btn.disabled=true;btn.innerHTML='<div class="spin"></div> Tìm...';
-  // Show radius circle on map
   ly.user.clearLayers();
-  L.marker([lat,lng],{icon:ICO.u})
-    .bindPopup('<div class="pbox"><div class="pname" style="color:var(--green)">📍 Vị trí của bạn</div></div>',{className:''})
-    .addTo(ly.user);
-  L.circle([lat,lng],{
-    radius:km*1000,
-    color:'var(--or)',weight:1.5,
-    fillColor:'#FF6B35',fillOpacity:.04,
-    dashArray:'6 6'
-  }).addTo(ly.user);
-
+  L.marker([lat,lng],{icon:ICO.u}).bindPopup('<div class="pbox"><div class="pname" style="color:var(--green)">📍 Vị trí của bạn</div></div>',{className:''}).addTo(ly.user);
+  L.circle([lat,lng],{radius:km*1000,color:'var(--or)',weight:1.5,fillColor:'#FF6B35',fillOpacity:.04,dashArray:'6 6'}).addTo(ly.user);
   try{
     const res=await fetch(`${API_NEAR}?vi_do=${lat}&kinh_do=${lng}&ban_kinh=${km}`);
     const data=await res.json();const list=data.cua_hangs||[];
@@ -726,19 +1064,21 @@ async function findNear(lat,lng,km,swTab){
     if(!list.length){
       el.innerHTML=`<div style="padding:2rem;text-align:center;color:var(--muted);font-size:.78rem;">
         Không có cửa hàng trong <strong>${km} km</strong>.<br>
-        <span style="color:var(--blue);cursor:pointer;font-weight:700" onclick="setRadius(50);findNear(${lat},${lng},50,true)">Mở rộng 50 km →</span>
-      </div>`;
+        <span style="color:var(--blue);cursor:pointer;font-weight:700" onclick="setRadius(50);findNear(${lat},${lng},50,true)">Mở rộng 50 km →</span></div>`;
     }else{
       list.forEach((ch,i)=>{
         const m=L.marker([ch.vi_do,ch.kinh_do],{icon:ICO.n}).addTo(ly.near);
-        m.bindPopup(()=>pop(ch,ch.khoang_cach_km),{maxWidth:275});
-        m.on('click',()=>hl('ni-'+ch.id,'near'));
+        m.bindTooltip(ch.ten,{direction:'top',offset:[0,-24],className:'leaflet-tooltip-custom'});
+        m.bindPopup(()=>pop(ch,ch.khoang_cach_km),{maxWidth:280});
+        m.on('click',()=>{hl('ni-'+ch.id,'near');sw('near')});
         const c=document.createElement('div');c.className='sitem near';c.id='ni-'+ch.id;
+        const open=isOpen(ch.gio_mo,ch.gio_dong);
         c.innerHTML=`<div class="sn"><div class="sname">${ch.ten}</div>`
           +`<button class="btn-go-sm" onclick="event.stopPropagation();tapR(${ch.id},${ch.vi_do},${ch.kinh_do},'${esc(ch.ten)}')">↗ Đi</button></div>`
           +`<div class="saddr">📍 ${ch.dia_chi}</div>`
           +`<div class="smeta">📞 ${ch.so_dien_thoai} · 🕐 ${(ch.gio_mo||'').slice(0,5)}–${(ch.gio_dong||'').slice(0,5)}</div>`
-          +`<div class="sbadges"><span class="bdg rank">#${i+1}</span><span class="bdg dist">📏 ${ch.khoang_cach_hien_thi}</span><span class="bdg open">● Mở cửa</span></div>`;
+          +`<div class="sbadges"><span class="bdg rank">#${i+1}</span><span class="bdg dist">📏 ${ch.khoang_cach_hien_thi}</span>`
+          +(open!==null?`<span class="bdg ${open?'open':'closed'}">${open?'● Mở cửa':'● Đã đóng'}</span>`:'')+`</div>`;
         c.onclick=()=>{map.setView([ch.vi_do,ch.kinh_do],16);m.openPopup()};
         el.appendChild(c);
       });
@@ -752,7 +1092,7 @@ async function findNear(lat,lng,km,swTab){
   btn.disabled=false;btn.innerHTML='<i class="bi bi-radar"></i> Gần nhất';
 }
 
-// ── ROUTE ────────────────────────────────────────────────────
+// ── ROUTE ─────────────────────────────────────────────────────
 document.getElementById('btn-route').addEventListener('click',doRoute);
 let _stepsCollapsed=false;
 async function doRoute(){
@@ -761,28 +1101,21 @@ async function doRoute(){
   btn.disabled=true;btn.innerHTML='<div class="spin"></div> Đang tính...';
   setSt('Đang tính đường đi ngắn nhất qua OSRM...','info');
   const bar=document.getElementById('route-progress');
-  bar.style.width='0';
-  requestAnimationFrame(()=>{bar.style.transition='width 2s linear';bar.style.width='85%'});
+  bar.style.width='0';requestAnimationFrame(()=>{bar.style.transition='width 2s linear';bar.style.width='85%'});
   try{
     const res=await fetch(`${API_ROUTE}?tu_lat=${ST.fLat}&tu_lng=${ST.fLng}&den_lat=${ST.tLat}&den_lng=${ST.tLng}`);
-    const d=await res.json();
-    if(d.loi)throw new Error(d.loi);
-
+    const d=await res.json();if(d.loi)throw new Error(d.loi);
     ly.route.clearLayers();
-    // 4-layer route rendering
-    L.geoJSON(d.geometry,{style:{color:'rgba(0,0,0,.15)',weight:11,lineCap:'round',lineJoin:'round'}}).addTo(ly.route);
+    L.geoJSON(d.geometry,{style:{color:'rgba(0,0,0,.14)',weight:11,lineCap:'round',lineJoin:'round'}}).addTo(ly.route);
     L.geoJSON(d.geometry,{style:{color:'#1A7F37',weight:8,opacity:.5,lineCap:'round',lineJoin:'round'}}).addTo(ly.route);
     L.geoJSON(d.geometry,{style:{color:'#3FB950',weight:5.5,opacity:.95,lineCap:'round',lineJoin:'round'}}).addTo(ly.route);
     L.geoJSON(d.geometry,{style:{color:'rgba(255,255,255,.55)',weight:2,opacity:1,dashArray:'8 14',lineCap:'round'}}).addTo(ly.route);
-
     L.circleMarker([ST.tLat,ST.tLng],{radius:10,color:'#E85D2F',fillColor:'#E85D2F',fillOpacity:1,weight:3})
       .bindPopup(`<div class="pbox"><div class="pname">🏁 ${ST.tName}</div><div class="prow" style="color:var(--green)">📏 ${d.khoang_cach_km} km · ≈${d.thoi_gian_phut} phút</div></div>`,{className:''})
       .addTo(ly.route);
     L.circleMarker([ST.fLat,ST.fLng],{radius:7,color:'#2F9E44',fillColor:'#2F9E44',fillOpacity:1,weight:3}).addTo(ly.route);
-
     const coords=d.geometry.coordinates.map(c=>[c[1],c[0]]);
     map.fitBounds(coords,{padding:[80,80]});
-
     document.getElementById('rr-km').textContent=d.khoang_cach_km;
     document.getElementById('rr-mn').textContent=d.thoi_gian_phut;
     document.getElementById('rr-dest-name').textContent='📦 '+ST.tName;
@@ -791,7 +1124,7 @@ async function doRoute(){
     document.getElementById('chip-mn').textContent=d.thoi_gian_phut;
     document.getElementById('chip-r').style.display='';
     document.getElementById('steps').innerHTML=(d.steps||[]).map((s,i)=>`
-      <div class="step">
+      <div class="step" onclick="this.classList.toggle('active-step')">
         <span class="step-num">${i+1}</span>
         <span class="step-ic">${s.icon}</span>
         <span class="step-lbl">${s.label}</span>
@@ -801,12 +1134,13 @@ async function doRoute(){
     setSt(`✓ ${d.khoang_cach_km} km · ≈ ${d.thoi_gian_phut} phút lái xe`,'ok');
     bar.style.transition='width .3s ease';bar.style.width='100%';
     setTimeout(()=>{bar.style.width='0';bar.style.transition='none'},800);
-  }catch(ex){
-    setSt('Không tìm được đường: '+ex.message,'err');
-    bar.style.width='0';bar.style.transition='none';
-  }
-  btn.disabled=false;btn.innerHTML='<i class="bi bi-signpost-split-fill"></i> Tìm đường';
-  chkBtn();
+    // Lưu lịch sử
+    routeHistory.unshift({from:ST.fName,to:ST.tName,km:d.khoang_cach_km,min:d.thoi_gian_phut,fLat:ST.fLat,fLng:ST.fLng,tLat:ST.tLat,tLng:ST.tLng,ts:Date.now()});
+    if(routeHistory.length>5)routeHistory=routeHistory.slice(0,5);
+    try{localStorage.setItem('concung_hist',JSON.stringify(routeHistory))}catch(e){}
+    renderHistory();
+  }catch(ex){setSt('Không tìm được đường: '+ex.message,'err');bar.style.width='0';bar.style.transition='none'}
+  btn.disabled=false;btn.innerHTML='<i class="bi bi-signpost-split-fill"></i> Tìm đường';chkBtn();
 }
 
 function clearRoute(){
@@ -819,6 +1153,13 @@ function toggleSteps(){
   _stepsCollapsed=!_stepsCollapsed;
   document.getElementById('steps').classList.toggle('collapsed',_stepsCollapsed);
   document.getElementById('steps-toggle').textContent=_stepsCollapsed?'Mở rộng ▼':'Thu gọn ▲';
+}
+
+// ── SHARE ROUTE ───────────────────────────────────────────────
+function shareRoute(){
+  if(!ST.fLat||!ST.tLat){toast('Chưa có tuyến đường để chia sẻ');return}
+  const url=`https://www.google.com/maps/dir/?api=1&origin=${ST.fLat},${ST.fLng}&destination=${ST.tLat},${ST.tLng}&travelmode=driving`;
+  navigator.clipboard.writeText(url).then(()=>toast('✓ Đã sao chép link chia sẻ tuyến đường'));
 }
 
 // ── HELPERS ──────────────────────────────────────────────────
@@ -834,32 +1175,197 @@ function hl(id,cls){
   const el=document.getElementById(id);
   if(el){el.classList.add(cls);el.scrollIntoView({behavior:'smooth',block:'nearest'})}
 }
-document.getElementById('qinp').addEventListener('input',function(){
-  const q=this.value.toLowerCase();
-  document.querySelectorAll('#list-all .sitem').forEach(el=>{
-    el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';
-  });
-});
 
-// Right-click: set A/B directly on map
+// ── GHIM VỊ TRÍ TÙY CHỈNH ────────────────────────────────────
+let ghims=[];
+try{ghims=JSON.parse(localStorage.getItem('concung_ghims')||'[]')}catch(e){}
+const ghimMkMap={};
+let ghimPanelOpen=true;
+let selGhimColor='#E85D2F';
+let selGhimIcon='📍';
+let ghimClickMode=false;
+
+function saveGhims(){try{localStorage.setItem('concung_ghims',JSON.stringify(ghims))}catch(e){}}
+
+function toggleGhimPanel(){
+  ghimPanelOpen=!ghimPanelOpen;
+  document.getElementById('ghim-panel').style.display=ghimPanelOpen?'':'none';
+  document.getElementById('ghim-toggle-lbl').textContent=ghimPanelOpen?'Thu gọn ▲':'Mở rộng ▼';
+}
+
+// Chọn biểu tượng
+document.querySelectorAll('.ghim-ic-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>selGhimIc(btn));
+});
+function selGhimIc(btn){
+  document.querySelectorAll('.ghim-ic-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selGhimIcon=btn.dataset.ic;
+}
+// Chọn màu
+document.querySelectorAll('.ghim-clr-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>selGhimClr(btn));
+});
+function selGhimClr(btn){
+  document.querySelectorAll('.ghim-clr-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selGhimColor=btn.dataset.clr;
+}
+// Init defaults
+(()=>{
+  const firstIc=document.querySelector('.ghim-ic-btn');if(firstIc)firstIc.classList.add('sel');
+  const firstClr=document.querySelector('.ghim-clr-btn');if(firstClr)firstClr.classList.add('sel');
+})();
+
+function addGhim(lat,lng){
+  const name=document.getElementById('ghim-name').value.trim()||'Ghim của tôi';
+  const g={id:Date.now(),vi_do:+lat.toFixed(6),kinh_do:+lng.toFixed(6),ten:name,mau:selGhimColor,bieu_tuong:selGhimIcon};
+  ghims.push(g);saveGhims();
+  addGhimMarker(g);renderGhims();
+  document.getElementById('ghim-name').value='';
+  toast('📌 Đã thêm ghim "'+g.ten+'"');
+  cancelGhimClick();
+}
+
+function addGhimMarker(g){
+  const icon=L.divIcon({
+    html:`<div style="background:${g.mau};width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:.9rem">${g.bieu_tuong}</span></div>`,
+    iconSize:[32,32],iconAnchor:[16,32],popupAnchor:[0,-36],className:''
+  });
+  const m=L.marker([g.vi_do,g.kinh_do],{icon,draggable:true}).addTo(map);
+  m.bindTooltip(g.ten,{direction:'top',offset:[0,-26],className:'leaflet-tooltip-custom'});
+  m.bindPopup(`<div class="pbox">
+    <div class="pname" style="color:${g.mau}">${g.bieu_tuong} ${g.ten}</div>
+    <div class="prow">📍 ${g.vi_do}, ${g.kinh_do}</div>
+    <div class="p-copy-row">
+      <button class="p-copy" onclick="setAsFrom(${g.vi_do},${g.kinh_do},'${g.ten.replace(/'/g,"\\'")}')">🚀 Đặt làm điểm A</button>
+      <button class="p-copy" onclick="setAsDest(${g.vi_do},${g.kinh_do},'${g.ten.replace(/'/g,"\\'")}')">🏁 Đặt làm điểm B</button>
+    </div>
+    <div style="margin-top:.4rem">
+      <button class="p-copy" onclick="xoaGhim(${g.id});document.querySelector('.leaflet-popup-close-button')?.click()">🗑 Xóa ghim này</button>
+    </div>
+  </div>`,{maxWidth:240});
+  m.on('dragend',e=>{
+    const p=e.target.getLatLng();
+    const idx=ghims.findIndex(x=>x.id===g.id);
+    if(idx>=0){ghims[idx].vi_do=+p.lat.toFixed(6);ghims[idx].kinh_do=+p.lng.toFixed(6);saveGhims();renderGhims();}
+    toast('📌 Đã di chuyển ghim "'+g.ten+'"');
+  });
+  ghimMkMap[g.id]=m;
+}
+
+function setAsFrom(lat,lng,name){
+  ST.fLat=lat;ST.fLng=lng;ST.fName=name;
+  document.getElementById('inp-from').value=name;
+  setUMk(lat,lng);chkBtn();
+  map.setView([lat,lng],15);
+  document.querySelector('.leaflet-popup-close-button')?.click();
+  toast('✅ Đã đặt "'+name+'" làm điểm xuất phát');
+}
+function setAsDest(lat,lng,name){
+  setDest(lat,lng,name);
+  map.setView([lat,lng],15);
+  document.querySelector('.leaflet-popup-close-button')?.click();
+  toast('✅ Đã đặt "'+name+'" làm điểm đến');
+}
+
+function xoaGhim(id){
+  const idx=ghims.findIndex(g=>g.id===id);
+  if(idx<0)return;
+  const ten=ghims[idx].ten;
+  if(ghimMkMap[id]){map.removeLayer(ghimMkMap[id]);delete ghimMkMap[id]}
+  ghims.splice(idx,1);saveGhims();renderGhims();
+  toast('🗑 Đã xóa ghim "'+ten+'"');
+}
+
+function xoaHetGhim(){
+  if(!confirm('Xóa tất cả '+ ghims.length +' ghim?'))return;
+  Object.values(ghimMkMap).forEach(m=>map.removeLayer(m));
+  Object.keys(ghimMkMap).forEach(k=>delete ghimMkMap[k]);
+  ghims=[];saveGhims();renderGhims();
+  toast('🗑 Đã xóa tất cả ghim');
+}
+
+function renderGhims(){
+  const el=document.getElementById('ghim-list');if(!el)return;
+  if(!ghims.length){el.innerHTML='<div class="hist-empty">Chưa có ghim nào</div>';return}
+  el.innerHTML=ghims.map(g=>`
+    <div class="ghim-item" id="ghim-li-${g.id}">
+      <div class="ghim-dot" style="background:${g.mau}">${g.bieu_tuong}</div>
+      <div class="ghim-info">
+        <div class="ghim-name">${g.ten}</div>
+        <div class="ghim-coord">${g.vi_do}, ${g.kinh_do}</div>
+      </div>
+      <div class="ghim-actions">
+        <button class="ghim-btn" onclick="zoomGhim(${g.vi_do},${g.kinh_do})" title="Đến vị trí">🎯</button>
+        <button class="ghim-btn" onclick="setAsFrom(${g.vi_do},${g.kinh_do},'${g.ten.replace(/'/g,"\\'")}');document.querySelector('.leaflet-popup-close-button')?.click()" title="Đặt điểm A">🚀</button>
+        <button class="ghim-btn" onclick="xoaGhim(${g.id})" title="Xóa">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function zoomGhim(lat,lng){
+  map.setView([lat,lng],17);
+  if(!sbOpen)toggleSidebar();
+}
+
+// Thêm ghim bằng GPS
+function addGhimByGPS(){
+  if(!navigator.geolocation){toast('Trình duyệt không hỗ trợ GPS');return}
+  const name=document.getElementById('ghim-name').value.trim()||'Vị trí GPS của tôi';
+  toast('📡 Đang lấy GPS...');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    addGhim(pos.coords.latitude,pos.coords.longitude);
+  },()=>toast('❌ Không lấy được GPS'),{timeout:10000,enableHighAccuracy:true});
+}
+
+// Thêm ghim bằng click bản đồ
+function addGhimByClick(){
+  if(ghimClickMode){cancelGhimClick();return}
+  ghimClickMode=true;
+  const btn=document.getElementById('btn-ghim-click');
+  btn.textContent='✕ Hủy';btn.style.background='#64748B';
+  map.getContainer().style.cursor='crosshair';
+  toast('🗺 Click lên bản đồ để đặt ghim...',5000);
+  map._ghimHandler=function(e){addGhim(e.latlng.lat,e.latlng.lng)};
+  map.once('click',map._ghimHandler);
+}
+function cancelGhimClick(){
+  ghimClickMode=false;
+  const btn=document.getElementById('btn-ghim-click');
+  if(btn){btn.textContent='🗺 Click bản đồ';btn.style.background='var(--blue)'}
+  map.getContainer().style.cursor='';
+  if(map._ghimHandler){map.off('click',map._ghimHandler);map._ghimHandler=null}
+}
+
+// Load ghim đã lưu khi khởi động
+ghims.forEach(g=>addGhimMarker(g));
+renderGhims();
+
+
 map.on('contextmenu',ev=>{
   const lat=+ev.latlng.lat.toFixed(6),lng=+ev.latlng.lng.toFixed(6);
   L.popup({className:''}).setLatLng(ev.latlng).setContent(
     `<div class="pbox">
-      <div class="pname" style="font-size:.77rem;color:var(--muted)">📌 Tọa độ</div>
-      <div style="font-family:'DM Mono',monospace;font-size:.79rem;color:var(--text);margin:.28rem 0">${lat}, ${lng}</div>
-      <div style="display:flex;gap:.38rem;margin-top:.45rem">
-        <button class="pbtn" style="background:#2F9E44;font-size:.66rem"
-          onclick="ST.fLat=${lat};ST.fLng=${lng};document.getElementById('inp-from').value='📌 Điểm A (bản đồ)';setUMk(${lat},${lng});chkBtn();document.querySelector('.leaflet-popup-close-button')?.click()">
-          📍 Đặt điểm A
+      <div class="pname" style="font-size:.76rem;color:var(--muted)">📌 Tọa độ</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--text);margin:.24rem 0">${lat}, ${lng}</div>
+      <div style="display:flex;gap:.25rem;margin-top:.4rem;flex-wrap:wrap">
+        <button class="pbtn" style="background:#2F9E44;font-size:.63rem"
+          onclick="ST.fLat=${lat};ST.fLng=${lng};document.getElementById('inp-from').value='📌 Điểm A';setUMk(${lat},${lng});chkBtn();document.querySelector('.leaflet-popup-close-button')?.click()">
+          📍 Đặt A
         </button>
-        <button class="pbtn" style="font-size:.66rem"
-          onclick="ST.tLat=${lat};ST.tLng=${lng};document.getElementById('inp-to').value='📌 Điểm B (bản đồ)';chkBtn();document.querySelector('.leaflet-popup-close-button')?.click()">
-          🏁 Đặt điểm B
+        <button class="pbtn" style="font-size:.63rem"
+          onclick="ST.tLat=${lat};ST.tLng=${lng};document.getElementById('inp-to').value='📌 Điểm B';chkBtn();document.querySelector('.leaflet-popup-close-button')?.click()">
+          🏁 Đặt B
+        </button>
+        <button class="pbtn" style="background:#555;font-size:.63rem"
+          onclick="navigator.clipboard.writeText('${lat}, ${lng}').then(()=>toast('✓ Đã sao chép'));document.querySelector('.leaflet-popup-close-button')?.click()">
+          📋 Copy
         </button>
       </div>
     </div>`
   ).openOn(map);
 });
+
 </script>
 {% endblock %}

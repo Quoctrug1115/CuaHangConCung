@@ -1,50 +1,98 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
 {% block title %}Quản lý nhân viên - Con Cưng{% endblock %}
-{% block content %}
-<div class="container py-4">
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="fw-bold mb-0">👥 Quản lý nhân viên</h4>
-    <a href="{% url 'quan_ly_cua_hang' %}" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;">
-      ← Về cửa hàng
-    </a>
-  </div>
-
-  <div class="card" style="border-radius:14px; overflow:hidden;">
-    <table class="table table-hover align-middle mb-0">
-      <thead style="background:#f8f9fa;">
-        <tr>
-          <th style="padding:1rem 1.2rem; font-size:.76rem; text-transform:uppercase; color:#666;">Nhân viên</th>
-          <th>Cửa hàng</th>
-          <th>Chức vụ</th>
-          <th>Mã NV</th>
-          <th>Ngày vào làm</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for nv in nhan_viens %}
-        <tr>
-          <td style="padding:.8rem 1.2rem;">
-            <div class="d-flex align-items-center gap-2">
-              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#e65100);
-                          color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;">
-                {{ nv.nguoi_dung.get_full_name|slice:":1"|upper|default:"?" }}
-              </div>
-              <div>
-                <div class="fw-semibold" style="font-size:.88rem;">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
-                <div class="text-muted" style="font-size:.72rem;">{{ nv.nguoi_dung.email }}</div>
-              </div>
-            </div>
-          </td>
-          <td style="font-size:.85rem;">{{ nv.cua_hang.ten|truncatechars:30 }}</td>
-          <td><span class="badge bg-light text-dark" style="font-size:.75rem;">{{ nv.get_chuc_vu_display }}</span></td>
-          <td style="font-size:.82rem; font-family:monospace;">{{ nv.ma_nhan_vien }}</td>
-          <td style="font-size:.82rem;">{{ nv.ngay_vao_lam|date:"d/m/Y" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="text-center py-4 text-muted">Không có nhân viên nào.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+{% block page_title %}Quản lý nhân viên{% endblock %}
+{% block breadcrumb %} › Nhân viên{% endblock %}
+{% block extra_css %}
+<style>
+.nv-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-bottom:1rem}
+.nvs{background:white;border-radius:11px;border:1px solid var(--line);padding:.7rem .85rem;display:flex;align-items:center;gap:.5rem}
+.nvs-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.filter-bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;padding:.85rem 1.1rem;background:white;border-radius:12px;border:1px solid var(--line);margin-bottom:1rem}
+.fi-sm{border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none;background:white;color:var(--ink)}
+.fi-sm:focus{border-color:var(--or)}
+.nv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+.nv-card{background:white;border-radius:14px;border:1.5px solid var(--line);padding:1.1rem;transition:all .18s;position:relative}
+.nv-card:hover{border-color:#FFB89A;box-shadow:0 6px 20px rgba(255,107,53,.1);transform:translateY(-2px)}
+.nv-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:white;background:linear-gradient(135deg,var(--or),#C94A0E);flex-shrink:0;overflow:hidden}
+.nv-av img{width:100%;height:100%;object-fit:cover}
+.nv-status{position:absolute;top:.7rem;right:.7rem}
+.cv-quan_ly{background:#FEF9C3;color:#854D0E}
+.cv-thu_ngan{background:#DBEAFE;color:#1E40AF}
+.cv-ban_hang{background:#DCFCE7;color:#166534}
+.cv-kho{background:#F3E8FF;color:#5B21B6}
+.cv-giao_hang{background:#FFEDD5;color:#9A3412}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:16px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hd{padding:1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
+.modal-body{padding:1.3rem}
+.modal-ft{padding:.85rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.5rem;justify-content:flex-end}
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="nv-stats">
+  <div class="nvs"><div class="nvs-ic" style="background:#FFF7ED">👥</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ tong_nv|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Tổng NV</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#F0FDF4">✅</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">{{ dang_lam|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Đang làm</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#FEF9C3">👔</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ quan_ly|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Quản lý</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#FFEDD5">🛵</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ shipper|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Shipper</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#EFF6FF">🏪</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ so_cua_hang|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Cửa hàng</div></div></div>
 </div>
+<div class="filter-bar">
+  <input class="fi-sm" style="width:200px" type="text" id="nvSearch" placeholder="🔍 Tên, mã nhân viên..." value="{{ request.GET.q|default:'' }}">
+  <select class="fi-sm" id="cvSel">
+    <option value="">Tất cả chức vụ</option>
+    <option value="quan_ly" {% if request.GET.chuc_vu == "quan_ly" %}selected{% endif %}>👔 Quản lý</option>
+    <option value="thu_ngan" {% if request.GET.chuc_vu == "thu_ngan" %}selected{% endif %}>💳 Thu ngân</option>
+    <option value="ban_hang" {% if request.GET.chuc_vu == "ban_hang" %}selected{% endif %}>🏷 Bán hàng</option>
+    <option value="kho" {% if request.GET.chuc_vu == "kho" %}selected{% endif %}>📦 Nhân viên kho</option>
+    <option value="giao_hang" {% if request.GET.chuc_vu == "giao_hang" %}selected{% endif %}>🛵 Shipper</option>
+  </select>
+  <select class="fi-sm" id="chSel">
+    <option value="">Tất cả cửa hàng</option>
+    {% for ch in cua_hangs %}<option value="{{ ch.id }}" {% if request.GET.cua_hang == ch.id|stringformat:"s" %}selected{% endif %}>{{ ch.ten }}</option>{% endfor %}
+  </select>
+  <div style="flex:1"></div>
+  <button class="btn-adm btn-gray" onclick="applyFilter()">Lọc</button>
+  <a href="{% url 'them_nhan_vien' %}" class="btn-adm btn-or">＋ Thêm nhân viên</a>
+</div>
+<div class="nv-grid">
+  {% for nv in nhan_viens %}
+  <div class="nv-card">
+    <div class="nv-status">{% if nv.dang_lam_viec %}<span class="bdg bdg-green">● Làm việc</span>{% else %}<span class="bdg bdg-gray">● Nghỉ</span>{% endif %}</div>
+    <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.75rem">
+      <div class="nv-av">{% if nv.nguoi_dung.anh_dai_dien %}<img src="{{ nv.nguoi_dung.anh_dai_dien.url }}">{% else %}{{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}{% endif %}</div>
+      <div>
+        <div style="font-size:.9rem;font-weight:800;color:var(--ink)">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
+        <div style="font-size:.67rem;color:var(--sub);font-weight:600;margin-bottom:.25rem">{{ nv.ma_nhan_vien }}</div>
+        <span class="bdg cv-{{ nv.chuc_vu }}" style="font-size:.63rem">{{ nv.get_chuc_vu_display }}</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.22rem;margin-bottom:.75rem">
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">🏪 <span style="color:var(--ink);font-weight:600">{{ nv.cua_hang.ten|default:"—" }}</span></div>
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">📅 <span style="color:var(--ink);font-weight:600">{{ nv.ngay_vao_lam|date:"d/m/Y" }}</span></div>
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">📱 <span style="color:var(--ink);font-weight:600">{{ nv.nguoi_dung.so_dien_thoai|default:"—" }}</span></div>
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">💰 <span style="color:var(--or);font-weight:700">{{ nv.luong_co_ban|floatformat:0 }}đ</span></div>
+    </div>
+    <div style="display:flex;gap:.3rem;padding-top:.65rem;border-top:1px solid #F1F5F9">
+      <a href="{% url 'chi_tiet_nhan_vien' nv.pk %}" class="btn-adm btn-blue btn-sm">👁 Xem</a>
+      <a href="{% url 'sua_nhan_vien' nv.pk %}" class="btn-adm btn-gray btn-sm">✏️ Sửa</a>
+      <a href="{% url 'xoa_nhan_vien' nv.pk %}" class="btn-adm btn-red btn-sm">🗑</a>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:1/-1" class="empty-state">
+    <div style="font-size:3rem;margin-bottom:.5rem">👥</div>
+    <div style="font-weight:800;margin-bottom:.3rem">Chưa có nhân viên nào</div>
+    <a href="{% url 'them_nhan_vien' %}" class="btn-adm btn-or" style="margin-top:.5rem">＋ Thêm nhân viên</a>
+  </div>
+  {% endfor %}
+</div>
+{% if nhan_viens.has_other_pages %}
+<div class="pg" style="margin-top:1rem">{% if nhan_viens.has_previous %}<a href="?page={{ nhan_viens.previous_page_number }}">←</a>{% endif %}{% for p in nhan_viens.paginator.page_range %}{% if nhan_viens.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}">{{ p }}</a>{% endif %}{% endfor %}{% if nhan_viens.has_next %}<a href="?page={{ nhan_viens.next_page_number }}">→</a>{% endif %}</div>
+{% endif %}
+<script>
+function applyFilter(){const q=document.getElementById('nvSearch').value,cv=document.getElementById('cvSel').value,ch=document.getElementById('chSel').value;let url='?';if(q)url+='q='+encodeURIComponent(q)+'&';if(cv)url+='chuc_vu='+cv+'&';if(ch)url+='cua_hang='+ch;window.location=url}
+document.getElementById('nvSearch').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilter()});
+</script>
 {% endblock %}

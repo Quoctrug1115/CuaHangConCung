@@ -1,0 +1,229 @@
+{% extends 'admin_base.html' %}
+{% block title %}Quản lý tồn kho - Con Cưng{% endblock %}
+{% block breadcrumb %} › Kho hàng{% endblock %}
+{% block nav_kho %}class="on"{% endblock %}
+{% block extra_css %}
+<style>
+/* Kho layout */
+.kho-layout{display:grid;grid-template-columns:1fr;gap:1rem}
+.kho-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.7rem;margin-bottom:1rem}
+.ks{background:white;border-radius:12px;border:1px solid var(--line);padding:.8rem .9rem;display:flex;align-items:center;gap:.6rem}
+.ks-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ks-val{font-size:1.5rem;font-weight:800;color:var(--ink);line-height:1}
+.ks-lbl{font-size:.64rem;color:var(--sub);font-weight:600;margin-top:.1rem}
+/* Stock level indicator */
+.stock-bar{width:80px;height:6px;background:#E2E8F0;border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle}
+.stock-fill{height:100%;border-radius:999px;transition:width .3s}
+.stock-ok .stock-fill{background:#22C55E}
+.stock-low .stock-fill{background:#F59E0B}
+.stock-out .stock-fill{background:#EF4444}
+/* Store filter tabs */
+.store-tabs{display:flex;gap:.3rem;overflow-x:auto;padding:.65rem .95rem;border-bottom:1px solid var(--line);background:white;flex-wrap:nowrap}
+.stab{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:all .14s;border:1.5px solid transparent;color:var(--sub)}
+.stab:hover{background:#F8FAFC;color:var(--ink)}
+.stab.active{border-color:var(--or);background:#FFF7ED;color:var(--or)}
+/* Nhap kho modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hd{padding:1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
+.modal-title{font-size:.9rem;font-weight:800;color:var(--ink);flex:1}
+.modal-body{padding:1.2rem 1.3rem}
+.modal-ft{padding:.85rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.5rem;justify-content:flex-end}
+.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border .14s;background:white;color:var(--ink)}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.fg{margin-bottom:.8rem}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.25rem}
+/* Type toggle */
+.type-tog{display:flex;gap:.4rem;margin-bottom:.9rem}
+.type-btn{flex:1;padding:.4rem;border:1.5px solid var(--line);border-radius:8px;background:white;cursor:pointer;font-size:.78rem;font-weight:700;font-family:inherit;text-align:center;transition:all .14s}
+.type-btn.sel-nhap{background:#F0FDF4;border-color:#86EFAC;color:#166534}
+.type-btn.sel-xuat{background:#FEF2F2;border-color:#FECACA;color:#991B1B}
+.type-btn.sel-dieu{background:#EFF6FF;border-color:#93C5FD;color:#1E40AF}
+/* Quick stats per product */
+.tk-row td{vertical-align:middle}
+.progress-wrap{width:90px}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Stats -->
+<div class="kho-stats">
+  <div class="ks"><div class="ks-ic" style="background:#F0FDF4">📦</div><div><div class="ks-val">{{ tong_sp_kho|default:"0" }}</div><div class="ks-lbl">SP trong kho</div></div></div>
+  <div class="ks"><div class="ks-ic" style="background:#FEF9C3">⚠️</div><div><div class="ks-val" style="color:#D97706">{{ sap_het|default:"0" }}</div><div class="ks-lbl">Sắp hết hàng</div></div></div>
+  <div class="ks"><div class="ks-ic" style="background:#FEE2E2">🚫</div><div><div class="ks-val" style="color:var(--red)">{{ het_hang|default:"0" }}</div><div class="ks-lbl">Hết hàng</div></div></div>
+  <div class="ks"><div class="ks-ic" style="background:#EFF6FF">📊</div><div><div class="ks-val">{{ tong_ton|default:"0" }}</div><div class="ks-lbl">Tổng tồn kho</div></div></div>
+  <div class="ks"><div class="ks-ic" style="background:#F5F3FF">🏪</div><div><div class="ks-val">{{ so_cua_hang|default:"0" }}</div><div class="ks-lbl">Cửa hàng</div></div></div>
+</div>
+
+<!-- Actions -->
+<div style="display:flex;gap:.6rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+  <input class="fi" style="width:220px;display:inline-block" type="text" placeholder="🔍 Tìm sản phẩm..." id="khoSearch">
+  <select class="fi" style="width:180px;display:inline-block" id="cuaHangSel" onchange="filterKho()">
+    <option value="">Tất cả cửa hàng</option>
+    {% for ch in cua_hangs %}<option value="{{ ch.id }}" {% if request.GET.cua_hang == ch.id|stringformat:"s" %}selected{% endif %}>{{ ch.ten }}</option>{% endfor %}
+  </select>
+  <select class="fi" style="width:160px;display:inline-block" id="tinhTrangSel" onchange="filterKho()">
+    <option value="">Tất cả tình trạng</option>
+    <option value="ok">Còn hàng</option>
+    <option value="low">Sắp hết</option>
+    <option value="out">Hết hàng</option>
+  </select>
+  <div style="flex:1"></div>
+  <button class="btn-adm btn-blue" onclick="openModal('nhap')">📥 Nhập kho</button>
+  <button class="btn-adm btn-gray" onclick="openModal('xuat')">📤 Xuất kho</button>
+  <a href="{% url 'lich_su_kho' %}" class="btn-adm btn-gray">📋 Lịch sử</a>
+</div>
+
+<!-- Store tabs -->
+<div class="tbl-wrap">
+  <div class="store-tabs">
+    <a href="{% url 'quan_ly_kho' %}" class="stab {% if not request.GET.cua_hang %}active{% endif %}">🏪 Tất cả</a>
+    {% for ch in cua_hangs %}
+    <a href="?cua_hang={{ ch.id }}" class="stab {% if request.GET.cua_hang == ch.id|stringformat:"s" %}active{% endif %}">{{ ch.ten }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="tbl-head">
+    <div class="tbl-title">📦 Tồn kho</div>
+    <div style="font-size:.75rem;color:var(--sub)">Cập nhật: {% now "d/m/Y H:i" %}</div>
+  </div>
+
+  <table class="adm-tbl" id="khoTbl">
+    <thead>
+      <tr>
+        <th>Sản phẩm</th>
+        <th>Cửa hàng</th>
+        <th>Tồn kho</th>
+        <th>Tối thiểu</th>
+        <th>Mức tồn</th>
+        <th>Vị trí kệ</th>
+        <th>Cập nhật</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tk in ton_khos %}
+      <tr class="tk-row" data-status="{% if tk.so_luong == 0 %}out{% elif tk.can_canh_bao %}low{% else %}ok{% endif %}">
+        <td>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div style="width:34px;height:34px;border-radius:8px;overflow:hidden;background:#F8FAFC;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              {% if tk.san_pham.hinh_anh %}<img src="{{ tk.san_pham.hinh_anh.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}<span>📦</span>{% endif %}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.81rem">{{ tk.san_pham.ten }}</div>
+              <div style="font-size:.66rem;color:var(--sub)">{{ tk.san_pham.ma_san_pham }}</div>
+            </div>
+          </div>
+        </td>
+        <td><span style="font-size:.78rem;font-weight:600">{{ tk.cua_hang.ten }}</span></td>
+        <td>
+          <span style="font-size:1.1rem;font-weight:800;color:{% if tk.so_luong == 0 %}var(--red){% elif tk.can_canh_bao %}#D97706{% else %}var(--green){% endif %}">
+            {{ tk.so_luong }}
+          </span>
+        </td>
+        <td><span style="font-size:.78rem;color:var(--sub)">{{ tk.so_luong_toi_thieu }}</span></td>
+        <td>
+          <div class="progress-wrap">
+            {% with pct=tk.so_luong|default:0 %}
+            <div class="stock-bar {% if tk.so_luong == 0 %}stock-out{% elif tk.can_canh_bao %}stock-low{% else %}stock-ok{% endif %}">
+              <div class="stock-fill" style="width:{% if tk.so_luong_toi_thieu > 0 %}{% widthratio tk.so_luong tk.so_luong_toi_thieu 100 %}{% else %}100{% endif %}%"></div>
+            </div>
+            {% endwith %}
+            {% if tk.so_luong == 0 %}<span class="bdg bdg-red" style="font-size:.62rem">Hết</span>
+            {% elif tk.can_canh_bao %}<span class="bdg bdg-orange" style="font-size:.62rem">Thấp</span>
+            {% else %}<span class="bdg bdg-green" style="font-size:.62rem">OK</span>{% endif %}
+          </div>
+        </td>
+        <td><span style="font-size:.75rem;color:var(--sub)">{{ tk.vi_tri_ke|default:"—" }}</span></td>
+        <td><span style="font-size:.72rem;color:var(--sub)">{{ tk.ngay_cap_nhat|date:"d/m H:i" }}</span></td>
+        <td>
+          <div class="td-actions">
+            <button class="btn-adm btn-blue btn-sm" onclick="openNhapModal({{ tk.id }},'{{ tk.san_pham.ten }}','{{ tk.cua_hang.ten }}')">📥 Nhập</button>
+            <button class="btn-adm btn-gray btn-sm" onclick="openXuatModal({{ tk.id }},'{{ tk.san_pham.ten }}')">📤 Xuất</button>
+            <a href="{% url 'lich_su_kho_chi_tiet' tk.id %}" class="btn-adm btn-gray btn-sm">📋</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty-state">Chưa có dữ liệu tồn kho</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if ton_khos.has_other_pages %}
+<div class="pg">{% if ton_khos.has_previous %}<a href="?page={{ ton_khos.previous_page_number }}">←</a>{% endif %}{% for p in ton_khos.paginator.page_range %}{% if ton_khos.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}">{{ p }}</a>{% endif %}{% endfor %}{% if ton_khos.has_next %}<a href="?page={{ ton_khos.next_page_number }}">→</a>{% endif %}</div>
+{% endif %}
+
+<!-- Nhap/Xuat Kho Modal -->
+<div class="modal-overlay" id="khoModal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div id="modalIcon" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:#F0FDF4">📥</div>
+      <div class="modal-title" id="modalTitle">Nhập kho</div>
+      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--sub)">✕</button>
+    </div>
+    <form method="POST" action="{% url 'cap_nhat_ton_kho' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ton_kho_id" id="modalTonKhoId">
+      <div class="modal-body">
+        <div id="modalInfo" style="background:#F8FAFC;border-radius:9px;padding:.65rem .85rem;margin-bottom:.9rem;font-size:.8rem;color:var(--sub)"></div>
+        <div class="type-tog">
+          <button type="button" class="type-btn sel-nhap" id="btnNhap" onclick="setLoai('nhap')">📥 Nhập kho</button>
+          <button type="button" class="type-btn" id="btnXuat" onclick="setLoai('xuat')">📤 Xuất kho</button>
+          <button type="button" class="type-btn" id="btnDieu" onclick="setLoai('dieu_chinh')">⚙️ Điều chỉnh</button>
+        </div>
+        <input type="hidden" name="loai" id="loaiInput" value="nhap">
+        <div class="fg">
+          <label>Số lượng <span style="color:var(--red)">*</span></label>
+          <input type="number" name="so_luong" class="fi" min="1" placeholder="Nhập số lượng..." required>
+        </div>
+        <div class="fg">
+          <label>Ghi chú</label>
+          <textarea name="ghi_chu" class="fi" rows="2" placeholder="Lý do nhập/xuất kho, số lô hàng..."></textarea>
+        </div>
+      </div>
+      <div class="modal-ft">
+        <button type="button" class="btn-adm btn-gray" onclick="closeModal()">Hủy</button>
+        <button type="submit" class="btn-adm btn-or">✅ Xác nhận</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function filterKho(){
+  const ch=document.getElementById('cuaHangSel').value,tt=document.getElementById('tinhTrangSel').value,q=document.getElementById('khoSearch').value;
+  let url='?';if(ch)url+='cua_hang='+ch+'&';if(tt)url+='tinh_trang='+tt+'&';if(q)url+='q='+encodeURIComponent(q);
+  window.location=url;
+}
+document.getElementById('khoSearch').addEventListener('keydown',e=>{if(e.key==='Enter')filterKho()});
+function openNhapModal(id,sp,ch){
+  document.getElementById('modalTonKhoId').value=id;
+  document.getElementById('modalInfo').innerHTML='<b>'+sp+'</b> — '+ch;
+  document.getElementById('khoModal').classList.add('open');
+  setLoai('nhap');
+}
+function openXuatModal(id,sp){
+  document.getElementById('modalTonKhoId').value=id;
+  document.getElementById('modalInfo').innerHTML='<b>'+sp+'</b>';
+  document.getElementById('khoModal').classList.add('open');
+  setLoai('xuat');
+}
+function openModal(t){document.getElementById('khoModal').classList.add('open');setLoai(t==='xuat'?'xuat':'nhap')}
+function closeModal(){document.getElementById('khoModal').classList.remove('open')}
+function setLoai(l){
+  document.getElementById('loaiInput').value=l;
+  const btnNhap=document.getElementById('btnNhap'),btnXuat=document.getElementById('btnXuat'),btnDieu=document.getElementById('btnDieu');
+  btnNhap.className='type-btn'+(l==='nhap'?' sel-nhap':'');
+  btnXuat.className='type-btn'+(l==='xuat'?' sel-xuat':'');
+  btnDieu.className='type-btn'+(l==='dieu_chinh'?' sel-dieu':'');
+  document.getElementById('modalTitle').textContent=l==='nhap'?'Nhập kho':l==='xuat'?'Xuất kho':'Điều chỉnh tồn kho';
+  document.getElementById('modalIcon').textContent=l==='nhap'?'📥':l==='xuat'?'📤':'⚙️';
+}
+document.getElementById('khoModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+</script>
+{% endblock %}

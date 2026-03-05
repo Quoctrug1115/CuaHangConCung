@@ -188,11 +188,44 @@ def quan_ly_san_pham(request):
         return redirect('trang_chu')
 
     san_phams = SanPham.objects.all().order_by('-ngay_tao')
+
+    # Tìm kiếm
+    q = request.GET.get('q', '').strip()
+    if q:
+        san_phams = san_phams.filter(
+            Q(ten__icontains=q) | Q(ma_san_pham__icontains=q) | Q(thuong_hieu__icontains=q)
+        )
+
+    # Lọc danh mục
+    danh_muc_id = request.GET.get('danh_muc', '').strip()
+    if danh_muc_id:
+        san_phams = san_phams.filter(danh_muc_id=danh_muc_id)
+
+    # Lọc trạng thái
+    dang_ban = request.GET.get('dang_ban', '').strip()
+    if dang_ban == '1':
+        san_phams = san_phams.filter(dang_ban=True)
+    elif dang_ban == '0':
+        san_phams = san_phams.filter(dang_ban=False)
+
+    from django.db.models import F, Count
+    tong_sp = SanPham.objects.count()
+    dang_ban_count = SanPham.objects.filter(dang_ban=True).count()
+    canh_bao = TonKho.objects.filter(so_luong__lte=F('so_luong_toi_thieu')).values('san_pham').distinct().count()
+    het_hang = TonKho.objects.filter(so_luong=0).values('san_pham').distinct().count()
+    so_danh_muc = DanhMuc.objects.count()
+
     paginator = Paginator(san_phams, 15)
     page = request.GET.get('page', 1)
 
     return render(request, 'products/quan_ly_san_pham.html', {
-        'san_phams': paginator.get_page(page)
+        'san_phams': paginator.get_page(page),
+        'danh_mucs': DanhMuc.objects.all().order_by('thu_tu'),
+        'tong_san_pham': tong_sp,
+        'dang_ban': dang_ban_count,
+        'canh_bao_kho': canh_bao,
+        'het_hang': het_hang,
+        'so_danh_muc': so_danh_muc,
     })
 
 
@@ -233,3 +266,18 @@ def sua_san_pham(request, pk):
     return render(request, 'products/form_san_pham.html', {
         'form': form, 'tieu_de': 'Sửa sản phẩm'
     })
+
+@login_required
+def xoa_san_pham(request, pk):
+    if not request.user.la_quan_ly:
+        messages.error(request, 'Bạn không có quyền thực hiện.')
+        return redirect('trang_chu')
+
+    san_pham = get_object_or_404(SanPham, pk=pk)
+    if request.method == 'POST':
+        ten = san_pham.ten
+        san_pham.delete()
+        messages.success(request, f'Đã xoá sản phẩm "{ten}"!')
+        return redirect('quan_ly_san_pham')
+
+    return render(request, 'products/xac_nhan_xoa_sp.html', {'san_pham': san_pham})

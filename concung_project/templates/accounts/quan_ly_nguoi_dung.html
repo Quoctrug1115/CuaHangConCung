@@ -1,0 +1,133 @@
+{% extends 'admin_base.html' %}
+{% block title %}Quản lý người dùng - Con Cưng{% endblock %}
+{% block page_title %}Quản lý người dùng{% endblock %}
+{% block breadcrumb %} › Người dùng{% endblock %}
+{% block extra_css %}
+<style>
+.nd-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-bottom:1rem}
+.nds{background:white;border-radius:11px;border:1px solid var(--line);padding:.7rem .85rem;display:flex;align-items:center;gap:.5rem}
+.filter-bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;padding:.85rem 1.1rem;background:white;border-radius:12px;border:1px solid var(--line);margin-bottom:1rem}
+.fi-sm{border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none;background:white;color:var(--ink)}
+.fi-sm:focus{border-color:var(--or)}
+/* Role badge */
+.role-admin{background:#FEE2E2;color:#991B1B}
+.role-quan_ly{background:#FEF9C3;color:#854D0E}
+.role-nhan_vien{background:#DBEAFE;color:#1E40AF}
+.role-shipper{background:#FFEDD5;color:#9A3412}
+.role-khach_hang{background:#F3F4F6;color:#374151}
+/* Avatar */
+.nd-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:white;flex-shrink:0;overflow:hidden}
+.nd-av img{width:100%;height:100%;object-fit:cover}
+/* Last active indicator */
+.online-dot{width:8px;height:8px;border-radius:50%;background:#22C55E;display:inline-block;margin-right:.3rem;box-shadow:0 0 0 2px white,0 0 0 3px #22C55E}
+/* Bulk select bar */
+.bulk-bar{background:#FFF7ED;border:1px solid #FFD4B5;border-radius:10px;padding:.6rem .95rem;display:none;align-items:center;gap:.7rem;margin-bottom:.8rem;font-size:.79rem;font-weight:700;color:var(--or)}
+.bulk-bar.show{display:flex}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="nd-stats">
+  <div class="nds"><div style="width:30px;height:30px;border-radius:8px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">👥</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ tong_nd|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Tổng người dùng</div></div></div>
+  <div class="nds"><div style="width:30px;height:30px;border-radius:8px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">🔐</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ so_admin|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Admin</div></div></div>
+  <div class="nds"><div style="width:30px;height:30px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">✅</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">{{ dang_hoat_dong|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Hoạt động</div></div></div>
+  <div class="nds"><div style="width:30px;height:30px;border-radius:8px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">🛒</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ so_khach|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Khách hàng</div></div></div>
+  <div class="nds"><div style="width:30px;height:30px;border-radius:8px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">📅</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ moi_tuan|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Mới tuần này</div></div></div>
+</div>
+
+<div class="filter-bar">
+  <input class="fi-sm" style="width:200px" type="text" id="ndSearch" placeholder="🔍 Tên, email, username..." value="{{ request.GET.q|default:'' }}">
+  <select class="fi-sm" id="roleSel">
+    <option value="">Tất cả vai trò</option>
+    <option value="admin" {% if request.GET.vai_tro == "admin" %}selected{% endif %}>🔐 Admin</option>
+    <option value="quan_ly" {% if request.GET.vai_tro == "quan_ly" %}selected{% endif %}>👔 Quản lý</option>
+    <option value="nhan_vien" {% if request.GET.vai_tro == "nhan_vien" %}selected{% endif %}>🏷 Nhân viên</option>
+    <option value="shipper" {% if request.GET.vai_tro == "shipper" %}selected{% endif %}>🛵 Shipper</option>
+    <option value="khach_hang" {% if request.GET.vai_tro == "khach_hang" %}selected{% endif %}>👤 Khách hàng</option>
+  </select>
+  <select class="fi-sm" id="stSel">
+    <option value="">Trạng thái</option>
+    <option value="1" {% if request.GET.is_active == "1" %}selected{% endif %}>✅ Hoạt động</option>
+    <option value="0" {% if request.GET.is_active == "0" %}selected{% endif %}>🚫 Vô hiệu</option>
+  </select>
+  <div style="flex:1"></div>
+  <button class="btn-adm btn-gray" onclick="applyFilter()">Lọc</button>
+  <a href="{% url 'them_nguoi_dung' %}" class="btn-adm btn-or">＋ Thêm người dùng</a>
+</div>
+
+<div class="bulk-bar" id="bulkBar">
+  <span id="bulkCnt">0 đã chọn</span>
+  <button class="btn-adm btn-green btn-sm" onclick="bulkAction('activate')">✅ Kích hoạt</button>
+  <button class="btn-adm btn-gray btn-sm" onclick="bulkAction('deactivate')">🚫 Vô hiệu hóa</button>
+  <button class="btn-adm btn-red btn-sm" onclick="bulkAction('delete')">🗑 Xóa</button>
+</div>
+
+<div class="tbl-wrap">
+  <div class="tbl-head">
+    <div class="tbl-title">👥 Danh sách người dùng <span class="bdg bdg-blue">{{ nguoi_dungs|length }}</span></div>
+    <div style="font-size:.72rem;color:var(--sub)">Tổng: {{ tong_nd }} tài khoản</div>
+  </div>
+  <table class="adm-tbl">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th>
+        <th>Người dùng</th>
+        <th>Vai trò</th>
+        <th>Liên hệ</th>
+        <th>Đơn hàng</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for nd in nguoi_dungs %}
+      <tr>
+        <td><input type="checkbox" class="row-chk" value="{{ nd.pk }}" onchange="updateBulk()"></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div class="nd-av">{% if nd.anh_dai_dien %}<img src="{{ nd.anh_dai_dien.url }}">{% else %}{{ nd.first_name|first|upper }}{{ nd.last_name|first|upper|default:nd.username|first|upper }}{% endif %}</div>
+            <div>
+              <div style="font-weight:700;font-size:.82rem">{{ nd.get_full_name|default:nd.username }}</div>
+              <div style="font-size:.67rem;color:var(--sub)">@{{ nd.username }}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="bdg role-{{ nd.vai_tro }}">{{ nd.get_vai_tro_display }}</span></td>
+        <td>
+          <div style="font-size:.75rem">{% if nd.email %}<div>✉️ {{ nd.email }}</div>{% endif %}</div>
+          <div style="font-size:.75rem">{% if nd.so_dien_thoai %}<div>📱 {{ nd.so_dien_thoai }}</div>{% endif %}</div>
+        </td>
+        <td><span style="font-size:.82rem;font-weight:700">{{ nd.don_hangs.count }}</span> <span style="font-size:.68rem;color:var(--sub)">đơn</span></td>
+        <td>
+          {% if nd.is_active %}<span class="bdg bdg-green"><span class="online-dot"></span>Hoạt động</span>
+          {% else %}<span class="bdg bdg-red">🚫 Vô hiệu</span>{% endif %}
+        </td>
+        <td><span style="font-size:.72rem;color:var(--sub)">{{ nd.ngay_tao|date:"d/m/Y" }}</span></td>
+        <td>
+          <div class="td-actions">
+            <a href="{% url 'chi_tiet_nguoi_dung' nd.pk %}" class="btn-adm btn-blue btn-sm">👁</a>
+            <a href="{% url 'sua_nguoi_dung' nd.pk %}" class="btn-adm btn-gray btn-sm">✏️</a>
+            <a href="{% url 'xoa_nguoi_dung' nd.pk %}" class="btn-adm btn-red btn-sm">🗑</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty-state">Không có người dùng nào</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if nguoi_dungs.has_other_pages %}
+<div class="pg">{% if nguoi_dungs.has_previous %}<a href="?page={{ nguoi_dungs.previous_page_number }}">←</a>{% endif %}{% for p in nguoi_dungs.paginator.page_range %}{% if nguoi_dungs.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}">{{ p }}</a>{% endif %}{% endfor %}{% if nguoi_dungs.has_next %}<a href="?page={{ nguoi_dungs.next_page_number }}">→</a>{% endif %}</div>
+{% endif %}
+
+<script>
+function applyFilter(){const q=document.getElementById('ndSearch').value,r=document.getElementById('roleSel').value,st=document.getElementById('stSel').value;let url='?';if(q)url+='q='+encodeURIComponent(q)+'&';if(r)url+='vai_tro='+r+'&';if(st!=='')url+='is_active='+st;window.location=url}
+document.getElementById('ndSearch').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilter()});
+function toggleAll(cb){document.querySelectorAll('.row-chk').forEach(c=>c.checked=cb.checked);updateBulk()}
+function updateBulk(){const n=document.querySelectorAll('.row-chk:checked').length;document.getElementById('bulkBar').classList.toggle('show',n>0);document.getElementById('bulkCnt').textContent=n+' đã chọn'}
+function bulkAction(a){const ids=[...document.querySelectorAll('.row-chk:checked')].map(c=>c.value);if(!ids.length)return;if(a==='delete'&&!confirm('Xóa '+ids.length+' tài khoản?'))return;alert('Bulk: '+a+' on '+ids.length+' users')}
+</script>
+{% endblock %}

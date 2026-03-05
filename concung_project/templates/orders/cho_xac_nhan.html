@@ -1,0 +1,183 @@
+{% extends 'admin_base.html' %}
+{% block title %}Chờ xác nhận - Con Cưng{% endblock %}
+{% block page_title %}Đơn hàng chờ xác nhận{% endblock %}
+{% block breadcrumb %} › Đơn hàng › Chờ xác nhận{% endblock %}
+{% block extra_css %}
+<style>
+.cx-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.7rem;margin-bottom:1rem}
+.cxs{background:white;border-radius:12px;border:1px solid var(--line);padding:.8rem .9rem;display:flex;align-items:center;gap:.6rem}
+.cxs-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+/* Order card urgent style */
+.cx-card{background:white;border-radius:14px;border:1.5px solid #FDE68A;margin-bottom:.8rem;overflow:hidden;transition:all .15s}
+.cx-card:hover{border-color:#F59E0B;box-shadow:0 4px 18px rgba(245,158,11,.15)}
+.cx-card.urgent{border-color:#FECACA;animation:pulse-border 2s infinite}
+@keyframes pulse-border{0%,100%{border-color:#FECACA}50%{border-color:#F87171}}
+.cx-head{padding:.75rem 1.1rem;background:#FFFBEB;border-bottom:1px solid #FDE68A;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.cx-code{font-size:.88rem;font-weight:800;color:var(--ink)}
+.cx-time{font-size:.7rem;color:#D97706;font-weight:600;margin-left:auto}
+.cx-body{padding:.9rem 1.1rem;display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.cx-sect label{display:block;font-size:.64rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem}
+.cx-sect-val{font-size:.81rem;font-weight:600;color:var(--ink)}
+.cx-products{padding:.7rem 1.1rem;background:#F8FAFC;border-top:1px solid var(--line)}
+.cx-prod-item{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid #F1F5F9}
+.cx-prod-item:last-child{border-bottom:none}
+.cx-foot{padding:.75rem 1.1rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.cx-total{font-size:1rem;font-weight:800;color:var(--or)}
+.cx-actions{display:flex;gap:.4rem}
+/* Timer badge */
+.timer-bdg{background:#FEF9C3;color:#854D0E;border:1px solid #FDE68A;padding:.2rem .55rem;border-radius:6px;font-size:.69rem;font-weight:700}
+.timer-bdg.late{background:#FEE2E2;color:#991B1B;border-color:#FECACA}
+/* Empty state with animation */
+.empty-celebrate{text-align:center;padding:3.5rem 2rem}
+.empty-celebrate .icon{font-size:4rem;animation:bounce .8s infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+/* Quick confirm all */
+.confirm-all-bar{background:linear-gradient(135deg,#FFF7ED,#FFF3E8);border:1.5px solid #FFD4B5;border-radius:12px;padding:.85rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hd{padding:1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
+.modal-body{padding:1.3rem}
+.modal-ft{padding:.85rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.5rem;justify-content:flex-end}
+.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border .14s}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.fg{margin-bottom:.8rem}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.25rem}
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="cx-stats">
+  <div class="cxs"><div class="cxs-ic" style="background:#FEF9C3">⏳</div><div><div style="font-size:1.5rem;font-weight:800;color:#D97706;line-height:1">{{ tong_cho|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Chờ xác nhận</div></div></div>
+  <div class="cxs"><div class="cxs-ic" style="background:#FEE2E2">🔥</div><div><div style="font-size:1.5rem;font-weight:800;color:var(--red);line-height:1">{{ qua_han|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Quá 30 phút</div></div></div>
+  <div class="cxs"><div class="cxs-ic" style="background:#F0FDF4">✅</div><div><div style="font-size:1.5rem;font-weight:800;color:var(--green);line-height:1">{{ xac_nhan_hom_nay|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Xác nhận hôm nay</div></div></div>
+  <div class="cxs"><div class="cxs-ic" style="background:#EFF6FF">💰</div><div><div style="font-size:1rem;font-weight:800;color:var(--or);line-height:1">{{ gia_tri_cho|floatformat:0|default:"0" }}đ</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Giá trị đang chờ</div></div></div>
+</div>
+
+{% if don_hangs %}
+<div class="confirm-all-bar">
+  <span style="font-size:.82rem;font-weight:800;color:var(--ink)">⚡ Có {{ don_hangs|length }} đơn hàng cần xác nhận</span>
+  <div style="flex:1"></div>
+  <button class="btn-adm btn-or" onclick="if(confirm('Xác nhận tất cả {{ don_hangs|length }} đơn?')) document.getElementById('confirmAllForm').submit()">✅ Xác nhận tất cả</button>
+  <form id="confirmAllForm" method="POST" action="{% url 'xac_nhan_tat_ca' %}" style="display:none">{% csrf_token %}</form>
+</div>
+{% endif %}
+
+<div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap">
+  <input style="border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none;width:200px" type="text" placeholder="🔍 Mã đơn, tên khách..." id="cxSearch">
+  <select style="border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none" id="chSel">
+    <option value="">Tất cả cửa hàng</option>
+    {% for ch in cua_hangs %}<option value="{{ ch.id }}">{{ ch.ten }}</option>{% endfor %}
+  </select>
+  <span style="font-size:.75rem;color:var(--sub)">Sắp xếp theo thời gian chờ lâu nhất</span>
+</div>
+
+{% for dh in don_hangs %}
+<div class="cx-card {% if dh.minutes_waiting > 30 %}urgent{% endif %}">
+  <div class="cx-head">
+    <span style="font-size:.75rem">⏳</span>
+    <span class="cx-code">#{{ dh.ma_don_hang }}</span>
+    <span class="bdg bdg-orange">Chờ xác nhận</span>
+    {% if dh.minutes_waiting > 30 %}
+    <span class="timer-bdg late">🔥 {{ dh.minutes_waiting }} phút</span>
+    {% else %}
+    <span class="timer-bdg">⏱ {{ dh.minutes_waiting|default:"—" }} phút</span>
+    {% endif %}
+    <span class="cx-time">{{ dh.ngay_tao|date:"d/m H:i" }}</span>
+  </div>
+  <div class="cx-body">
+    <div>
+      <div class="cx-sect">
+        <label>Khách hàng</label>
+        <div class="cx-sect-val">{{ dh.ho_ten_nguoi_nhan }}</div>
+        <div style="font-size:.73rem;color:var(--sub)">📱 {{ dh.so_dien_thoai_nhan }}</div>
+      </div>
+    </div>
+    <div>
+      <div class="cx-sect">
+        <label>Giao hàng</label>
+        <div class="cx-sect-val">{{ dh.get_phuong_thuc_giao_display }}</div>
+        <div style="font-size:.73rem;color:var(--sub)">📍 {{ dh.dia_chi_giao_hang|truncatechars:50 }}</div>
+      </div>
+    </div>
+    <div>
+      <div class="cx-sect">
+        <label>Thanh toán</label>
+        <div class="cx-sect-val">{{ dh.get_phuong_thuc_thanh_toan_display }}</div>
+      </div>
+    </div>
+    <div>
+      <div class="cx-sect">
+        <label>Cửa hàng xử lý</label>
+        <div class="cx-sect-val">{{ dh.cua_hang.ten|default:"—" }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="cx-products">
+    <div style="font-size:.68rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">Sản phẩm ({{ dh.chi_tiets.count }} mục)</div>
+    {% for ct in dh.chi_tiets.all %}
+    <div class="cx-prod-item">
+      <div style="font-size:.8rem;font-weight:700;color:var(--ink);flex:1">{{ ct.san_pham.ten }}</div>
+      <span class="bdg bdg-gray">x{{ ct.so_luong }}</span>
+      <span style="font-size:.78rem;font-weight:700;color:var(--or)">{{ ct.thanh_tien|floatformat:0 }}đ</span>
+    </div>
+    {% endfor %}
+    {% if dh.ghi_chu %}<div style="margin-top:.4rem;font-size:.74rem;color:var(--sub);padding:.4rem .6rem;background:#FFF9F0;border-radius:6px">📝 {{ dh.ghi_chu }}</div>{% endif %}
+  </div>
+  <div class="cx-foot">
+    <div>
+      <div class="cx-total">{{ dh.tong_thanh_toan|floatformat:0 }}đ</div>
+      <div style="font-size:.67rem;color:var(--sub)">Tổng thanh toán</div>
+    </div>
+    <div class="cx-actions">
+      <button class="btn-adm btn-red btn-sm" onclick="openHuyModal({{ dh.id }},'{{ dh.ma_don_hang }}')">🚫 Hủy</button>
+      <a href="{% url 'chi_tiet_don_hang' dh.pk %}" class="btn-adm btn-blue btn-sm">👁 Xem</a>
+      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+        {% csrf_token %}<input type="hidden" name="trang_thai" value="da_xac_nhan">
+        <button type="submit" class="btn-adm btn-or">✅ Xác nhận đơn</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="empty-celebrate">
+  <div class="icon">🎉</div>
+  <div style="font-size:1.1rem;font-weight:800;color:var(--ink);margin:.6rem 0 .3rem">Tất cả đã xử lý!</div>
+  <div style="font-size:.82rem;color:var(--sub)">Không có đơn hàng nào đang chờ xác nhận</div>
+</div>
+{% endfor %}
+
+<!-- Huy modal -->
+<div class="modal-overlay" id="huyModal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div style="width:32px;height:32px;border-radius:8px;background:#FEE2E2;display:flex;align-items:center;justify-content:center">🚫</div>
+      <div style="font-size:.9rem;font-weight:800;color:var(--ink);flex:1">Hủy đơn hàng</div>
+      <button onclick="document.getElementById('huyModal').classList.remove('open')" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--sub)">✕</button>
+    </div>
+    <form method="POST" id="huyForm">
+      {% csrf_token %}<input type="hidden" name="trang_thai" value="huy">
+      <div class="modal-body">
+        <div id="huyDonInfo" style="font-weight:700;margin-bottom:.8rem;padding:.65rem .85rem;background:#FEF2F2;border-radius:9px;color:#991B1B"></div>
+        <div class="fg"><label>Lý do hủy <span style="color:var(--red)">*</span></label><textarea name="ghi_chu" class="fi" rows="3" placeholder="Nhập lý do hủy đơn..." required></textarea></div>
+      </div>
+      <div class="modal-ft">
+        <button type="button" class="btn-adm btn-gray" onclick="document.getElementById('huyModal').classList.remove('open')">Quay lại</button>
+        <button type="submit" class="btn-adm btn-red">🚫 Xác nhận hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function openHuyModal(id,ma){
+  document.getElementById('huyDonInfo').textContent='Hủy đơn #'+ma;
+  document.getElementById('huyForm').action='/orders/'+id+'/cap-nhat-trang-thai/';
+  document.getElementById('huyModal').classList.add('open');
+}
+document.getElementById('huyModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open')});
+document.getElementById('cxSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){const q=e.target.value;window.location='?q='+encodeURIComponent(q)}});
+// Auto refresh every 2 min for new orders
+setTimeout(()=>window.location.reload(), 120000);
+</script>
+{% endblock %}

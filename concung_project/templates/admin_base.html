@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Con Cưng Admin{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
+    *,*::before,*::after{box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#F1F5F9;margin:0}
+    :root{
+      --or:#FF469e;--ord:#e0358c;--ink:#0F172A;--sub:#64748B;
+      --sur:#FFFFFF;--line:#E2E8F0;--sb:#1E293B;--sb2:#0F172A;
+      --green:#10B981;--red:#EF4444;--blue:#3B82F6;--yellow:#F59E0B;
+    }
+
+    /* ══ LAYOUT ══ */
+    .admin-wrap{display:flex;min-height:100vh}
+
+    /* ══ SIDEBAR ══ */
+    .sidebar{
+      width:240px;min-height:100vh;background:var(--sb2);
+      display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+      flex-shrink:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#334155 transparent;
+    }
+    .sb-logo{padding:1.2rem 1rem .9rem;border-bottom:1px solid rgba(255,255,255,.07)}
+    .sb-logo-inner{display:flex;align-items:center;gap:.65rem}
+    .sb-icon{width:38px;height:38px;background:var(--or);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .sb-brand{font-weight:800;font-size:.9rem;color:white;line-height:1.2}
+    .sb-brand small{display:block;font-size:.62rem;font-weight:500;color:#94A3B8;margin-top:.1rem}
+    .sb-user{padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.65rem}
+    .sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.8rem;flex-shrink:0}
+    .sb-uname{font-size:.78rem;font-weight:700;color:white;line-height:1.2}
+    .sb-urole{font-size:.63rem;color:#94A3B8;font-weight:500}
+    .sb-section{padding:.65rem .85rem .1rem}
+    .sb-section-lbl{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#475569;padding:0 .2rem .35rem;margin-bottom:.05rem}
+    .sb-nav{list-style:none;margin:0;padding:0 0 .4rem;display:flex;flex-direction:column;gap:.1rem}
+    .sb-nav a{display:flex;align-items:center;gap:.6rem;padding:.48rem .65rem;color:#94A3B8;text-decoration:none;border-radius:7px;font-size:.8rem;font-weight:600;transition:all .13s;position:relative}
+    .sb-nav a:hover{background:rgba(255,70,158,.18);color:#E2E8F0}
+    .sb-nav a.on{background:rgba(255,70,158,.22);color:#ff6ab8}
+    .sb-nav a .ic{width:20px;text-align:center;font-size:.85rem;flex-shrink:0}
+    .sb-nav a .cnt{margin-left:auto;background:rgba(255,70,158,.3);color:#ff6ab8;border-radius:10px;padding:.05rem .42rem;font-size:.63rem;font-weight:800}
+    .sb-nav a .badge-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:#EF4444}
+    .sb-divider{height:1px;background:rgba(255,255,255,.06);margin:.3rem 1rem}
+    .sb-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.07);padding:.5rem .85rem}
+    .sb-bottom a{display:flex;align-items:center;gap:.6rem;padding:.45rem .65rem;color:#64748B;text-decoration:none;border-radius:7px;font-size:.78rem;font-weight:600;transition:all .13s}
+    .sb-bottom a:hover{background:rgba(255,255,255,.07);color:#E2E8F0}
+
+    /* ══ MAIN AREA ══ */
+    .main-area{flex:1;min-width:0;padding:1.6rem 1.8rem}
+
+    /* ══ PAGE HEADER ══ */
+    .page-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;margin-bottom:1.4rem}
+    .page-hdr h4{font-size:1.2rem;font-weight:800;color:var(--ink);margin:0;line-height:1.2}
+    .page-hdr .sub{font-size:.78rem;color:var(--sub);margin-top:.2rem}
+    .breadcrumb-adm{font-size:.75rem;color:var(--sub);margin-bottom:.4rem}
+    .breadcrumb-adm a{color:var(--or);text-decoration:none}
+
+    /* ══ BUTTONS ══ */
+    .btn-adm{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:none;border:none;transition:all .13s;white-space:nowrap}
+    .btn-adm:hover{opacity:.88;transform:translateY(-1px)}
+    .btn-or{background:var(--or);color:white}
+    .btn-green{background:var(--green);color:white}
+    .btn-red{background:var(--red);color:white}
+    .btn-blue{background:var(--blue);color:white}
+    .btn-gray{background:#F1F5F9;color:var(--ink);border:1px solid var(--line)}
+    .btn-sm{padding:.28rem .6rem;font-size:.72rem}
+
+    /* ══ CARDS ══ */
+    .card-adm{background:var(--sur);border-radius:14px;border:1px solid var(--line);overflow:hidden}
+    .card-hdr{padding:.85rem 1.1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .card-title{font-size:.88rem;font-weight:800;color:var(--ink)}
+
+    /* ══ TABLE ══ */
+    .tbl-wrap{overflow-x:auto}
+    .tbl-head{padding:.75rem 1.1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .tbl-title{font-size:.85rem;font-weight:800;color:var(--ink)}
+    .adm-tbl{width:100%;border-collapse:collapse}
+    .adm-tbl thead th{background:#F8FAFC;color:var(--sub);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:.65rem .9rem;border-bottom:1px solid var(--line);white-space:nowrap}
+    .adm-tbl tbody tr{transition:background .1s}
+    .adm-tbl tbody tr:hover{background:#F8FAFC}
+    .adm-tbl tbody td{padding:.65rem .9rem;font-size:.8rem;color:var(--ink);border-bottom:1px solid #F1F5F9;vertical-align:middle}
+    .td-actions{display:flex;gap:.3rem;flex-wrap:nowrap}
+
+    /* ══ BADGES ══ */
+    .bdg{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:20px;font-size:.68rem;font-weight:700;white-space:nowrap}
+    .bdg-green{background:#ECFDF5;color:#065F46}
+    .bdg-red{background:#FEF2F2;color:#991B1B}
+    .bdg-yellow{background:#FFFBEB;color:#92400E}
+    .bdg-blue{background:#EFF6FF;color:#1E40AF}
+    .bdg-gray{background:#F1F5F9;color:#475569}
+    .bdg-purple{background:#F5F3FF;color:#5B21B6}
+    .bdg-dot::before{content:'●';font-size:.5rem;margin-right:.2rem}
+
+    /* ══ MESSAGES ══ */
+    .msg-wrap{margin-bottom:1rem}
+    .msg{padding:.7rem 1rem;border-radius:10px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+    .msg-success{background:#ECFDF5;color:#065F46;border:1px solid #6EE7B7}
+    .msg-error{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+    .msg-warning{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+    .msg-info{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}
+
+    /* ══ FORMS ══ */
+    .form-adm .form-group{margin-bottom:1rem}
+    .form-adm label{font-size:.77rem;font-weight:700;color:var(--sub);display:block;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em}
+    .form-adm .form-control,.form-adm .form-select{border:1.5px solid var(--line);border-radius:9px;padding:.5rem .8rem;font-size:.83rem;font-family:inherit;color:var(--ink);transition:border-color .13s;background:white}
+    .form-adm .form-control:focus,.form-adm .form-select:focus{border-color:var(--or);outline:none;box-shadow:0 0 0 3px rgba(255,70,158,.12)}
+    .form-adm .errorlist{list-style:none;padding:0;margin:.25rem 0 0;color:var(--red);font-size:.73rem}
+
+    /* ══ PAGINATION ══ */
+    .pg{display:flex;gap:.3rem;justify-content:center;padding:1rem 0 .5rem;flex-wrap:wrap}
+    .pg a,.pg span{padding:.3rem .65rem;border-radius:7px;font-size:.78rem;font-weight:700;text-decoration:none;color:var(--sub);background:var(--sur);border:1px solid var(--line);transition:all .13s}
+    .pg a:hover{background:var(--or);color:white;border-color:var(--or)}
+    .pg .cur{background:var(--or);color:white;border-color:var(--or)}
+
+    /* ══ EMPTY STATE ══ */
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--sub)}
+    .empty-state .empty-icon{font-size:3rem;margin-bottom:.7rem;opacity:.5}
+
+    /* ══ FILTER BAR ══ */
+    .filter-bar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;padding:.8rem 1rem;background:white;border-radius:12px;border:1px solid var(--line);margin-bottom:1rem}
+    .fi-sm{border:1.5px solid var(--line);border-radius:8px;padding:.35rem .65rem;font-size:.78rem;font-family:inherit;outline:none;background:white;color:var(--ink)}
+    .fi-sm:focus{border-color:var(--or)}
+
+    @media(max-width:900px){
+      .sidebar{display:none}
+      .main-area{padding:1rem}
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="admin-wrap">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-inner">
+        <div class="sb-icon">🐾</div>
+        <div><div class="sb-brand">Con Cưng<small>Admin Panel</small></div></div>
+      </div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar">{{ user.get_full_name|slice:":1"|upper|default:"A" }}</div>
+      <div>
+        <div class="sb-uname">{{ user.get_full_name|default:user.username|truncatechars:18 }}</div>
+        <div class="sb-urole">{{ user.get_vai_tro_display }}</div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-lbl">Tổng quan</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'dashboard' %}" {% block nav_dashboard %}{% endblock %}>
+          <span class="ic">📊</span> Dashboard
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-section">
+      <div class="sb-section-lbl">Bán hàng</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_don_hang' %}" {% block nav_don_hang %}{% endblock %}>
+          <span class="ic">📋</span> Đơn hàng
+        </a></li>
+        <li><a href="{% url 'quan_ly_don_hang' %}?trang_thai=cho_xac_nhan" {% block nav_cho_xac_nhan %}{% endblock %}>
+          <span class="ic">⏳</span> Chờ xác nhận
+        </a></li>
+        <li><a href="{% url 'quan_ly_don_hang' %}?trang_thai=dang_giao" {% block nav_dang_giao %}{% endblock %}>
+          <span class="ic">🚚</span> Đang giao hàng
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-section">
+      <div class="sb-section-lbl">Sản phẩm & Kho</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_san_pham' %}" {% block nav_san_pham %}{% endblock %}>
+          <span class="ic">📦</span> Sản phẩm
+        </a></li>
+        <li><a href="{% url 'them_san_pham' %}" {% block nav_them_sp %}{% endblock %}>
+          <span class="ic">➕</span> Thêm sản phẩm
+        </a></li>
+        <li><a href="{% url 'quan_ly_kho' %}" {% block nav_kho %}{% endblock %}>
+          <span class="ic">🏭</span> Tồn kho
+        </a></li>
+        <li><a href="{% url 'quan_ly_kho' %}?canh_bao=1" {% block nav_canh_bao %}{% endblock %}>
+          <span class="ic">⚠️</span> Cảnh báo kho
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-section">
+      <div class="sb-section-lbl">Cửa hàng & Nhân sự</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_cua_hang' %}" {% block nav_cua_hang %}{% endblock %}>
+          <span class="ic">🏪</span> Quản lý cửa hàng
+        </a></li>
+        <li><a href="{% url 'them_cua_hang' %}" {% block nav_them_ch %}{% endblock %}>
+          <span class="ic">🆕</span> Thêm cửa hàng
+        </a></li>
+        <li><a href="{% url 'quan_ly_nhan_vien' %}" {% block nav_nhan_vien %}{% endblock %}>
+          <span class="ic">👥</span> Nhân viên
+        </a></li>
+        <li><a href="{% url 'ban_do' %}" {% block nav_ban_do %}{% endblock %}>
+          <span class="ic">🗺️</span> Bản đồ GPS
+        </a></li>
+      </ul>
+    </div>
+
+    {% if user.la_admin %}
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-section-lbl">Hệ thống</div>
+      <ul class="sb-nav">
+        <li><a href="{% url 'quan_ly_nguoi_dung' %}" {% block nav_nguoi_dung %}{% endblock %}>
+          <span class="ic">👤</span> Người dùng
+        </a></li>
+        <li><a href="/admin/">
+          <span class="ic">⚙️</span> Django Admin
+        </a></li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="sb-bottom">
+      <a href="{% url 'trang_chu' %}"><i class="bi bi-house-fill"></i> Về trang chủ</a>
+      <a href="{% url 'dang_xuat' %}" style="margin-top:.1rem"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN AREA ══ -->
+  <main class="main-area">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-adm">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      {% block breadcrumb %}{% endblock %}
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="msg-wrap">
+      {% for m in messages %}
+      <div class="msg {% if m.tags == 'success' %}msg-success{% elif m.tags == 'error' %}msg-error{% elif m.tags == 'warning' %}msg-warning{% else %}msg-info{% endif %}">
+        {% if m.tags == 'success' %}✅{% elif m.tags == 'error' %}❌{% elif m.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ m|safe }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block admin_content %}{% endblock %}
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

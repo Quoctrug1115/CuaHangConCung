@@ -7,6 +7,7 @@ urlpatterns = [
     path('quan-ly/', views.quan_ly_san_pham, name='quan_ly_san_pham'),
     path('quan-ly/them/', views.them_san_pham, name='them_san_pham'),
     path('quan-ly/<int:pk>/sua/', views.sua_san_pham, name='sua_san_pham'),
+    path('quan-ly/<int:pk>/xoa/', views.xoa_san_pham, name='xoa_san_pham'),
     path('kho/', views.quan_ly_kho, name='quan_ly_kho'),
     path('kho/<int:ton_kho_id>/nhap/', views.nhap_kho, name='nhap_kho'),
 ]

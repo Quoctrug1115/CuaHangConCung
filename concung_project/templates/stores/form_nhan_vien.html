@@ -1,0 +1,207 @@
+{% extends 'admin_base.html' %}
+{% block title %}{% if nhan_vien %}Sửa{% else %}Thêm{% endif %} nhân viên - Con Cưng{% endblock %}
+{% block page_title %}{% if nhan_vien %}Sửa nhân viên{% else %}Thêm nhân viên mới{% endif %}{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nhan_vien' %}">Nhân viên</a> › {% if nhan_vien %}Sửa{% else %}Thêm mới{% endif %}{% endblock %}
+{% block extra_css %}
+<style>
+.form-layout{display:grid;grid-template-columns:1fr 380px;gap:1.2rem;align-items:start}
+.fc{background:white;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1rem}
+.fc-hd{padding:.85rem 1.1rem;border-bottom:1px solid var(--line);background:#FAFAFA;display:flex;align-items:center;gap:.6rem}
+.fc-hd-ic{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.fc-hd-title{font-size:.84rem;font-weight:800;color:var(--ink)}
+.fc-body{padding:1.1rem}
+.fg{margin-bottom:.85rem}
+.fg label{display:block;font-size:.73rem;font-weight:700;color:var(--ink);margin-bottom:.28rem}
+.fg .hint{font-size:.66rem;color:var(--sub);margin-top:.18rem}
+.fi{display:block;width:100%;border:1.5px solid var(--line);border-radius:9px;padding:.46rem .75rem;font-size:.82rem;font-family:inherit;outline:none;transition:border .14s;background:white;color:var(--ink)}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+/* Role select cards */
+.cv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.3rem}
+.cv-card{border:1.5px solid var(--line);border-radius:9px;padding:.55rem .7rem;cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:.5rem}
+.cv-card:hover{border-color:#FFB89A;background:#FFF7ED}
+.cv-card input[type="radio"]{display:none}
+.cv-card.selected{border-color:var(--or);background:#FFF7ED}
+.cv-card-ic{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.cv-card-lbl{font-size:.77rem;font-weight:700;color:var(--ink)}
+/* Preview card */
+.prev-card{background:white;border-radius:14px;border:1px solid var(--line);overflow:hidden;position:sticky;top:72px}
+.prev-av{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;color:white;margin:0 auto 1rem;overflow:hidden;cursor:pointer;position:relative}
+.prev-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.prev-av-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;font-size:.8rem}
+.prev-av:hover .prev-av-overlay{opacity:1}
+.prev-name{text-align:center;font-size:.95rem;font-weight:800;color:var(--ink);margin-bottom:.15rem}
+.prev-code{text-align:center;font-size:.72rem;color:var(--sub);font-weight:600;margin-bottom:.5rem}
+.prev-badge{display:flex;justify-content:center;margin-bottom:.8rem}
+.prev-stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;padding:.9rem;border-top:1px solid var(--line);background:#FAFAFA}
+.prev-stat{text-align:center}
+.prev-stat-val{font-size:1rem;font-weight:800;color:var(--ink)}
+.prev-stat-lbl{font-size:.62rem;color:var(--sub);font-weight:600}
+/* Actions top bar */
+.act-bar{display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem}
+@media(max-width:860px){.form-layout{grid-template-columns:1fr}.prev-card{position:static}}
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="act-bar">
+  <a href="{% url 'quan_ly_nhan_vien' %}" class="btn-adm btn-gray">← Quay lại</a>
+  {% if nhan_vien %}
+  <span class="bdg bdg-blue">✏️ Chỉnh sửa: {{ nhan_vien.ma_nhan_vien }}</span>
+  {% endif %}
+  <div style="flex:1"></div>
+  <button type="submit" form="nvForm" class="btn-adm btn-or">💾 {% if nhan_vien %}Lưu thay đổi{% else %}Thêm nhân viên{% endif %}</button>
+</div>
+
+{% if messages %}{% for msg in messages %}<div class="flash flash-{% if msg.tags == 'error' %}err{% else %}ok{% endif %}">{% if msg.tags == 'success' %}✅{% else %}❌{% endif %} {{ msg }}</div>{% endfor %}{% endif %}
+
+<form id="nvForm" method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+<div class="form-layout">
+  <!-- LEFT: Form fields -->
+  <div>
+    <!-- Tài khoản -->
+    <div class="fc">
+      <div class="fc-hd"><div class="fc-hd-ic" style="background:#EFF6FF">👤</div><span class="fc-hd-title">Tài khoản người dùng</span></div>
+      <div class="fc-body">
+        {% if not nhan_vien %}
+        <div class="row2">
+          <div class="fg"><label>Tên đăng nhập <span style="color:var(--red)">*</span></label><input type="text" name="username" class="fi" value="{{ form.username.value|default:'' }}" placeholder="username" required oninput="upPrev()"></div>
+          <div class="fg"><label>Email</label><input type="email" name="email" class="fi" value="{{ form.email.value|default:'' }}" placeholder="email@example.com"></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Mật khẩu <span style="color:var(--red)">*</span></label><input type="password" name="password1" class="fi" placeholder="Mật khẩu..." required></div>
+          <div class="fg"><label>Xác nhận mật khẩu <span style="color:var(--red)">*</span></label><input type="password" name="password2" class="fi" placeholder="Nhập lại..." required></div>
+        </div>
+        {% else %}
+        <div class="row2">
+          <div class="fg"><label>Tên đăng nhập</label><input type="text" class="fi" value="{{ nhan_vien.nguoi_dung.username }}" disabled style="background:#F8FAFC;cursor:not-allowed"></div>
+          <div class="fg"><label>Email</label><input type="email" name="email" class="fi" value="{{ nhan_vien.nguoi_dung.email }}"></div>
+        </div>
+        {% endif %}
+        <div class="row2">
+          <div class="fg"><label>Họ <span style="color:var(--red)">*</span></label><input type="text" name="last_name" class="fi" value="{{ form.last_name.value|default:nhan_vien.nguoi_dung.last_name|default:'' }}" placeholder="Nguyễn" required oninput="upPrev()"></div>
+          <div class="fg"><label>Tên <span style="color:var(--red)">*</span></label><input type="text" name="first_name" class="fi" value="{{ form.first_name.value|default:nhan_vien.nguoi_dung.first_name|default:'' }}" placeholder="Văn An" required oninput="upPrev()"></div>
+        </div>
+        <div class="fg">
+          <label>Số điện thoại</label>
+          <input type="tel" name="so_dien_thoai" class="fi" value="{{ form.so_dien_thoai.value|default:nhan_vien.nguoi_dung.so_dien_thoai|default:'' }}" placeholder="0901 234 567">
+        </div>
+      </div>
+    </div>
+
+    <!-- Nhân viên info -->
+    <div class="fc">
+      <div class="fc-hd"><div class="fc-hd-ic" style="background:#FFF7ED">🏷</div><span class="fc-hd-title">Thông tin nhân viên</span></div>
+      <div class="fc-body">
+        <div class="row2">
+          <div class="fg">
+            <label>Mã nhân viên <span style="color:var(--red)">*</span></label>
+            <input type="text" name="ma_nhan_vien" class="fi" value="{{ form.ma_nhan_vien.value|default:nhan_vien.ma_nhan_vien|default:'' }}" placeholder="NV001" required oninput="upPrev()">
+          </div>
+          <div class="fg">
+            <label>Ngày vào làm <span style="color:var(--red)">*</span></label>
+            <input type="date" name="ngay_vao_lam" class="fi" value="{{ form.ngay_vao_lam.value|default:nhan_vien.ngay_vao_lam|default:'' }}" required>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Chức vụ <span style="color:var(--red)">*</span></label>
+          <div class="cv-grid">
+            {% for val, label in chuc_vu_choices %}
+            <label class="cv-card {% if nhan_vien.chuc_vu == val %}selected{% endif %}" onclick="selCV(this)">
+              <input type="radio" name="chuc_vu" value="{{ val }}" {% if nhan_vien.chuc_vu == val %}checked{% endif %}>
+              <div class="cv-card-ic" style="background:{% if val == 'quan_ly' %}#FEF9C3{% elif val == 'thu_ngan' %}#DBEAFE{% elif val == 'ban_hang' %}#DCFCE7{% elif val == 'kho' %}#F3E8FF{% else %}#FFEDD5{% endif %}">
+                {% if val == 'quan_ly' %}👔{% elif val == 'thu_ngan' %}💳{% elif val == 'ban_hang' %}🏷{% elif val == 'kho' %}📦{% else %}🛵{% endif %}
+              </div>
+              <span class="cv-card-lbl">{{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fg">
+          <label>Cửa hàng làm việc</label>
+          <select name="cua_hang" class="fi">
+            <option value="">-- Chọn cửa hàng --</option>
+            {% for ch in cua_hangs %}<option value="{{ ch.id }}" {% if nhan_vien.cua_hang_id == ch.id %}selected{% endif %}>{{ ch.ten }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label>Lương cơ bản (VNĐ/tháng)</label>
+          <input type="number" name="luong_co_ban" class="fi" value="{{ form.luong_co_ban.value|default:nhan_vien.luong_co_ban|default:'' }}" placeholder="5000000" min="0" step="100000">
+        </div>
+        <div class="fg">
+          <label>Trạng thái</label>
+          <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:9px;background:white">
+            <label class="sw-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+              <input type="checkbox" name="dang_lam_viec" id="dlvToggle" {% if nhan_vien.dang_lam_viec or not nhan_vien %}checked{% endif %} style="width:16px;height:16px">
+              <span id="dlvLabel" style="font-size:.8rem;font-weight:700">{% if nhan_vien.dang_lam_viec or not nhan_vien %}✅ Đang làm việc{% else %}🚫 Nghỉ việc{% endif %}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Preview -->
+  <div>
+    <div class="prev-card">
+      <div style="padding:1.3rem 1.1rem;border-bottom:1px solid var(--line)">
+        <div style="font-size:.73rem;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem">Xem trước hồ sơ</div>
+        <div class="prev-av" id="prevAv" onclick="document.getElementById('avInput').click()">
+          <img id="prevAvImg" src="{% if nhan_vien and nhan_vien.nguoi_dung.anh_dai_dien %}{{ nhan_vien.nguoi_dung.anh_dai_dien.url }}{% else %}{% endif %}" style="{% if not nhan_vien or not nhan_vien.nguoi_dung.anh_dai_dien %}display:none{% endif %}">
+          <span id="prevAvInit">{% if nhan_vien %}{{ nhan_vien.nguoi_dung.first_name|first|upper }}{% else %}?{% endif %}</span>
+          <div class="prev-av-overlay">📷</div>
+        </div>
+        <input type="file" id="avInput" name="anh_dai_dien" accept="image/*" style="display:none" onchange="prevAvatar(this)">
+        <div class="prev-name" id="prevName">{% if nhan_vien %}{{ nhan_vien.nguoi_dung.get_full_name }}{% else %}Tên nhân viên{% endif %}</div>
+        <div class="prev-code" id="prevCode">{% if nhan_vien %}{{ nhan_vien.ma_nhan_vien }}{% else %}Mã nhân viên{% endif %}</div>
+        <div class="prev-badge">
+          <span class="bdg {% if nhan_vien %}cv-{{ nhan_vien.chuc_vu }}{% else %}bdg-gray{% endif %}" id="prevCv">
+            {% if nhan_vien %}{{ nhan_vien.get_chuc_vu_display }}{% else %}Chức vụ{% endif %}
+          </span>
+        </div>
+      </div>
+      <div class="prev-stats">
+        <div class="prev-stat"><div class="prev-stat-val" id="prevStore">—</div><div class="prev-stat-lbl">Cửa hàng</div></div>
+        <div class="prev-stat"><div class="prev-stat-val">{% if nhan_vien %}{{ nhan_vien.ngay_vao_lam|date:"Y" }}{% else %}—{% endif %}</div><div class="prev-stat-lbl">Năm vào làm</div></div>
+      </div>
+      {% if nhan_vien %}
+      <div style="padding:.8rem 1rem;border-top:1px solid var(--line)">
+        <div style="font-size:.68rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Thao tác nhanh</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <button type="button" class="btn-adm btn-blue" style="width:100%;justify-content:center" onclick="alert('Chuyển sang trang đổi mật khẩu')">🔑 Đổi mật khẩu</button>
+          <button type="button" class="btn-adm btn-gray" style="width:100%;justify-content:center" onclick="alert('Xem lịch làm việc')">📅 Lịch làm việc</button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</form>
+
+<script>
+function upPrev(){
+  const fn=document.querySelector('[name=first_name]')?.value||'',ln=document.querySelector('[name=last_name]')?.value||'',ma=document.querySelector('[name=ma_nhan_vien]')?.value||'';
+  document.getElementById('prevName').textContent=(ln+' '+fn).trim()||'Tên nhân viên';
+  document.getElementById('prevCode').textContent=ma||'Mã nhân viên';
+  const init=(fn[0]||'?').toUpperCase();
+  document.getElementById('prevAvInit').textContent=init;
+}
+function selCV(card){
+  document.querySelectorAll('.cv-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  card.querySelector('input').checked=true;
+  const cvMap={'quan_ly':'👔 Quản lý','thu_ngan':'💳 Thu ngân','ban_hang':'🏷 Bán hàng','kho':'📦 Nhân viên kho','giao_hang':'🛵 Shipper'};
+  document.getElementById('prevCv').textContent=cvMap[card.querySelector('input').value]||'Chức vụ';
+}
+function prevAvatar(inp){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{const img=document.getElementById('prevAvImg');img.src=e.target.result;img.style.display='block';document.getElementById('prevAvInit').style.display='none'};
+  r.readAsDataURL(inp.files[0]);
+}
+document.getElementById('dlvToggle').addEventListener('change',function(){
+  document.getElementById('dlvLabel').textContent=this.checked?'✅ Đang làm việc':'🚫 Nghỉ việc';
+});
+</script>
+{% endblock %}

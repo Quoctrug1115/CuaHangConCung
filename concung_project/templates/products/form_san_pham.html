@@ -1,0 +1,265 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ tieu_de }} - Con Cưng Admin{% endblock %}
+{% block page_title %}{{ tieu_de }}{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_san_pham' %}">Sản phẩm</a> › {{ tieu_de }}{% endblock %}
+{% block top_actions %}
+<a href="{% url 'quan_ly_san_pham' %}" class="btn-adm btn-gray">← Quay lại</a>
+{% endblock %}
+{% block extra_css %}
+<style>
+.form-layout{display:grid;grid-template-columns:1fr 320px;gap:1rem;align-items:start}
+@media(max-width:880px){.form-layout{grid-template-columns:1fr}}
+.fc{background:white;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1rem}
+.fc-hd{padding:.8rem 1.1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.55rem}
+.fc-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.ic-or{background:#FFF7ED}.ic-bl{background:#EFF6FF}.ic-gr{background:#F0FDF4}.ic-pu{background:#F5F3FF}
+.fc-title{font-size:.83rem;font-weight:800;color:var(--ink)}
+.fc-body{padding:1rem 1.1rem}
+.fg{margin-bottom:.8rem}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.26rem}
+.req{color:var(--red)}
+.hint{font-size:.67rem;color:var(--sub);margin-top:.2rem}
+.err-msg{font-size:.68rem;color:var(--red);margin-top:.18rem}
+.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border .14s,box-shadow .14s;background:white;color:var(--ink)}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.fi.err{border-color:var(--red)}
+textarea.fi{resize:vertical;min-height:72px}
+select.fi{cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem}
+@media(max-width:560px){.row2,.row3{grid-template-columns:1fr}}
+.pw{position:relative}
+.pw .suf{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);font-size:.7rem;font-weight:700;color:var(--sub);pointer-events:none}
+.pw .fi{padding-right:2.2rem}
+.pprev{font-size:.69rem;color:var(--or);font-weight:700;margin-top:.2rem}
+.disc{background:#FEF2F2;color:var(--red);border-radius:6px;padding:.18rem .5rem;font-size:.67rem;font-weight:800;display:inline-block;margin-top:.25rem}
+
+.img-box{border:2px dashed var(--line);border-radius:12px;padding:1.2rem;text-align:center;cursor:pointer;transition:all .2s;background:#FAFAFA;position:relative;overflow:hidden}
+.img-box:hover{border-color:var(--or);background:#FFFAF7}
+.img-box.filled{border-color:#86EFAC;border-style:solid;background:#F0FDF4}
+.img-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.img-box img{max-height:140px;border-radius:8px;margin:0 auto;display:block}
+
+.sw-label{display:flex;align-items:center;gap:.6rem;padding:.45rem .7rem;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;transition:border .14s}
+.sw-label:hover{border-color:var(--or)}
+.sw-label input{display:none}
+.sw-tog{width:36px;height:20px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0}
+.sw-tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sw-label input:checked+.sw-tog{background:var(--green)}
+.sw-label input:checked+.sw-tog::after{transform:translateX(16px)}
+
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid #F1F5F9;font-size:.77rem}
+.sum-row:last-child{border:none}
+.sk{color:var(--sub)}
+.sv{font-weight:700;color:var(--ink)}
+.sv.pr{color:var(--or)}
+.sv.sl{color:var(--red)}
+
+.btn-save{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.6rem;background:linear-gradient(135deg,var(--or),#C94A0E);color:white;border:none;border-radius:9px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .17s;box-shadow:0 3px 10px rgba(255,107,53,.28)}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(255,107,53,.38)}
+.msg-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;padding:.55rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:.9rem}
+.msg-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;padding:.55rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:.9rem}
+</style>
+{% endblock %}
+{% block admin_content %}
+{% for m in messages %}
+<div class="{% if 'success' in m.tags %}msg-ok{% else %}msg-err{% endif %}">{{ m.message }}</div>
+{% endfor %}
+
+<form method="post" enctype="multipart/form-data" id="spf">
+{% csrf_token %}
+<div class="form-layout">
+<div>
+
+<!-- Thông tin sản phẩm -->
+<div class="fc">
+  <div class="fc-hd"><div class="fc-ic ic-or">📦</div><div class="fc-title">Thông tin sản phẩm</div></div>
+  <div class="fc-body">
+    <div class="row2">
+      <div class="fg">
+        <label>Tên sản phẩm <span class="req">*</span></label>
+        <input name="ten" class="fi {% if form.ten.errors %}err{% endif %}" value="{{ form.ten.value|default:'' }}" placeholder="VD: Thức ăn cho mèo Royal Canin" required oninput="upSum()">
+        {% if form.ten.errors %}<div class="err-msg">{{ form.ten.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="fg">
+        <label>Mã sản phẩm <span class="req">*</span></label>
+        <input name="ma_san_pham" class="fi {% if form.ma_san_pham.errors %}err{% endif %}" value="{{ form.ma_san_pham.value|default:'' }}" placeholder="VD: CC-TAN-RC-001" required>
+        {% if form.ma_san_pham.errors %}<div class="err-msg">{{ form.ma_san_pham.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label>Danh mục</label>
+        <select name="danh_muc" class="fi" onchange="upSum()">
+          <option value="">— Chọn danh mục —</option>
+          {% for dm in form.danh_muc.field.queryset %}
+          <option value="{{ dm.pk }}" {% if form.danh_muc.value|stringformat:"s" == dm.pk|stringformat:"s" %}selected{% endif %}>{{ dm.ten }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Thương hiệu</label>
+        <input name="thuong_hieu" class="fi" value="{{ form.thuong_hieu.value|default:'' }}" placeholder="Royal Canin, Pedigree..." oninput="upSum()">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Mô tả ngắn</label>
+      <input name="mo_ta_ngan" class="fi" value="{{ form.mo_ta_ngan.value|default:'' }}" placeholder="1-2 câu nổi bật về sản phẩm">
+      <div class="hint">Hiển thị ở thẻ sản phẩm trong danh sách</div>
+    </div>
+    <div class="fg">
+      <label>Mô tả chi tiết</label>
+      <textarea name="mo_ta_chi_tiet" class="fi" rows="5" placeholder="Thành phần, công dụng, hướng dẫn sử dụng...">{{ form.mo_ta_chi_tiet.value|default:'' }}</textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Giá cả -->
+<div class="fc">
+  <div class="fc-hd"><div class="fc-ic ic-gr">💰</div><div class="fc-title">Giá cả & Khuyến mãi</div></div>
+  <div class="fc-body">
+    <div class="row3">
+      <div class="fg">
+        <label>Giá bán <span class="req">*</span></label>
+        <div class="pw"><input name="gia_ban" id="gb" type="number" class="fi {% if form.gia_ban.errors %}err{% endif %}" value="{{ form.gia_ban.value|default:'' }}" placeholder="0" min="0" required oninput="fmtP(this,'pb');calcDisc();upSum()"><span class="suf">đ</span></div>
+        <div class="pprev" id="pb">—</div>
+        {% if form.gia_ban.errors %}<div class="err-msg">{{ form.gia_ban.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="fg">
+        <label>Giá nhập</label>
+        <div class="pw"><input name="gia_nhap" id="gn" type="number" class="fi" value="{{ form.gia_nhap.value|default:'' }}" placeholder="0" min="0" oninput="fmtP(this,'pn')"><span class="suf">đ</span></div>
+        <div class="pprev" id="pn">—</div>
+      </div>
+      <div class="fg">
+        <label>Giá khuyến mãi</label>
+        <div class="pw"><input name="gia_khuyen_mai" id="gk" type="number" class="fi" value="{{ form.gia_khuyen_mai.value|default:'' }}" placeholder="Để trống nếu không KM" min="0" oninput="fmtP(this,'pk');calcDisc();upSum()"><span class="suf">đ</span></div>
+        <div class="pprev" id="pk">—</div>
+        <div id="disc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Thông tin bổ sung -->
+<div class="fc">
+  <div class="fc-hd"><div class="fc-ic ic-bl">📋</div><div class="fc-title">Thông tin bổ sung</div></div>
+  <div class="fc-body">
+    <div class="row2">
+      <div class="fg">
+        <label>Xuất xứ</label>
+        <input name="xuat_xu" class="fi" value="{{ form.xuat_xu.value|default:'' }}" placeholder="Thái Lan, Việt Nam...">
+      </div>
+      <div class="fg">
+        <label>Trọng lượng (gram)</label>
+        <input name="trong_luong" type="number" class="fi" value="{{ form.trong_luong.value|default:'' }}" placeholder="1000" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="sw-label" for="db-chk">
+        <input type="checkbox" name="dang_ban" id="db-chk" {% if form.dang_ban.value %}checked{% endif %} onchange="upSum()">
+        <div class="sw-tog"></div>
+        <div><div style="font-size:.79rem;font-weight:600;color:var(--ink)">✅ Đang bán</div><div class="hint">Tắt để ẩn khỏi trang khách hàng</div></div>
+      </label>
+    </div>
+  </div>
+</div>
+
+</div><!-- /col-left -->
+
+<!-- CỘT PHẢI -->
+<div>
+  <!-- Hình ảnh -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-pu">🖼</div><div class="fc-title">Hình ảnh sản phẩm</div></div>
+    <div class="fc-body">
+      <div class="img-box" id="ib">
+        <input type="file" name="hinh_anh" accept="image/*" id="img-f" onchange="prevImg(this)">
+        {% if form.instance.hinh_anh %}
+        <img src="{{ form.instance.hinh_anh.url }}" id="img-p" style="max-height:140px;border-radius:8px">
+        <div style="margin-top:.4rem;font-size:.69rem;color:var(--green);font-weight:600">✅ Ảnh hiện tại</div>
+        {% else %}
+        <div id="img-ph">
+          <div style="font-size:2rem;margin-bottom:.4rem">📸</div>
+          <div style="font-size:.77rem;font-weight:600;color:var(--sub)">Click hoặc kéo thả ảnh vào đây</div>
+          <div style="font-size:.67rem;color:var(--sub);margin-top:.15rem">JPG, PNG, WebP · tối đa 5MB</div>
+        </div>
+        <img id="img-p" style="max-height:140px;border-radius:8px;display:none">
+        {% endif %}
+      </div>
+      <div class="hint" style="text-align:center;margin-top:.35rem">Ảnh vuông, nền trắng cho đẹp nhất</div>
+    </div>
+  </div>
+
+  <!-- Xem trước -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-or">👁</div><div class="fc-title">Tóm tắt</div></div>
+    <div class="fc-body">
+      <div class="sum-row"><span class="sk">Tên SP</span><span class="sv" id="s-ten" style="max-width:150px;font-size:.73rem;text-align:right">—</span></div>
+      <div class="sum-row"><span class="sk">Danh mục</span><span class="sv" id="s-dm">—</span></div>
+      <div class="sum-row"><span class="sk">Thương hiệu</span><span class="sv" id="s-th">—</span></div>
+      <div class="sum-row"><span class="sk">Giá bán</span><span class="sv pr" id="s-gia">—</span></div>
+      <div class="sum-row" id="s-km-row" style="display:none"><span class="sk">Giá KM</span><span class="sv sl" id="s-km">—</span></div>
+      <div class="sum-row"><span class="sk">Trạng thái</span><span class="sv" id="s-tt">—</span></div>
+    </div>
+  </div>
+
+  <!-- Nút -->
+  <button type="submit" class="btn-save">
+    💾 {% if form.instance.pk %}Cập nhật sản phẩm{% else %}Thêm sản phẩm mới{% endif %}
+  </button>
+  <a href="{% url 'quan_ly_san_pham' %}" class="btn-adm btn-gray" style="width:100%;justify-content:center;margin-top:.45rem">✕ Hủy</a>
+
+</div>
+</div><!-- /form-layout -->
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const fmt=n=>new Intl.NumberFormat('vi-VN').format(n)+'đ';
+function fmtP(el,id){const v=parseInt(el.value)||0;document.getElementById(id).textContent=v?fmt(v):'—'}
+function calcDisc(){
+  const b=parseInt(document.getElementById('gb').value)||0;
+  const k=parseInt(document.getElementById('gk').value)||0;
+  const el=document.getElementById('disc');
+  el.innerHTML=(k&&b&&k<b)?`<span class="disc">🔥 Giảm ${Math.round((b-k)/b*100)}%</span>`:'';
+}
+function upSum(){
+  const ten=document.querySelector('[name=ten]').value||'—';
+  const dm=document.querySelector('[name=danh_muc]');
+  const b=parseInt(document.getElementById('gb').value)||0;
+  const k=parseInt(document.getElementById('gk').value)||0;
+  const on=document.getElementById('db-chk').checked;
+  document.getElementById('s-ten').textContent=ten.length>28?ten.slice(0,28)+'…':ten;
+  document.getElementById('s-dm').textContent=dm.selectedIndex>0?dm.options[dm.selectedIndex].text:'—';
+  document.getElementById('s-th').textContent=document.querySelector('[name=thuong_hieu]').value||'—';
+  document.getElementById('s-gia').textContent=b?fmt(b):'—';
+  document.getElementById('s-tt').innerHTML=on?'<span style="color:var(--green)">✅ Đang bán</span>':'<span style="color:var(--sub)">🚫 Đã ẩn</span>';
+  const kmRow=document.getElementById('s-km-row');
+  if(k){kmRow.style.display='flex';document.getElementById('s-km').textContent=fmt(k)}else kmRow.style.display='none';
+}
+function prevImg(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>{
+    const p=document.getElementById('img-p');const ph=document.getElementById('img-ph');
+    p.src=e.target.result;p.style.display='block';
+    if(ph)ph.style.display='none';
+    document.getElementById('ib').classList.add('filled');
+  };r.readAsDataURL(f);
+}
+// Drag drop
+const ib=document.getElementById('ib');
+ib.addEventListener('dragover',e=>{e.preventDefault();ib.style.borderColor='var(--or)'});
+ib.addEventListener('dragleave',()=>ib.style.borderColor='');
+ib.addEventListener('drop',e=>{
+  e.preventDefault();ib.style.borderColor='';
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')){const dt=new DataTransfer();dt.items.add(f);document.getElementById('img-f').files=dt.files;prevImg(document.getElementById('img-f'))}
+});
+// Init on load
+document.addEventListener('DOMContentLoaded',()=>{
+  ['gb','gn','gk'].forEach((id,i)=>{const el=document.getElementById(id);if(el&&el.value)fmtP(el,['pb','pn','pk'][i])});
+  calcDisc();upSum();
+});
+</script>
+{% endblock %}

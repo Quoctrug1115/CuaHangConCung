@@ -1,0 +1,301 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ tieu_de }} - Con Cưng Admin{% endblock %}
+{% block page_title %}{{ tieu_de }}{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nguoi_dung' %}">Người dùng</a> › {{ tieu_de }}{% endblock %}
+{% block top_actions %}
+<a href="{% url 'quan_ly_nguoi_dung' %}" class="btn-adm btn-gray">← Quay lại</a>
+{% endblock %}
+{% block extra_css %}
+<style>
+.form-layout{display:grid;grid-template-columns:1fr 300px;gap:1rem;align-items:start}
+@media(max-width:820px){.form-layout{grid-template-columns:1fr}}
+.fc{background:white;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1rem}
+.fc-hd{padding:.8rem 1.1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.55rem}
+.fc-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.ic-or{background:#FFF7ED}.ic-bl{background:#EFF6FF}.ic-gr{background:#F0FDF4}.ic-pu{background:#F5F3FF}
+.fc-title{font-size:.83rem;font-weight:800;color:var(--ink)}
+.fc-body{padding:1rem 1.1rem}
+.fg{margin-bottom:.8rem}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.26rem}
+.req{color:var(--red)}.hint{font-size:.67rem;color:var(--sub);margin-top:.2rem}
+.err-msg{font-size:.68rem;color:var(--red);margin-top:.18rem}
+.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border .14s,box-shadow .14s;background:white;color:var(--ink)}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.fi.err{border-color:var(--red)}
+textarea.fi{resize:vertical;min-height:60px}
+select.fi{cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+@media(max-width:560px){.row2{grid-template-columns:1fr}}
+
+/* Avatar preview */
+.av-zone{display:flex;align-items:center;gap:1rem}
+.av-circle{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--line);flex-shrink:0}
+.av-placeholder{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.6rem;flex-shrink:0;border:3px solid var(--line)}
+.av-actions{display:flex;flex-direction:column;gap:.35rem;flex:1}
+
+/* Vai trò badge selector */
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+@media(max-width:450px){.role-grid{grid-template-columns:repeat(2,1fr)}}
+.role-card{border:1.5px solid var(--line);border-radius:9px;padding:.5rem .6rem;text-align:center;cursor:pointer;transition:all .14s;position:relative}
+.role-card input{position:absolute;opacity:0;pointer-events:none}
+.role-card-ic{font-size:1.3rem;display:block;margin-bottom:.25rem}
+.role-card-lbl{font-size:.68rem;font-weight:700;color:var(--sub)}
+.role-card.selected{border-color:var(--or);background:#FFF7ED}
+.role-card.selected .role-card-lbl{color:var(--or)}
+.role-card:hover:not(.selected){border-color:#CBD5E1;background:#F8FAFC}
+
+/* Password strength */
+.pw-wrap{position:relative}
+.pw-eye{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;padding:0;color:var(--sub)}
+.pw-wrap .fi{padding-right:2.5rem}
+.pw-bar{height:4px;border-radius:2px;margin-top:.35rem;background:var(--line);transition:all .3s;overflow:hidden}
+.pw-bar-fill{height:100%;border-radius:2px;transition:all .3s}
+.pw-hint-txt{font-size:.66rem;margin-top:.2rem}
+
+/* Active state toggle */
+.sw-label{display:flex;align-items:center;gap:.6rem;padding:.44rem .7rem;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;transition:border .14s}
+.sw-label:hover{border-color:var(--or)}
+.sw-label input{display:none}
+.sw-tog{width:36px;height:20px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0}
+.sw-tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sw-label input:checked+.sw-tog{background:var(--green)}
+.sw-label input:checked+.sw-tog::after{transform:translateX(16px)}
+
+/* Profile summary */
+.prof-av{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.4rem;margin:0 auto .7rem;border:3px solid #FFE0CC}
+.prof-name{text-align:center;font-weight:800;font-size:.88rem;color:var(--ink);margin-bottom:.2rem}
+.prof-uname{text-align:center;font-size:.72rem;color:var(--sub);margin-bottom:.75rem}
+.prof-stat{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:.75rem}
+.prof-stat-item{background:#F8FAFC;border-radius:7px;padding:.3rem .6rem;font-size:.69rem;text-align:center}
+.prof-stat-val{font-weight:800;color:var(--ink);font-size:.85rem}
+.prof-stat-lbl{color:var(--sub)}
+.sep{border:none;border-top:1px solid var(--line);margin:.5rem 0}
+
+.btn-save{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.6rem;background:linear-gradient(135deg,var(--or),#C94A0E);color:white;border:none;border-radius:9px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .17s;box-shadow:0 3px 10px rgba(255,107,53,.28)}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(255,107,53,.38)}
+.msg-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;padding:.55rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:.9rem}
+.msg-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;padding:.55rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:.9rem}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+{% for m in messages %}
+<div class="{% if 'success' in m.tags %}msg-ok{% else %}msg-err{% endif %}">{{ m.message }}</div>
+{% endfor %}
+
+<form method="post" enctype="multipart/form-data" id="nd-form">
+{% csrf_token %}
+<div class="form-layout">
+<div>
+
+  <!-- Tài khoản -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-or">👤</div><div class="fc-title">Thông tin tài khoản</div></div>
+    <div class="fc-body">
+      <div class="row2">
+        <div class="fg">
+          <label>Tên đăng nhập <span class="req">*</span></label>
+          <input name="username" class="fi {% if form.username.errors %}err{% endif %}" value="{{ form.username.value|default:'' }}" placeholder="VD: nguyenvanA" required oninput="upProf()">
+          {% if form.username.errors %}<div class="err-msg">{{ form.username.errors.0 }}</div>{% endif %}
+          <div class="hint">Dùng để đăng nhập, không thay đổi sau khi tạo</div>
+        </div>
+        <div class="fg">
+          <label>Email</label>
+          <input type="email" name="email" class="fi" value="{{ form.email.value|default:'' }}" placeholder="user@concung.com">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="fg">
+          <label>Họ</label>
+          <input name="last_name" class="fi" value="{{ form.last_name.value|default:'' }}" placeholder="Nguyễn" oninput="upProf()">
+        </div>
+        <div class="fg">
+          <label>Tên</label>
+          <input name="first_name" class="fi" value="{{ form.first_name.value|default:'' }}" placeholder="Văn A" oninput="upProf()">
+        </div>
+      </div>
+
+      {% if la_them_moi %}
+      <div class="row2">
+        <div class="fg">
+          <label>Mật khẩu <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" name="password1" class="fi" id="pw1" placeholder="Ít nhất 8 ký tự" required oninput="chkPW(this)">
+            <button type="button" class="pw-eye" onclick="togPW('pw1',this)">👁</button>
+          </div>
+          <div class="pw-bar"><div class="pw-bar-fill" id="pw-bar" style="width:0%"></div></div>
+          <div class="pw-hint-txt" id="pw-hint" style="color:var(--sub)">Chưa nhập mật khẩu</div>
+        </div>
+        <div class="fg">
+          <label>Xác nhận mật khẩu <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" name="password2" class="fi" id="pw2" placeholder="Nhập lại mật khẩu" required oninput="chkMatch()">
+            <button type="button" class="pw-eye" onclick="togPW('pw2',this)">👁</button>
+          </div>
+          <div class="pw-hint-txt" id="pw2-hint"></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Vai trò -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-pu">🎭</div><div class="fc-title">Vai trò & Quyền hạn</div></div>
+    <div class="fc-body">
+      <div class="fg">
+        <label>Chọn vai trò <span class="req">*</span></label>
+        <div class="role-grid" id="role-grid">
+          {% for k,v in vai_tros %}
+          <label class="role-card {% if form.vai_tro.value == k %}selected{% endif %}" for="vt-{{ k }}">
+            <input type="radio" name="vai_tro" id="vt-{{ k }}" value="{{ k }}" {% if form.vai_tro.value == k %}checked{% endif %} onchange="selRole(this)">
+            <span class="role-card-ic">{% if k == 'admin' %}🔐{% elif k == 'quan_ly' %}👔{% elif k == 'nhan_vien' %}🏷{% elif k == 'shipper' %}🛵{% else %}👤{% endif %}</span>
+            <div class="role-card-lbl">{{ v }}</div>
+          </label>
+          {% endfor %}
+        </div>
+        {% if form.vai_tro.errors %}<div class="err-msg">{{ form.vai_tro.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="fg">
+        <label class="sw-label" for="active-chk">
+          <input type="checkbox" name="is_active" id="active-chk" {% if form.is_active.value %}checked{% endif %}>
+          <div class="sw-tog"></div>
+          <div><div style="font-size:.79rem;font-weight:600;color:var(--ink)">✅ Tài khoản đang hoạt động</div><div class="hint">Tắt để vô hiệu hóa tài khoản (không xóa dữ liệu)</div></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thông tin cá nhân -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-bl">📋</div><div class="fc-title">Thông tin cá nhân</div></div>
+    <div class="fc-body">
+      <div class="row2">
+        <div class="fg">
+          <label>Số điện thoại</label>
+          <input name="so_dien_thoai" class="fi" value="{{ form.so_dien_thoai.value|default:'' }}" placeholder="0901 234 567">
+        </div>
+        <div class="fg">
+          <label>Ảnh đại diện</label>
+          <input type="file" name="anh_dai_dien" class="fi" accept="image/*" onchange="prevAv(this)">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Địa chỉ</label>
+        <textarea name="dia_chi" class="fi" rows="2" placeholder="Số nhà, đường, phường, quận, tỉnh...">{{ form.dia_chi.value|default:'' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /col-left -->
+
+<!-- CỘT PHẢI -->
+<div>
+  <!-- Profile preview -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-or">👁</div><div class="fc-title">Xem trước hồ sơ</div></div>
+    <div class="fc-body">
+      {% if form.instance.anh_dai_dien %}
+      <img src="{{ form.instance.anh_dai_dien.url }}" id="av-img" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin:0 auto .7rem;display:block;border:3px solid #FFE0CC">
+      {% else %}
+      <div class="prof-av" id="av-placeholder"><span id="av-initial">?</span></div>
+      <img id="av-img" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin:0 auto .7rem;display:none;border:3px solid #FFE0CC">
+      {% endif %}
+      <div class="prof-name" id="pf-name">{{ form.instance.get_full_name|default:'(Chưa đặt tên)' }}</div>
+      <div class="prof-uname" id="pf-uname">@{{ form.instance.username|default:'username' }}</div>
+      <div class="prof-stat">
+        <div class="prof-stat-item"><div class="prof-stat-val" id="pf-role-badge">—</div><div class="prof-stat-lbl">Vai trò</div></div>
+        <div class="prof-stat-item"><div class="prof-stat-val">{% if form.instance.pk %}{{ form.instance.ngay_tao|date:"d/m/Y" }}{% else %}Mới{% endif %}</div><div class="prof-stat-lbl">Ngày tạo</div></div>
+      </div>
+      <hr class="sep">
+      {% if form.instance.pk %}
+      <div style="font-size:.72rem;color:var(--sub)">
+        <div style="margin-bottom:.25rem">📧 {{ form.instance.email|default:'Chưa có email' }}</div>
+        <div>📞 {{ form.instance.so_dien_thoai|default:'Chưa có SĐT' }}</div>
+      </div>
+      {% else %}
+      <div style="font-size:.72rem;color:var(--sub);text-align:center">Tài khoản mới sẽ được tạo</div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not la_them_moi %}
+  <!-- Actions nhanh -->
+  <div class="fc">
+    <div class="fc-hd"><div class="fc-ic ic-gr">⚡</div><div class="fc-title">Thao tác nhanh</div></div>
+    <div class="fc-body" style="display:flex;flex-direction:column;gap:.4rem">
+      <a href="{% url 'doi_mat_khau_admin' form.instance.pk %}" class="btn-adm btn-gray" style="width:100%;justify-content:center">🔑 Đổi mật khẩu</a>
+      {% if form.instance != request.user %}
+      <a href="{% url 'xoa_nguoi_dung' form.instance.pk %}" class="btn-adm btn-red" style="width:100%;justify-content:center">🚫 Vô hiệu hóa tài khoản</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Lưu -->
+  <button type="submit" class="btn-save">
+    💾 {% if la_them_moi %}Tạo người dùng{% else %}Cập nhật{% endif %}
+  </button>
+  <a href="{% url 'quan_ly_nguoi_dung' %}" class="btn-adm btn-gray" style="width:100%;justify-content:center;margin-top:.45rem">✕ Hủy</a>
+
+</div>
+</div><!-- /form-layout -->
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const roles={admin:'🔐 Admin',quan_ly:'👔 Quản lý',nhan_vien:'🏷 NV',shipper:'🛵 Shipper',khach_hang:'👤 KH'};
+function selRole(radio){
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  radio.closest('.role-card').classList.add('selected');
+  document.getElementById('pf-role-badge').textContent=roles[radio.value]||radio.value;
+}
+// Init role badge
+const checked=document.querySelector('[name=vai_tro]:checked');
+if(checked)document.getElementById('pf-role-badge').textContent=roles[checked.value]||checked.value;
+
+function upProf(){
+  const u=document.querySelector('[name=username]').value||'username';
+  const fn=document.querySelector('[name=first_name]').value||'';
+  const ln=document.querySelector('[name=last_name]').value||'';
+  const full=((ln+' '+fn).trim())||'(Chưa đặt tên)';
+  document.getElementById('pf-name').textContent=full;
+  document.getElementById('pf-uname').textContent='@'+u;
+  const av=document.getElementById('av-initial');if(av)av.textContent=u[0]?.toUpperCase()||'?';
+}
+
+function togPW(id,btn){
+  const i=document.getElementById(id);
+  i.type=i.type==='password'?'text':'password';
+  btn.textContent=i.type==='password'?'👁':'🙈';
+}
+
+function chkPW(inp){
+  const v=inp.value;const bar=document.getElementById('pw-bar');const hint=document.getElementById('pw-hint');
+  let score=0;
+  if(v.length>=8)score++;if(/[A-Z]/.test(v))score++;if(/[0-9]/.test(v))score++;if(/[^a-zA-Z0-9]/.test(v))score++;
+  const levels=[['#EF4444','25%','Rất yếu'],['#F97316','50%','Trung bình'],['#EAB308','75%','Khá mạnh'],['#22C55E','100%','Mạnh']];
+  const l=levels[Math.min(score-1,3)]||levels[0];
+  bar.style.background=l[0];bar.style.width=v?l[1]:'0%';
+  hint.style.color=l[0];hint.textContent=v?l[2]:'Chưa nhập mật khẩu';
+}
+
+function chkMatch(){
+  const p1=document.getElementById('pw1')?.value;
+  const p2=document.getElementById('pw2')?.value;
+  const hint=document.getElementById('pw2-hint');
+  if(!p2)return;
+  hint.style.color=p1===p2?'#166534':'var(--red)';
+  hint.textContent=p1===p2?'✅ Mật khẩu khớp':'❌ Mật khẩu không khớp';
+}
+
+function prevAv(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>{
+    const img=document.getElementById('av-img');const ph=document.getElementById('av-placeholder');
+    img.src=e.target.result;img.style.display='block';if(ph)ph.style.display='none';
+  };r.readAsDataURL(f);
+}
+</script>
+{% endblock %}
