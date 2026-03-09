@@ -263,11 +263,27 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
     <!-- Cột phải: Bản đồ + Tồn kho -->
     <div class="col-lg-7">
 
-      <!-- Bản đồ -->
-      <div class="info-card" style="padding-top:0;">
-        <div class="sec-title" style="margin-top:0;"><i class="bi bi-map-fill"></i> Vị trí trên bản đồ</div>
+      <!-- Bản đồ nâng cao -->
+      <div class="info-card" style="padding:0;overflow:hidden;">
         {% if cua_hang.vi_tri %}
-          <div id="cstore-map"></div>
+        <div style="padding:.65rem 1rem;border-bottom:1px solid #F0F2F9;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <div style="font-weight:800;font-size:.83rem;color:#1A1A2E;display:flex;align-items:center;gap:.4rem"><i class="bi bi-map-fill" style="color:var(--ord)"></i> Vị trí trên bản đồ</div>
+          <div style="flex:1"></div>
+          <button id="btn-find-route" onclick="findRouteToStore()" type="button"
+            style="display:flex;align-items:center;gap:.3rem;background:#FFF3E0;border:1.5px solid #FFD0A0;color:#E65100;border-radius:8px;padding:.32rem .75rem;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">
+            🧭 Chỉ đường từ vị trí tôi
+          </button>
+          <a href="https://www.google.com/maps?q={{ cua_hang.vi_do }},{{ cua_hang.kinh_do }}" target="_blank"
+            style="display:flex;align-items:center;gap:.3rem;background:#E8F5E9;border:1.5px solid #A5D6A7;color:#2E7D32;border-radius:8px;padding:.32rem .75rem;font-size:.72rem;font-weight:800;text-decoration:none">
+            🗺️ Google Maps
+          </a>
+        </div>
+        <div id="cstore-map"></div>
+        <div id="route-bar" style="display:none;padding:.5rem 1rem;background:linear-gradient(135deg,#FFF3E0,#FFF8F0);border-top:1px solid #FFD0A0;font-size:.75rem;font-weight:700;color:#BF360C;align-items:center;gap:.4rem">
+          <span id="route-txt">—</span>
+          <button onclick="clearRoute()" type="button"
+            style="margin-left:auto;background:#FFE0B2;border:none;border-radius:5px;padding:.18rem .5rem;font-size:.65rem;cursor:pointer;color:#E65100;font-weight:700">✕ Xoá tuyến</button>
+        </div>
         {% else %}
           <div style="text-align:center;padding:2.5rem;color:var(--sub);">
             <div style="font-size:3rem;opacity:.3;margin-bottom:.5rem;">🗺️</div>
@@ -323,34 +339,114 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
 {% if cua_hang.vi_tri %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const lat = {{ cua_hang.vi_do }}, lng = {{ cua_hang.kinh_do }};
-const map = L.map('cstore-map', {zoomControl: true}).setView([lat, lng], 16);
+const STORE_LAT = {{ cua_hang.vi_do }};
+const STORE_LNG = {{ cua_hang.kinh_do }};
+const API_ROUTE = "{% url 'api_duong_di' %}";
+
+// ── Map init ─────────────────────────────────────
+const map = L.map('cstore-map', {zoomControl:false}).setView([STORE_LAT, STORE_LNG], 16);
+L.control.zoom({position:'bottomright'}).addTo(map);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-  maxZoom: 19
+  attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>', maxZoom:19
 }).addTo(map);
 
-const pin = L.divIcon({
-  html: `<div style="
-    width:32px;height:32px;background:#E65100;
-    border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-    border:4px solid white;box-shadow:0 4px 14px rgba(0,0,0,.4);"></div>`,
-  iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -36], className: ''
+// ── Store pin ────────────────────────────────────
+const storePin = L.divIcon({
+  html:`<div style="position:relative;width:34px;height:34px">
+    <div style="position:absolute;inset:-10px;border-radius:50%;border:2px solid #E6510055;animation:stPulse 2s ease-out infinite"></div>
+    <div style="width:100%;height:100%;background:#E65100;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3.5px solid white;box-shadow:0 4px 16px rgba(230,81,0,.5)"></div>
+  </div>`,
+  iconSize:[34,34], iconAnchor:[17,34], popupAnchor:[0,-38], className:''
 });
 
-L.marker([lat, lng], {icon: pin}).addTo(map)
-  .bindPopup(`
-    <div style="font-family:sans-serif;min-width:160px;">
-      <strong style="color:#E65100;">🏪 {{ cua_hang.ten }}</strong><br>
-      <span style="font-size:.8rem;color:#666;">📍 {{ cua_hang.dia_chi }}</span><br>
-      <span style="font-size:.8rem;color:#666;">📞 {{ cua_hang.so_dien_thoai }}</span>
-    </div>`, {maxWidth: 220}
-  ).openPopup();
+// Inject pulse keyframe
+const kf = document.createElement('style');
+kf.textContent = '@keyframes stPulse{0%{transform:scale(.8);opacity:.6}100%{transform:scale(2.2);opacity:0}}';
+document.head.appendChild(kf);
 
-// Hiệu ứng pulse
-L.circle([lat, lng], {
-  radius: 80, color: '#E65100', weight: 1, fillColor: '#FF6B35', fillOpacity: 0.12
+L.marker([STORE_LAT, STORE_LNG], {icon: storePin})
+  .bindPopup(`<div style="font-family:sans-serif;padding:.3rem .1rem;min-width:170px">
+    <div style="font-weight:800;color:#E65100;font-size:.9rem;margin-bottom:.3rem">🏪 {{ cua_hang.ten }}</div>
+    <div style="font-size:.78rem;color:#555;margin-bottom:.15rem">📍 {{ cua_hang.dia_chi }}</div>
+    <div style="font-size:.78rem;color:#555;margin-bottom:.15rem">📞 {{ cua_hang.so_dien_thoai }}</div>
+    <div style="font-size:.78rem;color:#555">🕐 {{ cua_hang.gio_mo_cua|time:"H:i" }} – {{ cua_hang.gio_dong_cua|time:"H:i" }}</div>
+  </div>`, {maxWidth:250})
+  .addTo(map).openPopup();
+
+L.circle([STORE_LAT, STORE_LNG], {
+  radius:60, color:'#E65100', weight:1.5, fillColor:'#FF6B35', fillOpacity:.1
 }).addTo(map);
+
+// ── Routing ──────────────────────────────────────
+let routeLayer = null;
+let meMarker = null;
+
+function findRouteToStore() {
+  const btn = document.getElementById('btn-find-route');
+  if(!navigator.geolocation) { alert('Trình duyệt không hỗ trợ GPS'); return; }
+  btn.textContent = '⏳ Đang định vị...'; btn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    const {latitude:myLat, longitude:myLng} = pos.coords;
+
+    // Show my location
+    if(meMarker) map.removeLayer(meMarker);
+    meMarker = L.marker([myLat, myLng], {icon: L.divIcon({
+      html:`<div style="width:14px;height:14px;background:#1565C0;border-radius:50%;border:3px solid white;box-shadow:0 0 0 4px rgba(21,101,192,.25),0 2px 8px rgba(0,0,0,.3)"></div>`,
+      iconSize:[14,14], iconAnchor:[7,7], className:''
+    })}).bindTooltip('Vị trí của bạn', {permanent:false}).addTo(map);
+
+    // Fit both points
+    map.fitBounds([[myLat,myLng],[STORE_LAT,STORE_LNG]], {padding:[40,40]});
+
+    // Fetch route via OSRM API
+    fetch(`${API_ROUTE}?tu_vi_do=${myLat}&tu_kinh_do=${myLng}&den_vi_do=${STORE_LAT}&den_kinh_do=${STORE_LNG}`)
+      .then(r => r.json())
+      .then(d => {
+        if(routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+        if(d.duong_di && d.duong_di.length) {
+          const coords = d.duong_di.map(p => [p[1], p[0]]);
+          routeLayer = L.polyline(coords, {
+            color:'#1565C0', weight:4, opacity:.85, dashArray:null,
+            lineCap:'round', lineJoin:'round'
+          }).addTo(map);
+          map.fitBounds(routeLayer.getBounds(), {padding:[40,40]});
+
+          const km = d.khoang_cach_km ? d.khoang_cach_km.toFixed(1) : '?';
+          const min = d.thoi_gian_phut ? Math.round(d.thoi_gian_phut) : '?';
+          const bar = document.getElementById('route-bar');
+          document.getElementById('route-txt').textContent = `🛵 Tuyến đường: ${km} km · ~${min} phút đi xe máy`;
+          bar.style.display = 'flex';
+        } else {
+          document.getElementById('route-txt').textContent = '⚠️ Không tìm được tuyến đường';
+          document.getElementById('route-bar').style.display = 'flex';
+        }
+        btn.textContent = '🧭 Chỉ đường từ vị trí tôi'; btn.disabled = false;
+      })
+      .catch(() => {
+        // Fallback: draw straight line
+        if(routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+        routeLayer = L.polyline([[myLat,myLng],[STORE_LAT,STORE_LNG]], {
+          color:'#1565C0', weight:3, opacity:.7, dashArray:'8,6'
+        }).addTo(map);
+        const dx = myLat-STORE_LAT, dy = myLng-STORE_LNG;
+        const km = (Math.sqrt(dx*dx+dy*dy)*111.32).toFixed(1);
+        document.getElementById('route-txt').textContent = `📍 Khoảng cách thẳng: ~${km} km`;
+        document.getElementById('route-bar').style.display = 'flex';
+        btn.textContent = '🧭 Chỉ đường từ vị trí tôi'; btn.disabled = false;
+      });
+  }, () => {
+    btn.textContent = '🧭 Chỉ đường từ vị trí tôi'; btn.disabled = false;
+    alert('Không lấy được vị trí. Vui lòng cho phép truy cập GPS.');
+  });
+}
+
+function clearRoute() {
+  if(routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+  if(meMarker) { map.removeLayer(meMarker); meMarker = null; }
+  document.getElementById('route-bar').style.display = 'none';
+  map.setView([STORE_LAT, STORE_LNG], 16);
+}
 </script>
 {% endif %}
 {% endblock %}

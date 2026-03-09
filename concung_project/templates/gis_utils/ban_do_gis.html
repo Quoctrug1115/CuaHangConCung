@@ -1,0 +1,728 @@
+{% extends 'admin_base.html' %}
+{% block title %}GIS Nâng cao — Con Cưng Admin{% endblock %}
+{% block breadcrumb %} › GIS Nâng cao{% endblock %}
+{% block nav_ban_do_gis %}class="on"{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+
+.gis-shell {
+  display:grid; grid-template-columns:280px 1fr;
+  height:calc(100vh - 112px); min-height:500px;
+  border-radius:14px; overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:0 6px 32px rgba(0,0,0,.1);
+}
+
+/* ── DARK SIDE PANEL ── */
+.gis-side {
+  background:#0F172A; display:flex; flex-direction:column;
+  border-right:1px solid rgba(255,255,255,.06); overflow:hidden;
+}
+.gside-head {
+  padding:.9rem 1rem .75rem;
+  background:linear-gradient(160deg,#0F172A,#162032);
+  border-bottom:1px solid rgba(255,255,255,.07); flex-shrink:0;
+}
+.gside-logo { display:flex; align-items:center; gap:.55rem; }
+.gside-pulse {
+  width:8px; height:8px; border-radius:50%;
+  background:#FF469e; box-shadow:0 0 10px #FF469e80;
+  animation:gPulse 2s infinite;
+}
+@keyframes gPulse{0%,100%{opacity:1;box-shadow:0 0 10px #FF469e80}50%{opacity:.4;box-shadow:0 0 4px #FF469e40}}
+.gside-title { font-size:.85rem; font-weight:800; color:#F1F5F9; }
+.gside-sub { font-size:.6rem; color:#475569; margin-top:.05rem; }
+
+/* Stats row */
+.gside-stats {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:.3rem; padding:.7rem 1rem;
+  border-bottom:1px solid rgba(255,255,255,.05); flex-shrink:0;
+}
+.gstat { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.05); border-radius:8px; padding:.45rem .5rem; text-align:center; }
+.gstat-val { font-family:'DM Mono',monospace; font-size:1rem; font-weight:700; color:#F1F5F9; line-height:1; }
+.gstat-lbl { font-size:.57rem; color:#475569; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-top:.14rem; }
+
+/* Scroll area */
+.gside-scroll { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#1E293B transparent; }
+.gside-scroll::-webkit-scrollbar { width:3px; }
+.gside-scroll::-webkit-scrollbar-thumb { background:#1E293B; border-radius:3px; }
+
+/* Section titles */
+.gsec { padding:.6rem 1rem .15rem; }
+.gsec-lbl { font-size:.57rem; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:#334155; }
+
+/* Layer rows */
+.layer-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.42rem 1rem; cursor:pointer; transition:background .12s;
+  border-left:2px solid transparent;
+}
+.layer-row:hover { background:rgba(255,255,255,.03); border-left-color:rgba(255,70,158,.3); }
+.layer-row.on { background:rgba(255,70,158,.06); border-left-color:#FF469e; }
+.lr-left { display:flex; align-items:center; gap:.48rem; }
+.lr-ic { font-size:.85rem; width:20px; text-align:center; }
+.lr-name { font-size:.75rem; font-weight:600; color:#64748B; transition:color .12s; }
+.layer-row.on .lr-name { color:#CBD5E1; }
+
+/* Mini toggle */
+.mtog { position:relative; width:30px; height:16px; flex-shrink:0; }
+.mtog input { opacity:0; width:0; height:0; }
+.mtog span {
+  position:absolute; inset:0; background:#1E293B; border-radius:16px;
+  cursor:pointer; transition:.18s; border:1px solid #334155;
+}
+.mtog span::after {
+  content:''; position:absolute; left:2px; top:2px;
+  width:10px; height:10px; background:#475569; border-radius:50%; transition:.18s;
+}
+.mtog input:checked + span { background:#FF469e; border-color:#FF469e; }
+.mtog input:checked + span::after { transform:translateX(14px); background:white; }
+
+.gdivider { height:1px; background:rgba(255,255,255,.04); margin:.25rem 0; }
+
+/* Slider */
+.gctrl { padding:.35rem 1rem .55rem; }
+.gctrl-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:.35rem; }
+.gctrl-lbl { font-size:.65rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.05em; }
+.gctrl-val { font-family:'DM Mono',monospace; font-size:.72rem; color:#FF469e; font-weight:700; }
+.gslider {
+  width:100%; height:3px; border-radius:3px; appearance:none;
+  background:linear-gradient(to right,#FF469e 50%,#1E293B 50%); cursor:pointer; outline:none;
+}
+.gslider::-webkit-slider-thumb {
+  appearance:none; width:13px; height:13px; border-radius:50%;
+  background:#FF469e; border:2px solid white; box-shadow:0 0 8px #FF469e60; cursor:pointer;
+}
+
+/* Map type grid */
+.mtype-grid { display:grid; grid-template-columns:1fr 1fr; gap:.25rem; padding:.3rem 1rem .65rem; }
+.mtype-btn {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:7px; padding:.35rem; font-size:.68rem; font-weight:700;
+  color:#64748B; cursor:pointer; font-family:inherit; transition:all .14s; text-align:center;
+}
+.mtype-btn:hover { border-color:rgba(255,70,158,.4); color:#94A3B8; }
+.mtype-btn.on { background:rgba(255,70,158,.12); border-color:rgba(255,70,158,.5); color:#FF469e; }
+
+/* GPS Editor list */
+.gps-item {
+  display:flex; align-items:center; gap:.45rem;
+  padding:.38rem 1rem; cursor:pointer; transition:background .12s;
+  border-left:2px solid transparent;
+}
+.gps-item:hover { background:rgba(255,255,255,.03); }
+.gps-item.editing { background:rgba(59,130,246,.08); border-left-color:#3B82F6; }
+.gdot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.gdot.ok { background:#10B981; box-shadow:0 0 5px rgba(16,185,129,.5); }
+.gdot.no { background:#EF4444; }
+.gps-nm { font-size:.73rem; font-weight:600; color:#64748B; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gps-item.editing .gps-nm { color:#93C5FD; }
+.gdel { background:none; border:none; color:#334155; font-size:.68rem; cursor:pointer; padding:.1rem .22rem; border-radius:4px; transition:color .12s; flex-shrink:0; }
+.gdel:hover { color:#EF4444; }
+
+/* Edit mode banner */
+.edit-banner {
+  display:none; align-items:center; gap:.5rem;
+  background:linear-gradient(90deg,#1E3A8A,#1D4ED8);
+  padding:.55rem 1rem; font-size:.73rem; font-weight:700; color:white;
+  border-bottom:1px solid rgba(255,255,255,.1); flex-shrink:0;
+  animation:slideDown .2s ease;
+}
+.edit-banner.on { display:flex; }
+@keyframes slideDown{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.ecancelbtn { margin-left:auto; background:rgba(255,255,255,.15); border:none; color:white; border-radius:5px; padding:.18rem .5rem; font-size:.65rem; cursor:pointer; font-weight:700; }
+.ecancelbtn:hover { background:rgba(255,255,255,.25); }
+
+/* ── MAP ── */
+.gis-map { position:relative; background:#0D1B2A; overflow:hidden; }
+#gmap { width:100%; height:100%; }
+
+/* Map overlays */
+.mo { position:absolute; z-index:600; pointer-events:none; }
+.mo * { pointer-events:auto; }
+.mo-tr { top:.65rem; right:.65rem; display:flex; flex-direction:column; gap:.28rem; }
+.mo-bl { bottom:.65rem; left:.65rem; display:flex; flex-direction:column; gap:.22rem; }
+.mo-tl { top:.65rem; left:.65rem; }
+
+/* FAB buttons */
+.gfab {
+  width:34px; height:34px; background:rgba(15,23,42,.9); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.1); border-radius:9px;
+  font-size:.9rem; cursor:pointer; color:#64748B;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .14s; box-shadow:0 2px 10px rgba(0,0,0,.4);
+}
+.gfab:hover { background:rgba(255,70,158,.2); border-color:rgba(255,70,158,.4); color:white; }
+
+/* Info chips */
+.gchip {
+  background:rgba(15,23,42,.88); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.08); border-radius:6px;
+  padding:.22rem .6rem; font-size:.67rem;
+  font-family:'DM Mono',monospace; color:#64748B;
+  box-shadow:0 2px 10px rgba(0,0,0,.3); white-space:nowrap;
+}
+.gchip strong { color:#CBD5E1; }
+.gchip.green { border-color:rgba(16,185,129,.25); }
+.gchip.green strong { color:#6EE7B7; }
+
+/* Heatmap legend */
+.heat-legend { background:rgba(15,23,42,.88); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:.45rem .65rem; display:none; }
+.heat-legend.on { display:block; }
+.hlbl { font-size:.6rem; font-weight:800; color:#64748B; text-transform:uppercase; letter-spacing:.07em; margin-bottom:.28rem; }
+.hgrad { height:5px; border-radius:3px; background:linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444); }
+.hends { display:flex; justify-content:space-between; font-size:.58rem; color:#334155; font-family:'DM Mono',monospace; margin-top:.22rem; }
+
+/* Leaflet dark popup */
+.leaflet-popup-content-wrapper { background:#1A2535!important; border:1px solid rgba(255,255,255,.1)!important; border-radius:12px!important; box-shadow:0 12px 40px rgba(0,0,0,.5)!important; padding:0!important; }
+.leaflet-popup-content { margin:0!important; }
+.leaflet-popup-tip { background:#1A2535!important; }
+.leaflet-popup-close-button { color:#64748B!important; top:8px!important; right:10px!important; font-size:16px!important; }
+.leaflet-popup-close-button:hover { color:white!important; }
+.ppbox { padding:.82rem 1rem; min-width:235px; max-width:285px; }
+.pp-name { font-weight:800; font-size:.9rem; color:#FF469e; margin-bottom:.35rem; line-height:1.3; padding-right:1.2rem; }
+.pp-stats { display:grid; grid-template-columns:1fr 1fr; gap:.3rem; margin:.45rem 0; }
+.pp-stat { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:7px; padding:.35rem .45rem; text-align:center; }
+.pp-stat-v { font-family:'DM Mono',monospace; font-size:.88rem; font-weight:700; color:white; }
+.pp-stat-l { font-size:.55rem; color:#475569; text-transform:uppercase; font-weight:700; margin-top:.08rem; }
+.pp-row { font-size:.72rem; color:#475569; display:flex; gap:.35rem; margin-top:.2rem; line-height:1.4; }
+.pp-row strong { color:#94A3B8; }
+.pp-coord { font-family:'DM Mono',monospace; font-size:.6rem; color:#334155; margin-top:.3rem; }
+.pp-acts { display:flex; gap:.3rem; flex-wrap:wrap; margin-top:.6rem; }
+.ppbtn { padding:.26rem .6rem; border-radius:7px; font-size:.66rem; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:all .12s; text-decoration:none; display:inline-flex; align-items:center; gap:.2rem; }
+.ppbtn-pk { background:rgba(255,70,158,.12); color:#FF469e; border:1px solid rgba(255,70,158,.25); }
+.ppbtn-pk:hover { background:rgba(255,70,158,.22); }
+.ppbtn-bl { background:rgba(59,130,246,.1); color:#60A5FA; border:1px solid rgba(59,130,246,.22); }
+.ppbtn-bl:hover { background:rgba(59,130,246,.2); }
+.ppbtn-gr { background:rgba(16,185,129,.1); color:#34D399; border:1px solid rgba(16,185,129,.22); }
+.ppbtn-gr:hover { background:rgba(16,185,129,.2); }
+
+/* Toast */
+.gtst {
+  position:fixed; bottom:1.4rem; right:1.4rem; z-index:9999;
+  background:#0F172A; color:#E2E8F0; border:1px solid rgba(255,255,255,.1);
+  padding:.6rem 1rem; border-radius:10px; font-size:.77rem; font-weight:600;
+  transform:translateY(60px); opacity:0; transition:all .22s;
+  box-shadow:0 6px 24px rgba(0,0,0,.4); pointer-events:none; max-width:320px;
+}
+.gtst.show { transform:none; opacity:1; }
+.gtst.ok { background:#0C2D20; border-color:rgba(16,185,129,.35); color:#6EE7B7; }
+.gtst.err { background:#2D0B0B; border-color:rgba(239,68,68,.35); color:#FCA5A5; }
+.gtst.info { background:#0C1E3A; border-color:rgba(59,130,246,.35); color:#93C5FD; }
+
+@media(max-width:860px) { .gis-shell{grid-template-columns:1fr;height:auto} .gis-side{max-height:50vh} .gis-map{height:55vw;min-height:360px} }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;gap:.7rem;margin-bottom:.85rem;flex-wrap:wrap">
+  <div>
+    <h4 style="margin:0;font-size:1.05rem;font-weight:800;color:var(--ink)">🛰️ GIS Nâng cao</h4>
+    <p style="margin:.15rem 0 0;font-size:.72rem;color:var(--sub)">Heatmap đơn hàng · Vùng phủ sóng · Vùng đẳng thời (isochrone) · Chỉnh sửa GPS trực tiếp</p>
+  </div>
+  <div style="display:flex;gap:.4rem">
+    <a href="{% url 'ban_do' %}" class="btn-adm btn-gray" style="font-size:.75rem">🗺️ Bản đồ khách</a>
+    <a href="{% url 'quan_ly_cua_hang' %}" class="btn-adm btn-gray" style="font-size:.75rem">🏪 Cửa hàng</a>
+  </div>
+</div>
+
+<!-- Edit banner -->
+<div class="edit-banner" id="editBanner">
+  <span>✏️</span>
+  <span id="editTxt">Click vào bản đồ để đặt GPS mới</span>
+  <button class="ecancelbtn" onclick="cancelEdit()">✕ Huỷ</button>
+</div>
+
+<div class="gis-shell">
+
+  <!-- ═══ SIDE PANEL ═══ -->
+  <div class="gis-side">
+
+    <!-- Header -->
+    <div class="gside-head">
+      <div class="gside-logo">
+        <div class="gside-pulse"></div>
+        <div>
+          <div class="gside-title">Con Cưng GIS</div>
+          <div class="gside-sub">Spatial Intelligence Platform</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="gside-stats">
+      <div class="gstat"><div class="gstat-val">{{ tong_cua_hang }}</div><div class="gstat-lbl">Cửa hàng</div></div>
+      <div class="gstat"><div class="gstat-val" style="color:#10B981">{{ so_co_ban_do }}</div><div class="gstat-lbl">Có GPS</div></div>
+      <div class="gstat"><div class="gstat-val" id="gstat-don" style="color:#F59E0B">—</div><div class="gstat-lbl">Đơn hàng</div></div>
+      <div class="gstat"><div class="gstat-val" id="gstat-dt" style="color:#FF469e">—</div><div class="gstat-lbl">Doanh thu</div></div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="gside-scroll">
+
+      <!-- LAYERS -->
+      <div class="gsec"><span class="gsec-lbl">Lớp bản đồ</span></div>
+
+      <div class="layer-row on" id="lr-stores">
+        <div class="lr-left"><span class="lr-ic">🏪</span><span class="lr-name">Cửa hàng</span></div>
+        <label class="mtog"><input type="checkbox" id="tog-stores" checked onchange="onToggle('stores',this.checked)"><span></span></label>
+      </div>
+      <div class="layer-row" id="lr-heat">
+        <div class="lr-left"><span class="lr-ic">🔥</span><span class="lr-name">Heatmap đơn hàng</span></div>
+        <label class="mtog"><input type="checkbox" id="tog-heat" onchange="onToggle('heat',this.checked)"><span></span></label>
+      </div>
+      <div class="layer-row" id="lr-cov">
+        <div class="lr-left"><span class="lr-ic">⭕</span><span class="lr-name">Vùng phủ sóng</span></div>
+        <label class="mtog"><input type="checkbox" id="tog-cov" onchange="onToggle('cov',this.checked)"><span></span></label>
+      </div>
+      <div class="layer-row" id="lr-iso">
+        <div class="lr-left"><span class="lr-ic">⏱️</span><span class="lr-name">Vùng đẳng thời</span></div>
+        <label class="mtog"><input type="checkbox" id="tog-iso" onchange="onToggle('iso',this.checked)"><span></span></label>
+      </div>
+      <div class="layer-row" id="lr-lbl">
+        <div class="lr-left"><span class="lr-ic">🏷️</span><span class="lr-name">Nhãn thống kê</span></div>
+        <label class="mtog"><input type="checkbox" id="tog-lbl" onchange="onToggle('lbl',this.checked)"><span></span></label>
+      </div>
+
+      <div class="gdivider"></div>
+
+      <!-- COVERAGE RADIUS -->
+      <div class="gsec"><span class="gsec-lbl">Bán kính phủ sóng</span></div>
+      <div class="gctrl">
+        <div class="gctrl-top">
+          <span class="gctrl-lbl">Khoảng cách</span>
+          <span class="gctrl-val" id="cov-val">5 km</span>
+        </div>
+        <input type="range" class="gslider" id="cov-sl" min="1" max="20" value="5"
+               oninput="sliderSync(this,'cov-val',' km');if(document.getElementById('tog-cov').checked)loadCov()">
+      </div>
+
+      <!-- ISOCHRONE TIME -->
+      <div class="gsec" style="padding-top:.4rem"><span class="gsec-lbl">Thời gian đẳng thời</span></div>
+      <div class="gctrl">
+        <div class="gctrl-top">
+          <span class="gctrl-lbl">Thời gian đi xe</span>
+          <span class="gctrl-val" id="iso-val">15 phút</span>
+        </div>
+        <input type="range" class="gslider" id="iso-sl" min="5" max="45" step="5" value="15"
+               oninput="sliderSync(this,'iso-val',' phút');if(document.getElementById('tog-iso').checked)loadIso()">
+      </div>
+
+      <div class="gdivider"></div>
+
+      <!-- MAP TYPE -->
+      <div class="gsec"><span class="gsec-lbl">Loại bản đồ</span></div>
+      <div class="mtype-grid">
+        <button class="mtype-btn on" id="mt-osm" onclick="setTile('osm')">🗺️ Thường</button>
+        <button class="mtype-btn" id="mt-sat" onclick="setTile('sat')">🛰️ Vệ tinh</button>
+        <button class="mtype-btn" id="mt-dark" onclick="setTile('dark')">🌙 Tối</button>
+        <button class="mtype-btn" id="mt-topo" onclick="setTile('topo')">⛰️ Địa hình</button>
+      </div>
+
+      <div class="gdivider"></div>
+
+      <!-- GPS EDITOR -->
+      <div class="gsec"><span class="gsec-lbl">📍 Chỉnh sửa GPS</span></div>
+      <div style="padding:.25rem 1rem .45rem;font-size:.67rem;color:#334155;line-height:1.5">
+        Chọn cửa hàng → click bản đồ để lưu tọa độ GPS mới.
+      </div>
+      {% for ch in tat_ca_cua_hang %}
+      <div class="gps-item" id="gi-{{ ch.id }}"
+           onclick="selectEdit({{ ch.id }},'{{ ch.ten|escapejs }}',{{ ch.vi_do|default:'null' }},{{ ch.kinh_do|default:'null' }})">
+        <span class="gdot {% if ch.vi_tri %}ok{% else %}no{% endif %}" id="gd-{{ ch.id }}"></span>
+        <span class="gps-nm" title="{{ ch.ten }}">{{ ch.ten }}</span>
+        {% if ch.vi_tri %}
+        <button class="gdel" onclick="event.stopPropagation();doDeleteGPS({{ ch.id }},'{{ ch.ten|escapejs }}')" title="Xoá GPS">🗑</button>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div style="height:1.5rem"></div>
+
+    </div><!-- /gside-scroll -->
+  </div><!-- /gis-side -->
+
+  <!-- ═══ MAP ═══ -->
+  <div class="gis-map">
+    <div id="gmap"></div>
+
+    <!-- FABs top-right -->
+    <div class="mo mo-tr">
+      <button class="gfab" title="Về TP.HCM" onclick="map.flyTo([10.8231,106.6297],12,{duration:1.1})">🏙️</button>
+      <button class="gfab" title="Vị trí của tôi" onclick="myLoc()">📡</button>
+      <button class="gfab" title="Hiển thị tất cả" onclick="fitAll()">🔭</button>
+      <button class="gfab" title="Toàn màn hình" onclick="goFS()">⛶</button>
+    </div>
+
+    <!-- Chips bottom-left -->
+    <div class="mo mo-bl">
+      <div class="gchip"><strong id="chip-gps">{{ so_co_ban_do }}</strong> / {{ tong_cua_hang }} cửa hàng có GPS</div>
+      <div class="gchip green" id="chip-rt" style="display:none">
+        Tuyến: <strong id="chip-km">—</strong> · <strong id="chip-mn">—</strong> phút
+      </div>
+    </div>
+
+    <!-- Heatmap legend top-left -->
+    <div class="mo mo-tl">
+      <div class="heat-legend" id="heat-legend">
+        <div class="hlbl">🔥 Mật độ đơn hàng</div>
+        <div class="hgrad"></div>
+        <div class="hends"><span>Thấp</span><span>Cao</span></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /gis-shell -->
+
+<div class="gtst" id="gtst"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+<script>
+const STORES   = {{ cua_hang_data_json|safe }};
+const CSRF     = '{{ csrf_token }}';
+const URLS = {
+  stats : "{% url 'api_thong_ke_gis' %}",
+  cov   : "{% url 'api_vung_phu_song' %}",
+  iso   : "{% url 'api_isochrone' %}",
+  near  : "{% url 'api_cua_hang_gan_nhat' %}",
+};
+
+// ── TOAST ──────────────────────────────────────────────────────
+function toast(msg, type='', dur=2800) {
+  const el = document.getElementById('gtst');
+  el.textContent = msg;
+  el.className = `gtst show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = 'gtst', dur);
+}
+
+// ── SLIDER ─────────────────────────────────────────────────────
+function sliderSync(el, lblId, suffix) {
+  document.getElementById(lblId).textContent = el.value + suffix;
+  const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1);
+  el.style.background = `linear-gradient(to right,#FF469e 0%,#FF469e ${pct}%,#1E293B ${pct}%)`;
+}
+document.querySelectorAll('.gslider').forEach(el => sliderSync(el, null, ''));
+
+// ── MAP ─────────────────────────────────────────────────────────
+const TILES = {
+  osm:  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}),
+  sat:  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19}),
+  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO',subdomains:'abcd',maxZoom:19}),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{attribution:'© OTM',maxZoom:17}),
+};
+let curTile = 'osm';
+const map = L.map('gmap', {zoomControl:false}).setView([10.8231,106.6297], 12);
+L.control.zoom({position:'bottomright'}).addTo(map);
+TILES.osm.addTo(map);
+
+function setTile(t) {
+  map.removeLayer(TILES[curTile]);
+  TILES[t].addTo(map); curTile = t;
+  document.querySelectorAll('.mtype-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('mt-'+t).classList.add('on');
+}
+
+// ── ICONS ───────────────────────────────────────────────────────
+const _kf = document.createElement('style');
+_kf.textContent = '@keyframes ppulse{0%{transform:rotate(-45deg) scale(.85);opacity:.45}70%{transform:rotate(-45deg) scale(2.1);opacity:0}100%{opacity:0}}';
+document.head.appendChild(_kf);
+function mkPin(color, sz=22, pulse=false) {
+  const ring = pulse ? `<div style="position:absolute;inset:-7px;border-radius:50% 50% 50% 0;border:2px solid ${color};opacity:.4;transform:rotate(-45deg);animation:ppulse 1.8s ease-out infinite"></div>` : '';
+  return L.divIcon({
+    html:`<div style="position:relative;width:${sz}px;height:${sz}px">${ring}<div style="width:100%;height:100%;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid rgba(255,255,255,.9);box-shadow:0 3px 14px rgba(0,0,0,.5)"></div></div>`,
+    iconSize:[sz,sz], iconAnchor:[sz/2,sz], popupAnchor:[0,-(sz+4)], className:''
+  });
+}
+function mkDot(color, sz=13) {
+  return L.divIcon({
+    html:`<div style="width:${sz}px;height:${sz}px;background:${color};border-radius:50%;border:3px solid white;box-shadow:0 0 0 4px ${color}44,0 2px 8px rgba(0,0,0,.4)"></div>`,
+    iconSize:[sz,sz], iconAnchor:[sz/2,sz/2], className:''
+  });
+}
+const ICO = {
+  store: mkPin('#FF469e', 22),
+  edit:  mkPin('#3B82F6', 26, true),
+  me:    mkDot('#10B981', 14),
+};
+
+// ── LAYER GROUPS ────────────────────────────────────────────────
+const LG = {
+  stores:  L.layerGroup().addTo(map),
+  heat:    null,
+  cov:     L.layerGroup(),
+  iso:     L.layerGroup(),
+  lbl:     L.layerGroup(),
+  me:      L.layerGroup().addTo(map),
+};
+
+// ── STORE STATS ─────────────────────────────────────────────────
+let statMap = {};  // id → {so_don, doanh_thu}
+fetch(URLS.stats).then(r=>r.json()).then(d => {
+  let tot=0, rev=0;
+  d.store_stats.forEach(s => { statMap[s.id]=s; tot+=s.so_don; rev+=s.doanh_thu; });
+  document.getElementById('gstat-don').textContent = tot.toLocaleString('vi-VN');
+  const r = rev>=1e9 ? (rev/1e9).toFixed(1)+'B' : rev>=1e6 ? (rev/1e6).toFixed(0)+'M' : rev>=1e3 ? (rev/1e3).toFixed(0)+'K' : rev;
+  document.getElementById('gstat-dt').textContent = r + '₫';
+  renderStores();
+}).catch(()=>{});
+
+// ── RENDER STORE MARKERS ─────────────────────────────────────────
+let editId = null;
+function renderStores() {
+  LG.stores.clearLayers(); LG.lbl.clearLayers();
+  STORES.forEach(s => {
+    if (!s.kinh_do || !s.vi_do) return;
+    const ico = s.id === editId ? ICO.edit : ICO.store;
+    const stat = statMap[s.id];
+    L.marker([s.vi_do, s.kinh_do], {icon: ico})
+      .bindPopup(buildPopup(s, stat), {maxWidth:295})
+      .addTo(LG.stores);
+    if (stat && stat.so_don > 0) {
+      const lbl = L.divIcon({
+        html:`<div style="background:rgba(15,23,42,.82);border:1px solid rgba(255,70,158,.3);border-radius:5px;padding:.08rem .35rem;font-size:.58rem;font-weight:800;color:#FF469e;white-space:nowrap;backdrop-filter:blur(3px)">${stat.so_don}</div>`,
+        iconSize:[38,16], iconAnchor:[19,-4], className:''
+      });
+      LG.lbl.addLayer(L.marker([s.vi_do, s.kinh_do], {icon:lbl, interactive:false}));
+    }
+  });
+  if (map.hasLayer(LG.lbl)) { LG.lbl.clearLayers(); renderStores(); }
+}
+
+// ── POPUP BUILDER ───────────────────────────────────────────────
+function buildPopup(s, stat) {
+  const od  = stat ? stat.so_don.toLocaleString('vi-VN') : '—';
+  const rev = stat ? (stat.doanh_thu/1e6).toFixed(1)+'M₫' : '—';
+  const gps = s.vi_do ? `<div class="pp-coord">📡 ${(+s.vi_do).toFixed(5)}, ${(+s.kinh_do).toFixed(5)}</div>` : '';
+  const gpsbtn = s.vi_do
+    ? `<button class="ppbtn ppbtn-pk" onclick="selectEdit(${s.id},'${s.ten.replace(/'/g,"\\'")}',${s.vi_do},${s.kinh_do})">📍 Sửa GPS</button>`
+    : `<button class="ppbtn ppbtn-pk" onclick="selectEdit(${s.id},'${s.ten.replace(/'/g,"\\'")}',null,null)">📍 Đặt GPS</button>`;
+  return `<div class="ppbox">
+    <div class="pp-name">🏪 ${s.ten}</div>
+    <div class="pp-stats">
+      <div class="pp-stat"><div class="pp-stat-v">${od}</div><div class="pp-stat-l">Đơn hàng</div></div>
+      <div class="pp-stat"><div class="pp-stat-v">${rev}</div><div class="pp-stat-l">Doanh thu</div></div>
+    </div>
+    <div class="pp-row">📍 <strong>${s.dia_chi}</strong></div>
+    <div class="pp-row">📞 <strong>${s.so_dien_thoai}</strong></div>
+    <div class="pp-row">🕐 <strong>${s.gio_mo} – ${s.gio_dong}</strong></div>
+    ${gps}
+    <div class="pp-acts">
+      ${gpsbtn}
+      <button class="ppbtn ppbtn-bl" onclick="previewIso(${s.id})">⏱️ Đẳng thời</button>
+      <a class="ppbtn ppbtn-gr" href="/cua-hang/${s.id}/" target="_blank">👁 Chi tiết</a>
+    </div>
+  </div>`;
+}
+
+// ── LAYER TOGGLE ────────────────────────────────────────────────
+function onToggle(name, on) {
+  document.getElementById('lr-'+name).classList.toggle('on', on);
+  switch(name) {
+    case 'stores': on ? LG.stores.addTo(map) : map.removeLayer(LG.stores); break;
+    case 'heat':   on ? loadHeat() : rmHeat(); break;
+    case 'cov':    on ? loadCov() : (LG.cov.clearLayers(), map.removeLayer(LG.cov)); break;
+    case 'iso':    on ? loadIso() : (LG.iso.clearLayers(), map.removeLayer(LG.iso)); break;
+    case 'lbl':
+      if(on) { LG.lbl.addTo(map); renderStores(); }
+      else { map.removeLayer(LG.lbl); }
+      break;
+  }
+}
+
+// ── HEATMAP ─────────────────────────────────────────────────────
+let heatDone = false;
+function loadHeat() {
+  if(heatDone && LG.heat) { LG.heat.addTo(map); document.getElementById('heat-legend').classList.add('on'); return; }
+  toast('⏳ Đang tải heatmap...', 'info');
+  fetch(URLS.stats).then(r=>r.json()).then(d => {
+    if(LG.heat) map.removeLayer(LG.heat);
+    const pts = d.heat_points;
+    if(!pts.length) { toast('Chưa có đơn hàng để vẽ heatmap'); return; }
+    LG.heat = L.heatLayer(pts, {
+      radius:50, blur:35, maxZoom:14,
+      gradient:{0.1:'#3B82F6', 0.4:'#10B981', 0.7:'#F59E0B', 1.0:'#EF4444'}
+    }).addTo(map);
+    document.getElementById('heat-legend').classList.add('on');
+    heatDone = true;
+    toast('🔥 Heatmap đã sẵn sàng!', 'ok');
+  }).catch(() => toast('Lỗi tải heatmap', 'err'));
+}
+function rmHeat() {
+  if(LG.heat) map.removeLayer(LG.heat);
+  document.getElementById('heat-legend').classList.remove('on');
+}
+
+// ── COVERAGE ────────────────────────────────────────────────────
+function loadCov() {
+  const km = document.getElementById('cov-sl').value;
+  fetch(`${URLS.cov}?ban_kinh=${km}`).then(r=>r.json()).then(d => {
+    LG.cov.clearLayers();
+    d.vung_phu_song.forEach(v => {
+      L.circle([v.vi_do, v.kinh_do], {
+        radius: v.ban_kinh_m, color: v.mau, weight:1.5,
+        fillColor: v.mau, fillOpacity: 0.1,
+      }).bindTooltip(`<b>${v.ten}</b><br>${v.so_don} đơn · ${km}km`, {direction:'top'})
+        .addTo(LG.cov);
+    });
+    if(!map.hasLayer(LG.cov)) LG.cov.addTo(map);
+    toast(`⭕ ${d.vung_phu_song.length} vùng phủ sóng (r=${km}km)`, 'ok');
+  }).catch(() => toast('Lỗi tải vùng phủ sóng', 'err'));
+}
+
+// ── ISOCHRONE (tất cả cửa hàng) ─────────────────────────────────
+const ISO_COLORS = ['#FF469e','#F59E0B','#10B981','#3B82F6','#8B5CF6','#EF4444','#06B6D4','#EC4899'];
+function loadIso() {
+  const phut = document.getElementById('iso-sl').value;
+  const stores = STORES.filter(s => s.vi_do && s.kinh_do);
+  if(!stores.length) { toast('Không có cửa hàng nào có GPS', 'err'); return; }
+  toast(`⏱️ Đang tính ${stores.length} vùng đẳng thời ${phut} phút...`, 'info', 6000);
+  LG.iso.clearLayers();
+  let done = 0;
+  stores.forEach((s, i) => {
+    fetch(`${URLS.iso}?cua_hang_id=${s.id}&phut=${phut}`)
+      .then(r=>r.json()).then(d => {
+        if(d.isochrone) {
+          const p = d.isochrone.properties;
+          L.geoJSON(d.isochrone, {
+            style: {color:ISO_COLORS[i%ISO_COLORS.length], weight:1.5, fillOpacity:.08, dashArray:'5,4'}
+          }).bindTooltip(`<b>${p.ten}</b><br>⏱ ${p.phut} phút · ~${p.ban_kinh_km} km<br>${p.mo_ta_gio} (${p.van_toc_kmh} km/h)`)
+            .addTo(LG.iso);
+        }
+      }).finally(() => {
+        done++;
+        if(done === stores.length) {
+          if(!map.hasLayer(LG.iso)) LG.iso.addTo(map);
+          toast(`⏱️ ${done} vùng đẳng thời (${phut} phút)`, 'ok');
+        }
+      });
+  });
+}
+
+// ── ISOCHRONE (single, from popup) ──────────────────────────────
+function previewIso(id) {
+  map.closePopup();
+  const phut = document.getElementById('iso-sl').value;
+  fetch(`${URLS.iso}?cua_hang_id=${id}&phut=${phut}`).then(r=>r.json()).then(d => {
+    if(!d.isochrone) { toast('Cửa hàng chưa có GPS', 'err'); return; }
+    LG.iso.clearLayers();
+    const p = d.isochrone.properties;
+    L.geoJSON(d.isochrone, {
+      style: {color:'#FF469e', weight:2, fillOpacity:.1, dashArray:'6,4'}
+    }).bindTooltip(`<b>${p.ten}</b><br>⏱ ${p.phut} phút · ~${p.ban_kinh_km} km<br>${p.mo_ta_gio}`)
+      .addTo(LG.iso);
+    if(!map.hasLayer(LG.iso)) LG.iso.addTo(map);
+    document.getElementById('tog-iso').checked = true;
+    document.getElementById('lr-iso').classList.add('on');
+    toast(`⏱️ ${p.ten}: ${p.phut} phút đi xe (~${p.ban_kinh_km} km)`, 'ok', 3500);
+  });
+}
+
+// ── GPS EDITOR ──────────────────────────────────────────────────
+let isEditing = false;
+function selectEdit(id, name, vi_do, kinh_do) {
+  map.closePopup();
+  if(editId) document.getElementById('gi-'+editId)?.classList.remove('editing');
+  editId = id; isEditing = true;
+  document.getElementById('gi-'+id)?.classList.add('editing');
+  document.getElementById('gi-'+id)?.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('editBanner').classList.add('on');
+  document.getElementById('editTxt').textContent = `Đang sửa: ${name} — Click bản đồ để đặt GPS mới`;
+  map.getContainer().style.cursor = 'crosshair';
+  if(vi_do && kinh_do) map.flyTo([vi_do, kinh_do], 15, {duration:1.2});
+  renderStores();
+  toast(`📍 Chọn vị trí mới cho: ${name}`, 'info', 4000);
+}
+
+function cancelEdit() {
+  if(editId) document.getElementById('gi-'+editId)?.classList.remove('editing');
+  editId = null; isEditing = false;
+  document.getElementById('editBanner').classList.remove('on');
+  map.getContainer().style.cursor = '';
+  renderStores();
+}
+
+map.on('click', function(e) {
+  if(!isEditing || !editId) return;
+  const {lat, lng} = e.latlng;
+  const fd = new FormData();
+  fd.append('vi_do', lat); fd.append('kinh_do', lng);
+  fd.append('csrfmiddlewaretoken', CSRF);
+  fetch(`/api/cap-nhat-gps/${editId}/`, {method:'POST', body:fd})
+    .then(r=>r.json()).then(d => {
+      if(d.ok) {
+        const s = STORES.find(x=>x.id===editId);
+        if(s) { s.vi_do=lat; s.kinh_do=lng; s.co_ban_do=true; }
+        const dot = document.getElementById('gd-'+editId);
+        if(dot) dot.className = 'gdot ok';
+        const item = document.getElementById('gi-'+editId);
+        if(item && !item.querySelector('.gdel')) {
+          item.insertAdjacentHTML('beforeend',
+            `<button class="gdel" onclick="event.stopPropagation();doDeleteGPS(${editId},'${d.ten.replace(/'/g,"\\'")}')">🗑</button>`);
+        }
+        renderStores();
+        map.flyTo([lat,lng], 15, {duration:.8});
+        toast(`✅ Đã lưu GPS: ${d.ten}`, 'ok');
+        cancelEdit();
+      } else toast('❌ ' + d.loi, 'err');
+    }).catch(() => toast('Lỗi kết nối', 'err'));
+});
+
+function doDeleteGPS(id, name) {
+  if(!confirm(`Xoá GPS của "${name}"?`)) return;
+  const fd = new FormData();
+  fd.append('csrfmiddlewaretoken', CSRF);
+  fetch(`/api/xoa-gps/${id}/`, {method:'POST', body:fd}).then(r=>r.json()).then(d => {
+    if(d.ok) {
+      const s = STORES.find(x=>x.id===id);
+      if(s) { s.vi_do=null; s.kinh_do=null; }
+      const dot = document.getElementById('gd-'+id);
+      if(dot) dot.className = 'gdot no';
+      document.querySelector(`#gi-${id} .gdel`)?.remove();
+      renderStores();
+      toast(`🗑 Đã xoá GPS: ${name}`);
+    }
+  }).catch(() => toast('Lỗi kết nối', 'err'));
+}
+
+// ── UTILS ───────────────────────────────────────────────────────
+function myLoc() {
+  if(!navigator.geolocation) { toast('Trình duyệt không hỗ trợ GPS', 'err'); return; }
+  toast('📡 Đang lấy vị trí...', 'info');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const {latitude:lat, longitude:lng, accuracy:acc} = pos.coords;
+    LG.me.clearLayers();
+    L.marker([lat,lng],{icon:ICO.me}).bindPopup('<div class="ppbox"><div class="pp-name" style="color:#10B981">📡 Vị trí của bạn</div></div>').addTo(LG.me).openPopup();
+    L.circle([lat,lng],{radius:acc,color:'#10B981',fillColor:'#10B981',fillOpacity:.06,weight:1}).addTo(LG.me);
+    map.flyTo([lat,lng], 14, {duration:1.2});
+    toast('✅ Đã xác định vị trí', 'ok');
+  }, () => toast('Không lấy được vị trí. Kiểm tra quyền GPS.', 'err'));
+}
+
+function fitAll() {
+  const pts = STORES.filter(s=>s.vi_do&&s.kinh_do).map(s=>[s.vi_do,s.kinh_do]);
+  if(pts.length) map.fitBounds(pts, {padding:[40,40], maxZoom:14});
+}
+
+function goFS() {
+  const el = document.querySelector('.gis-shell');
+  if(!document.fullscreenElement) el.requestFullscreen().then(()=>setTimeout(()=>map.invalidateSize(),200));
+  else document.exitFullscreen();
+}
+
+// ── INIT ────────────────────────────────────────────────────────
+renderStores();
+const initPts = STORES.filter(s=>s.vi_do&&s.kinh_do).map(s=>[s.vi_do,s.kinh_do]);
+if(initPts.length > 0) map.fitBounds(initPts, {padding:[30,30], maxZoom:14});
+// Init slider visual state
+document.getElementById('cov-sl').dispatchEvent(new Event('input'));
+document.getElementById('iso-sl').dispatchEvent(new Event('input'));
+</script>
+{% endblock %}

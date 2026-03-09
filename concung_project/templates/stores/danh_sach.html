@@ -392,4 +392,106 @@ body{font-family:'DM Sans',sans-serif;background:#F5F4F0}
     {% endif %}
   </div>
 </div>
+
+<!-- ══ MAP SECTION ══ -->
+<div style="background:#1C1917;padding:3rem 0 0">
+  <div class="container" style="margin-bottom:0">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem">
+      <div>
+        <div style="font-size:.65rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#F5A87A;margin-bottom:.4rem">📍 Bản đồ hệ thống</div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#FAFAF9;margin:0;line-height:1.15">Tất cả cửa hàng<br><span style="color:var(--or)">trên bản đồ</span></h2>
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button id="btn-my-loc" onclick="mapFindMe()" style="display:flex;align-items:center;gap:.4rem;background:rgba(232,87,26,.15);border:1px solid rgba(232,87,26,.4);color:#F5A87A;border-radius:5px;padding:.45rem .9rem;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s">
+          📡 Vị trí của tôi
+        </button>
+        <a href="{% url 'ban_do' %}" style="display:flex;align-items:center;gap:.4rem;background:var(--or);color:white;border-radius:5px;padding:.45rem .9rem;font-size:.78rem;font-weight:700;text-decoration:none">
+          🗺️ Mở bản đồ GIS
+        </a>
+      </div>
+    </div>
+
+    <div style="position:relative;border-radius:12px 12px 0 0;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-bottom:none">
+      <div id="all-stores-map" style="height:480px;background:#1A1614"></div>
+
+      <div id="map-info-panel" style="position:absolute;top:.8rem;right:.8rem;background:rgba(28,25,23,.92);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.75rem 1rem;min-width:200px;max-width:260px;display:none;z-index:500">
+        <div id="mip-name" style="font-family:'Playfair Display',serif;font-weight:800;font-size:.95rem;color:#FAFAF9;margin-bottom:.35rem"></div>
+        <div id="mip-addr" style="font-size:.72rem;color:#A8A29E;margin-bottom:.5rem;line-height:1.4"></div>
+        <div id="mip-hours" style="font-size:.7rem;color:#22C55E;font-weight:700;margin-bottom:.6rem"></div>
+        <div style="display:flex;gap:.4rem">
+          <a id="mip-dir" href="#" target="_blank" style="flex:1;text-align:center;background:var(--or);color:white;border-radius:4px;padding:.3rem .5rem;font-size:.7rem;font-weight:700;text-decoration:none">🧭 Chỉ đường</a>
+          <a id="mip-detail" href="#" style="flex:1;text-align:center;background:rgba(255,255,255,.1);color:#D6D3D1;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.3rem .5rem;font-size:.7rem;font-weight:700;text-decoration:none">👁 Chi tiết</a>
+        </div>
+      </div>
+
+      <div style="position:absolute;bottom:.8rem;left:.8rem;background:rgba(28,25,23,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.5rem .75rem;font-size:.65rem;color:#A8A29E;z-index:500">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem"><div style="width:10px;height:10px;background:#E8571A;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white"></div><span>Đang hoạt động</span></div>
+        <div style="display:flex;align-items:center;gap:.5rem"><div style="width:10px;height:10px;background:#6B7280;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white"></div><span>Tạm đóng</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const STORES = [
+  {% for ch in cua_hangs %}{% if ch.vi_do %}
+  {id:{{ ch.pk }}, ten:'{{ ch.ten|escapejs }}', dia_chi:'{{ ch.dia_chi|escapejs }}, {{ ch.quan_huyen|escapejs }}', gio:'{{ ch.gio_mo_cua|time:"H:i" }}\u2013{{ ch.gio_dong_cua|time:"H:i" }}', vi_do:{{ ch.vi_do }}, kinh_do:{{ ch.kinh_do }}, active:{{ ch.dang_hoat_dong|yesno:'true,false' }}, url:'{% url "chi_tiet_cua_hang" ch.pk %}'},
+  {% endif %}{% endfor %}
+];
+
+const amap = L.map('all-stores-map', {zoomControl:true, attributionControl:false}).setView([10.8231, 106.6297], 11);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd'}).addTo(amap);
+
+function makeIcon(active, size) {
+  size = size||14;
+  const c = active ? '#E8571A' : '#6B7280';
+  return L.divIcon({html:`<div style="width:${size}px;height:${size}px;background:${c};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 3px 8px rgba(0,0,0,.4)"></div>`,iconSize:[size,size],iconAnchor:[size/2,size],className:''});
+}
+
+let activeM = null;
+const markerMap = {};
+
+STORES.forEach(s => {
+  const m = L.marker([s.vi_do, s.kinh_do], {icon: makeIcon(s.active)}).addTo(amap);
+  markerMap[s.id] = m;
+  m.on('click', () => {
+    if(activeM && activeM._sid !== s.id) { const ps=STORES.find(x=>x.id===activeM._sid); if(ps) activeM.setIcon(makeIcon(ps.active)); }
+    m.setIcon(makeIcon(s.active, 20)); activeM = m; m._sid = s.id;
+    const p = document.getElementById('map-info-panel');
+    p.style.display = 'block';
+    document.getElementById('mip-name').textContent = s.ten;
+    document.getElementById('mip-addr').textContent = '📍 ' + s.dia_chi;
+    document.getElementById('mip-hours').textContent = '🕐 ' + s.gio;
+    document.getElementById('mip-dir').href = `https://www.google.com/maps?q=${s.vi_do},${s.kinh_do}`;
+    document.getElementById('mip-detail').href = s.url;
+  });
+  m._sid = s.id;
+});
+
+amap.on('click', () => {
+  if(activeM) { const s=STORES.find(x=>x.id===activeM._sid); if(s) activeM.setIcon(makeIcon(s.active)); activeM=null; }
+  document.getElementById('map-info-panel').style.display='none';
+});
+
+if(STORES.length > 1) {
+  amap.fitBounds(L.latLngBounds(STORES.map(s=>[s.vi_do,s.kinh_do])), {padding:[40,40]});
+}
+
+function mapFindMe() {
+  const btn=document.getElementById('btn-my-loc');
+  btn.textContent='⏳ Đang tìm...'; btn.disabled=true;
+  if(!navigator.geolocation){btn.textContent='📡 Vị trí của tôi';btn.disabled=false;return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude:lat,longitude:lng}=pos.coords;
+    L.marker([lat,lng],{icon:L.divIcon({html:`<div style="width:14px;height:14px;background:#22C55E;border-radius:50%;border:3px solid white;box-shadow:0 0 0 5px rgba(34,197,94,.3)"></div>`,iconSize:[14,14],iconAnchor:[7,7],className:''})}).addTo(amap).bindTooltip('Vị trí của bạn');
+    amap.flyTo([lat,lng],14,{duration:1});
+    btn.textContent='✅ Đã xác định'; btn.disabled=false;
+  }, ()=>{btn.textContent='📡 Vị trí của tôi';btn.disabled=false;});
+}
+</script>
 {% endblock %}

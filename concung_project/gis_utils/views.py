@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
@@ -328,3 +328,291 @@ def api_duong_di(request):
 
     except Exception as e:
         return JsonResponse({'loi': str(e)}, status=500)
+
+# ═══════════════════════════════════════════════════════════════
+#  GIS NÂNG CAO — THÊM MỚI
+# ═══════════════════════════════════════════════════════════════
+
+def api_cap_nhat_gps_cua_hang(request, pk):
+    """
+    API AJAX: Cập nhật tọa độ GPS cửa hàng trực tiếp từ bản đồ.
+    POST {vi_do, kinh_do}  →  {ok: true, vi_do, kinh_do}
+    """
+    if not request.user.is_authenticated or not request.user.la_quan_ly:
+        return JsonResponse({'loi': 'Không có quyền'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'loi': 'Chỉ chấp nhận POST'}, status=405)
+
+    try:
+        vi_do   = float(request.POST.get('vi_do', ''))
+        kinh_do = float(request.POST.get('kinh_do', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'loi': 'Tọa độ không hợp lệ'}, status=400)
+
+    # Kiểm tra hợp lệ - trong phạm vi Việt Nam
+    if not (8.0 <= vi_do <= 24.0 and 102.0 <= kinh_do <= 110.0):
+        return JsonResponse({'loi': 'Tọa độ ngoài lãnh thổ Việt Nam'}, status=400)
+
+    cua_hang = get_object_or_404(CuaHang, pk=pk)
+    cua_hang.vi_tri = Point(kinh_do, vi_do, srid=4326)
+    cua_hang.save(update_fields=['vi_tri'])
+
+    return JsonResponse({
+        'ok':      True,
+        'vi_do':   vi_do,
+        'kinh_do': kinh_do,
+        'ten':     cua_hang.ten,
+    })
+
+
+def api_xoa_gps_cua_hang(request, pk):
+    """API AJAX: Xoá tọa độ GPS cửa hàng."""
+    if not request.user.is_authenticated or not request.user.la_quan_ly:
+        return JsonResponse({'loi': 'Không có quyền'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'loi': 'Chỉ chấp nhận POST'}, status=405)
+
+    cua_hang = get_object_or_404(CuaHang, pk=pk)
+    cua_hang.vi_tri = None
+    cua_hang.save(update_fields=['vi_tri'])
+    return JsonResponse({'ok': True})
+
+
+def api_thong_ke_gis(request):
+    """
+    API thống kê GIS: đơn hàng, doanh thu theo quận/huyện của cửa hàng.
+    Trả về dữ liệu để vẽ heatmap và biểu đồ.
+    """
+    if not request.user.is_authenticated or not request.user.la_nhan_vien:
+        return JsonResponse({'loi': 'Không có quyền'}, status=403)
+
+    from orders.models import DonHang
+    from django.db.models import Count, Sum
+
+    # Thống kê theo cửa hàng
+    thong_ke_ch = CuaHang.objects.filter(
+        dang_hoat_dong=True, vi_tri__isnull=False
+    ).annotate(
+        so_don=Count('don_hangs'),
+        tong_dt=Sum('don_hangs__tong_tien_san_pham'),
+    ).values('id', 'ten', 'quan_huyen', 'tinh_thanh', 'so_don', 'tong_dt')
+
+    heat_points = []
+    store_stats = []
+
+    all_ch = CuaHang.objects.filter(dang_hoat_dong=True, vi_tri__isnull=False)
+    for ch in all_ch:
+        so_don = DonHang.objects.filter(cua_hang=ch).count()
+        tong_dt = DonHang.objects.filter(
+            cua_hang=ch, trang_thai='da_giao'
+        ).aggregate(t=Sum('tong_tien_san_pham'))['t'] or 0
+
+        # Heatmap: mỗi đơn hàng tạo 1 điểm nhiệt (intensity theo so_don)
+        intensity = min(so_don / 10.0, 1.0) if so_don > 0 else 0.1
+        heat_points.append([ch.vi_tri.y, ch.vi_tri.x, intensity])
+
+        store_stats.append({
+            'id':       ch.pk,
+            'ten':      ch.ten,
+            'quan':     ch.quan_huyen,
+            'vi_do':    ch.vi_tri.y,
+            'kinh_do':  ch.vi_tri.x,
+            'so_don':   so_don,
+            'doanh_thu': int(tong_dt),
+        })
+
+    # Thống kê theo quận/huyện (từ địa chỉ giao hàng)
+    from orders.models import DonHang as _DH
+    don_theo_khu = _DH.objects.filter(
+        trang_thai__in=['da_giao', 'dang_giao']
+    ).values('cua_hang__quan_huyen').annotate(
+        so_don=Count('id')
+    ).order_by('-so_don')[:15]
+
+    return JsonResponse({
+        'heat_points':    heat_points,
+        'store_stats':    store_stats,
+        'don_theo_khu':   list(don_theo_khu),
+    })
+
+
+def api_vung_phu_song(request):
+    """
+    API: Tính vùng phủ sóng (coverage circle) cho tất cả cửa hàng.
+    Trả về danh sách circle GeoJSON để hiển thị trên bản đồ.
+    """
+    ban_kinh_km = float(request.GET.get('ban_kinh', 5))
+    ban_kinh_km = max(0.5, min(ban_kinh_km, 30))  # clamp 0.5–30 km
+
+    cua_hangs = CuaHang.objects.filter(dang_hoat_dong=True, vi_tri__isnull=False)
+
+    vung_phu = []
+    for ch in cua_hangs:
+        from orders.models import DonHang
+        so_don = DonHang.objects.filter(cua_hang=ch).count()
+        # Màu theo mức độ hoạt động
+        if so_don == 0:
+            mau = '#94A3B8'
+        elif so_don < 5:
+            mau = '#3B82F6'
+        elif so_don < 20:
+            mau = '#10B981'
+        else:
+            mau = '#F59E0B'
+
+        vung_phu.append({
+            'id':          ch.pk,
+            'ten':         ch.ten,
+            'vi_do':       ch.vi_tri.y,
+            'kinh_do':     ch.vi_tri.x,
+            'ban_kinh_m':  int(ban_kinh_km * 1000),
+            'so_don':      so_don,
+            'mau':         mau,
+        })
+
+    return JsonResponse({'vung_phu_song': vung_phu, 'ban_kinh_km': ban_kinh_km})
+
+
+def ban_do_gis_nang_cao(request):
+    """Trang bản đồ GIS nâng cao cho admin - heatmap, coverage, GPS editor."""
+    if not request.user.is_authenticated or not request.user.la_nhan_vien:
+        from django.shortcuts import redirect
+        return redirect('trang_chu')
+
+    tat_ca = CuaHang.objects.filter(dang_hoat_dong=True).order_by('tinh_thanh', 'ten')
+    cua_hang_data = [_serialize_store(ch) for ch in tat_ca]  # kể cả chưa có GPS
+
+    return render(request, 'gis_utils/ban_do_gis.html', {
+        'cua_hang_data_json': json.dumps(cua_hang_data, ensure_ascii=False),
+        'tat_ca_cua_hang':    tat_ca,
+        'tong_cua_hang':      tat_ca.count(),
+        'so_co_ban_do':       tat_ca.filter(vi_tri__isnull=False).count(),
+    })
+
+
+def api_san_pham_ton_kho_cua_hang(request):
+    """
+    API: Lấy tồn kho sản phẩm của một cửa hàng cụ thể (dùng trong trang đặt hàng để 
+    hiển thị kho cửa hàng gần nhất).
+    GET ?cua_hang_id=<id>&san_pham_ids=1,2,3
+    """
+    try:
+        cua_hang_id = int(request.GET.get('cua_hang_id', ''))
+    except (ValueError, TypeError):
+        return JsonResponse({'loi': 'Thiếu cua_hang_id'}, status=400)
+
+    from products.models import TonKho
+    sp_ids_raw = request.GET.get('san_pham_ids', '')
+    sp_ids = [int(x) for x in sp_ids_raw.split(',') if x.strip().isdigit()]
+
+    qs = TonKho.objects.filter(cua_hang_id=cua_hang_id).select_related('san_pham')
+    if sp_ids:
+        qs = qs.filter(san_pham_id__in=sp_ids)
+
+    result = []
+    for tk in qs:
+        result.append({
+            'san_pham_id':  tk.san_pham_id,
+            'ten':          tk.san_pham.ten,
+            'so_luong':     tk.so_luong,
+            'canh_bao':     tk.can_canh_bao,
+            'vi_tri_ke':    tk.vi_tri_ke,
+        })
+
+    return JsonResponse({'ton_kho': result, 'cua_hang_id': cua_hang_id})
+
+
+def api_isochrone_simple(request):
+    """
+    API: Tính vùng đẳng thời đơn giản (isochrone) dựa trên thời gian đi xe máy.
+    Dùng công thức gần đúng: tốc độ TB xe máy TP.HCM ≈ 20 km/h.
+    GET ?cua_hang_id=<id>&phut=15
+    Trả về polygon GeoJSON gần đúng (circle với bán kính điều chỉnh theo giờ cao điểm).
+    """
+    try:
+        cua_hang_id = int(request.GET.get('cua_hang_id', ''))
+        phut = float(request.GET.get('phut', 15))
+    except (ValueError, TypeError):
+        return JsonResponse({'loi': 'Tham số không hợp lệ'}, status=400)
+
+    phut = max(5, min(phut, 60))
+    cua_hang = get_object_or_404(CuaHang, pk=cua_hang_id)
+
+    if not cua_hang.vi_tri:
+        return JsonResponse({'loi': 'Cửa hàng chưa có GPS'}, status=404)
+
+    import math
+    from django.utils import timezone
+
+    # Tốc độ trung bình tùy giờ (km/h)
+    gio_hien_tai = timezone.now().astimezone().hour
+    # Giờ cao điểm sáng 7-9, chiều 17-19 → tốc độ thấp hơn
+    if 7 <= gio_hien_tai <= 9 or 17 <= gio_hien_tai <= 19:
+        van_toc_kmh = 15  # giờ cao điểm
+        mo_ta_gio = 'giờ cao điểm'
+    elif 22 <= gio_hien_tai or gio_hien_tai <= 5:
+        van_toc_kmh = 30  # ban đêm
+        mo_ta_gio = 'ban đêm'
+    else:
+        van_toc_kmh = 20  # bình thường
+        mo_ta_gio = 'bình thường'
+
+    ban_kinh_km = (van_toc_kmh * phut) / 60.0
+    ban_kinh_m  = int(ban_kinh_km * 1000)
+
+    # Tạo polygon gần đúng (32-điểm circle)
+    vi_do_c  = cua_hang.vi_tri.y
+    kinh_do_c = cua_hang.vi_tri.x
+    # 1 độ kinh ≈ 111.32 km; 1 độ vĩ ≈ 110.57 km
+    r_lat = ban_kinh_km / 110.57
+    r_lng = ban_kinh_km / (111.32 * math.cos(math.radians(vi_do_c)))
+
+    coords = []
+    for i in range(33):
+        angle = math.radians(i * (360 / 32))
+        coords.append([
+            round(kinh_do_c + r_lng * math.cos(angle), 6),
+            round(vi_do_c   + r_lat * math.sin(angle), 6),
+        ])
+
+    polygon_geojson = {
+        'type': 'Feature',
+        'geometry': {'type': 'Polygon', 'coordinates': [coords]},
+        'properties': {
+            'cua_hang_id':   cua_hang_id,
+            'ten':           cua_hang.ten,
+            'phut':          int(phut),
+            'ban_kinh_km':   round(ban_kinh_km, 2),
+            'ban_kinh_m':    ban_kinh_m,
+            'van_toc_kmh':   van_toc_kmh,
+            'mo_ta_gio':     mo_ta_gio,
+            'trung_tam':     [kinh_do_c, vi_do_c],
+        }
+    }
+
+    return JsonResponse({'isochrone': polygon_geojson})
+
+
+def api_tat_ca_cua_hang_json(request):
+    """
+    API JSON: Trả về tất cả cửa hàng đang hoạt động với tọa độ.
+    Dùng bởi widget GIS trên trang đặt hàng.
+    """
+    cua_hangs = CuaHang.objects.filter(dang_hoat_dong=True).order_by('tinh_thanh', 'ten')
+    data = []
+    for ch in cua_hangs:
+        data.append({
+            'id':          ch.pk,
+            'ten':         ch.ten,
+            'dia_chi':     ch.dia_chi,
+            'quan_huyen':  ch.quan_huyen,
+            'tinh_thanh':  ch.tinh_thanh,
+            'so_dien_thoai': ch.so_dien_thoai,
+            'gio_mo':      str(ch.gio_mo_cua),
+            'gio_dong':    str(ch.gio_dong_cua),
+            'vi_do':       ch.vi_tri.y if ch.vi_tri else None,
+            'kinh_do':     ch.vi_tri.x if ch.vi_tri else None,
+            'co_gps':      bool(ch.vi_tri),
+        })
+    return JsonResponse({'cua_hangs': data, 'tong': len(data)})

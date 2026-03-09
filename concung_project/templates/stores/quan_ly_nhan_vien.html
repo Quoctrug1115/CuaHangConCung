@@ -1,98 +1,211 @@
 {% extends 'admin_base.html' %}
-{% block title %}Quản lý nhân viên - Con Cưng{% endblock %}
-{% block page_title %}Quản lý nhân viên{% endblock %}
+{% block title %}Quản lý nhân viên — Con Cưng{% endblock %}
 {% block breadcrumb %} › Nhân viên{% endblock %}
+{% block nav_nhan_vien %}class="on"{% endblock %}
+
 {% block extra_css %}
 <style>
-.nv-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-bottom:1rem}
-.nvs{background:white;border-radius:11px;border:1px solid var(--line);padding:.7rem .85rem;display:flex;align-items:center;gap:.5rem}
-.nvs-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
-.filter-bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;padding:.85rem 1.1rem;background:white;border-radius:12px;border:1px solid var(--line);margin-bottom:1rem}
-.fi-sm{border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none;background:white;color:var(--ink)}
-.fi-sm:focus{border-color:var(--or)}
-.nv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
-.nv-card{background:white;border-radius:14px;border:1.5px solid var(--line);padding:1.1rem;transition:all .18s;position:relative}
-.nv-card:hover{border-color:#FFB89A;box-shadow:0 6px 20px rgba(255,107,53,.1);transform:translateY(-2px)}
-.nv-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:white;background:linear-gradient(135deg,var(--or),#C94A0E);flex-shrink:0;overflow:hidden}
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+.nv-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.65rem;margin-bottom:1.1rem}
+.nvs{background:white;border-radius:12px;border:1px solid var(--line);padding:.75rem 1rem;display:flex;align-items:center;gap:.65rem}
+.nvs-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.nvs-val{font-size:1.35rem;font-weight:800;color:var(--ink);line-height:1;font-family:'Sora',sans-serif}
+.nvs-lbl{font-size:.62rem;color:var(--sub);font-weight:600;margin-top:.1rem}
+.fbar{background:white;border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;margin-bottom:1.1rem;display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}
+.fi{border:1.5px solid var(--line);border-radius:8px;padding:.38rem .7rem;font-size:.78rem;font-family:inherit;outline:none;background:white;color:var(--ink);transition:border-color .13s}
+.fi:focus{border-color:var(--or)}
+.tab-pills{display:flex;gap:.3rem}
+.tab-pill{padding:.28rem .75rem;border-radius:20px;font-size:.72rem;font-weight:700;border:1.5px solid var(--line);background:white;color:var(--sub);cursor:pointer;text-decoration:none;transition:all .13s}
+.tab-pill:hover{border-color:var(--or);color:var(--or)}
+.tab-pill.on{background:var(--or);border-color:var(--or);color:white}
+.nv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:1rem}
+.nv-card{background:white;border-radius:14px;border:1.5px solid var(--line);padding:1.1rem;transition:all .18s;position:relative;overflow:hidden}
+.nv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--or),var(--ord));opacity:0;transition:opacity .18s}
+.nv-card:hover{border-color:#FFB89A;box-shadow:0 8px 28px rgba(255,107,53,.1);transform:translateY(-2px)}
+.nv-card:hover::before{opacity:1}
+.nv-card.inactive{opacity:.65}
+.nv-av{width:50px;height:50px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:white;background:linear-gradient(135deg,var(--or),#C94A0E);overflow:hidden;font-family:'Sora',sans-serif}
 .nv-av img{width:100%;height:100%;object-fit:cover}
-.nv-status{position:absolute;top:.7rem;right:.7rem}
+.cv{display:inline-flex;align-items:center;gap:.25rem;border-radius:20px;padding:.18rem .6rem;font-size:.65rem;font-weight:800}
 .cv-quan_ly{background:#FEF9C3;color:#854D0E}
 .cv-thu_ngan{background:#DBEAFE;color:#1E40AF}
 .cv-ban_hang{background:#DCFCE7;color:#166534}
 .cv-kho{background:#F3E8FF;color:#5B21B6}
 .cv-giao_hang{background:#FFEDD5;color:#9A3412}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem}
-.modal-overlay.open{display:flex}
-.modal-box{background:white;border-radius:16px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .2s ease}
-@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-hd{padding:1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
-.modal-body{padding:1.3rem}
-.modal-ft{padding:.85rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.5rem;justify-content:flex-end}
+.nv-info-row{display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub);margin-top:.22rem}
+.nv-info-row strong{color:var(--ink);font-weight:600}
+.nv-actions{display:flex;gap:.3rem;padding-top:.7rem;border-top:1px solid #F1F5F9;margin-top:.75rem}
+.view-toggle{display:flex;gap:.3rem}
+.vtbtn{width:32px;height:32px;border:1.5px solid var(--line);border-radius:7px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .13s}
+.vtbtn.on,.vtbtn:hover{border-color:var(--or);background:#FFF7ED}
+.nv-table{display:none;background:white;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.nv-table.show{display:block}
+.nv-table table{width:100%;border-collapse:collapse;font-size:.8rem}
+.nv-table th{background:#FAFAFA;padding:.6rem .85rem;font-size:.67rem;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line);text-align:left}
+.nv-table td{padding:.65rem .85rem;border-bottom:1px solid #F8FAFC;vertical-align:middle}
+.nv-table tr:last-child td{border-bottom:none}
+.nv-table tr:hover td{background:#FFFBF7}
 </style>
 {% endblock %}
+
 {% block admin_content %}
-<div class="nv-stats">
-  <div class="nvs"><div class="nvs-ic" style="background:#FFF7ED">👥</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ tong_nv|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Tổng NV</div></div></div>
-  <div class="nvs"><div class="nvs-ic" style="background:#F0FDF4">✅</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">{{ dang_lam|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Đang làm</div></div></div>
-  <div class="nvs"><div class="nvs-ic" style="background:#FEF9C3">👔</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ quan_ly|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Quản lý</div></div></div>
-  <div class="nvs"><div class="nvs-ic" style="background:#FFEDD5">🛵</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ shipper|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Shipper</div></div></div>
-  <div class="nvs"><div class="nvs-ic" style="background:#EFF6FF">🏪</div><div><div style="font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1">{{ so_cua_hang|default:"0" }}</div><div style="font-size:.64rem;color:var(--sub);font-weight:600">Cửa hàng</div></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap">
+  <div>
+    <h4 style="margin:0;font-size:1.05rem;font-weight:800;color:var(--ink);font-family:'Sora',sans-serif">👥 Quản lý nhân viên</h4>
+    <p style="margin:.15rem 0 0;font-size:.73rem;color:var(--sub)">Danh sách toàn bộ nhân viên Con Cưng</p>
+  </div>
+  <div style="display:flex;gap:.4rem;align-items:center">
+    <div class="view-toggle">
+      <button class="vtbtn on" id="vt-card" onclick="setView('card')" title="Thẻ">▦</button>
+      <button class="vtbtn" id="vt-table" onclick="setView('table')" title="Bảng">☰</button>
+    </div>
+    <a href="{% url 'them_nhan_vien' %}" class="btn-adm btn-or">＋ Thêm nhân viên</a>
+  </div>
 </div>
-<div class="filter-bar">
-  <input class="fi-sm" style="width:200px" type="text" id="nvSearch" placeholder="🔍 Tên, mã nhân viên..." value="{{ request.GET.q|default:'' }}">
-  <select class="fi-sm" id="cvSel">
+
+<div class="nv-stats">
+  <div class="nvs"><div class="nvs-ic" style="background:#FFF7ED">👥</div><div><div class="nvs-val">{{ tong_nv }}</div><div class="nvs-lbl">Tổng nhân viên</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#F0FDF4">✅</div><div><div class="nvs-val" style="color:#16A34A">{{ dang_lam }}</div><div class="nvs-lbl">Đang làm việc</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#FEF9C3">👔</div><div><div class="nvs-val">{{ quan_ly }}</div><div class="nvs-lbl">Quản lý</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#FFEDD5">🛵</div><div><div class="nvs-val">{{ shipper }}</div><div class="nvs-lbl">Shipper</div></div></div>
+  <div class="nvs"><div class="nvs-ic" style="background:#EFF6FF">🏪</div><div><div class="nvs-val">{{ so_cua_hang }}</div><div class="nvs-lbl">Cửa hàng</div></div></div>
+</div>
+
+{% for message in messages %}
+<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" style="border-radius:10px;font-weight:600;font-size:.85rem">
+  {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+
+<div class="fbar">
+  <input class="fi" style="min-width:200px;flex:1" type="text" id="nvQ" placeholder="🔍 Tên, mã nhân viên..." value="{{ request.GET.q|default:'' }}">
+  <select class="fi" id="nvCV">
     <option value="">Tất cả chức vụ</option>
     <option value="quan_ly" {% if request.GET.chuc_vu == "quan_ly" %}selected{% endif %}>👔 Quản lý</option>
     <option value="thu_ngan" {% if request.GET.chuc_vu == "thu_ngan" %}selected{% endif %}>💳 Thu ngân</option>
-    <option value="ban_hang" {% if request.GET.chuc_vu == "ban_hang" %}selected{% endif %}>🏷 Bán hàng</option>
-    <option value="kho" {% if request.GET.chuc_vu == "kho" %}selected{% endif %}>📦 Nhân viên kho</option>
+    <option value="ban_hang" {% if request.GET.chuc_vu == "ban_hang" %}selected{% endif %}>🏷️ Bán hàng</option>
+    <option value="kho" {% if request.GET.chuc_vu == "kho" %}selected{% endif %}>📦 Kho</option>
     <option value="giao_hang" {% if request.GET.chuc_vu == "giao_hang" %}selected{% endif %}>🛵 Shipper</option>
   </select>
-  <select class="fi-sm" id="chSel">
+  <select class="fi" id="nvCH">
     <option value="">Tất cả cửa hàng</option>
     {% for ch in cua_hangs %}<option value="{{ ch.id }}" {% if request.GET.cua_hang == ch.id|stringformat:"s" %}selected{% endif %}>{{ ch.ten }}</option>{% endfor %}
   </select>
   <div style="flex:1"></div>
+  <div class="tab-pills">
+    <a href="?hien_thi=dang_lam" class="tab-pill {% if request.GET.hien_thi != 'nghi_viec' and request.GET.hien_thi != 'tat_ca' %}on{% endif %}">Đang làm</a>
+    <a href="?hien_thi=nghi_viec" class="tab-pill {% if request.GET.hien_thi == 'nghi_viec' %}on{% endif %}">Nghỉ việc</a>
+    <a href="?hien_thi=tat_ca" class="tab-pill {% if request.GET.hien_thi == 'tat_ca' %}on{% endif %}">Tất cả</a>
+  </div>
   <button class="btn-adm btn-gray" onclick="applyFilter()">Lọc</button>
-  <a href="{% url 'them_nhan_vien' %}" class="btn-adm btn-or">＋ Thêm nhân viên</a>
 </div>
-<div class="nv-grid">
+
+<!-- Card grid -->
+<div class="nv-grid" id="view-card">
   {% for nv in nhan_viens %}
-  <div class="nv-card">
-    <div class="nv-status">{% if nv.dang_lam_viec %}<span class="bdg bdg-green">● Làm việc</span>{% else %}<span class="bdg bdg-gray">● Nghỉ</span>{% endif %}</div>
-    <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.75rem">
-      <div class="nv-av">{% if nv.nguoi_dung.anh_dai_dien %}<img src="{{ nv.nguoi_dung.anh_dai_dien.url }}">{% else %}{{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}{% endif %}</div>
-      <div>
-        <div style="font-size:.9rem;font-weight:800;color:var(--ink)">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
-        <div style="font-size:.67rem;color:var(--sub);font-weight:600;margin-bottom:.25rem">{{ nv.ma_nhan_vien }}</div>
-        <span class="bdg cv-{{ nv.chuc_vu }}" style="font-size:.63rem">{{ nv.get_chuc_vu_display }}</span>
+  <div class="nv-card {% if not nv.dang_lam_viec %}inactive{% endif %}">
+    <div style="position:absolute;top:.7rem;right:.7rem">
+      {% if nv.dang_lam_viec %}<span class="bdg bdg-green" style="font-size:.62rem">● Làm việc</span>
+      {% else %}<span class="bdg bdg-gray" style="font-size:.62rem">● Nghỉ</span>{% endif %}
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.8rem">
+      <div class="nv-av">
+        {% if nv.nguoi_dung.anh_dai_dien %}<img src="{{ nv.nguoi_dung.anh_dai_dien.url }}" alt="">
+        {% else %}{{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}{% endif %}
+      </div>
+      <div style="min-width:0;padding-right:3.5rem">
+        <div style="font-weight:800;font-size:.9rem;color:var(--ink);font-family:'Sora',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
+        <div style="font-size:.67rem;color:var(--sub);font-weight:600;margin:.1rem 0">{{ nv.ma_nhan_vien }}</div>
+        <span class="cv cv-{{ nv.chuc_vu }}">{{ nv.get_chuc_vu_display }}</span>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:.22rem;margin-bottom:.75rem">
-      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">🏪 <span style="color:var(--ink);font-weight:600">{{ nv.cua_hang.ten|default:"—" }}</span></div>
-      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">📅 <span style="color:var(--ink);font-weight:600">{{ nv.ngay_vao_lam|date:"d/m/Y" }}</span></div>
-      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">📱 <span style="color:var(--ink);font-weight:600">{{ nv.nguoi_dung.so_dien_thoai|default:"—" }}</span></div>
-      <div style="display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--sub)">💰 <span style="color:var(--or);font-weight:700">{{ nv.luong_co_ban|floatformat:0 }}đ</span></div>
-    </div>
-    <div style="display:flex;gap:.3rem;padding-top:.65rem;border-top:1px solid #F1F5F9">
-      <a href="{% url 'chi_tiet_nhan_vien' nv.pk %}" class="btn-adm btn-blue btn-sm">👁 Xem</a>
-      <a href="{% url 'sua_nhan_vien' nv.pk %}" class="btn-adm btn-gray btn-sm">✏️ Sửa</a>
+    <div class="nv-info-row">🏪 <strong>{{ nv.cua_hang.ten|default:"—"|truncatechars:30 }}</strong></div>
+    <div class="nv-info-row">📅 <strong>{{ nv.ngay_vao_lam|date:"d/m/Y" }}</strong></div>
+    <div class="nv-info-row">📱 <strong>{{ nv.nguoi_dung.so_dien_thoai|default:"—" }}</strong></div>
+    <div class="nv-info-row">💰 <strong style="color:var(--or)">{{ nv.luong_co_ban|floatformat:0 }}đ</strong><span style="font-size:.65rem;color:#ccc">/tháng</span></div>
+    <div class="nv-actions">
+      <a href="{% url 'chi_tiet_nhan_vien' nv.pk %}" class="btn-adm btn-blue btn-sm" style="flex:1;justify-content:center">👁 Xem</a>
+      <a href="{% url 'sua_nhan_vien' nv.pk %}" class="btn-adm btn-gray btn-sm" style="flex:1;justify-content:center">✏️ Sửa</a>
       <a href="{% url 'xoa_nhan_vien' nv.pk %}" class="btn-adm btn-red btn-sm">🗑</a>
     </div>
   </div>
   {% empty %}
   <div style="grid-column:1/-1" class="empty-state">
-    <div style="font-size:3rem;margin-bottom:.5rem">👥</div>
-    <div style="font-weight:800;margin-bottom:.3rem">Chưa có nhân viên nào</div>
+    <div style="font-size:3rem;margin-bottom:.6rem">👥</div>
+    <div style="font-weight:800;margin-bottom:.3rem">Không có nhân viên nào</div>
     <a href="{% url 'them_nhan_vien' %}" class="btn-adm btn-or" style="margin-top:.5rem">＋ Thêm nhân viên</a>
   </div>
   {% endfor %}
 </div>
+
+<!-- Table view -->
+<div class="nv-table" id="view-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Nhân viên</th><th>Mã NV</th><th>Chức vụ</th><th>Cửa hàng</th><th>Ngày vào làm</th><th>Lương cơ bản</th><th>Trạng thái</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for nv in nhan_viens %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div class="nv-av" style="width:32px;height:32px;font-size:.8rem;border-radius:8px">
+              {% if nv.nguoi_dung.anh_dai_dien %}<img src="{{ nv.nguoi_dung.anh_dai_dien.url }}" alt="">
+              {% else %}{{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}{% endif %}
+            </div>
+            <div>
+              <div style="font-weight:700;color:var(--ink)">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
+              <div style="font-size:.68rem;color:var(--sub)">{{ nv.nguoi_dung.email|default:"—" }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-family:monospace;font-weight:700;color:var(--sub)">{{ nv.ma_nhan_vien }}</td>
+        <td><span class="cv cv-{{ nv.chuc_vu }}">{{ nv.get_chuc_vu_display }}</span></td>
+        <td style="font-weight:600;font-size:.78rem">{{ nv.cua_hang.ten|default:"—" }}</td>
+        <td style="font-size:.78rem;color:var(--sub)">{{ nv.ngay_vao_lam|date:"d/m/Y" }}</td>
+        <td style="font-weight:700;color:var(--or)">{{ nv.luong_co_ban|floatformat:0 }}đ</td>
+        <td>{% if nv.dang_lam_viec %}<span class="bdg bdg-green" style="font-size:.62rem">Làm việc</span>{% else %}<span class="bdg bdg-gray" style="font-size:.62rem">Nghỉ</span>{% endif %}</td>
+        <td><div style="display:flex;gap:.25rem">
+          <a href="{% url 'chi_tiet_nhan_vien' nv.pk %}" class="btn-adm btn-blue btn-sm">👁</a>
+          <a href="{% url 'sua_nhan_vien' nv.pk %}" class="btn-adm btn-gray btn-sm">✏️</a>
+          <a href="{% url 'xoa_nhan_vien' nv.pk %}" class="btn-adm btn-red btn-sm">🗑</a>
+        </div></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--sub)">Không có dữ liệu</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% if nhan_viens.has_other_pages %}
-<div class="pg" style="margin-top:1rem">{% if nhan_viens.has_previous %}<a href="?page={{ nhan_viens.previous_page_number }}">←</a>{% endif %}{% for p in nhan_viens.paginator.page_range %}{% if nhan_viens.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}">{{ p }}</a>{% endif %}{% endfor %}{% if nhan_viens.has_next %}<a href="?page={{ nhan_viens.next_page_number }}">→</a>{% endif %}</div>
+<div class="pg" style="margin-top:1rem">
+  {% if nhan_viens.has_previous %}<a href="?page={{ nhan_viens.previous_page_number }}&q={{ request.GET.q }}&chuc_vu={{ request.GET.chuc_vu }}&hien_thi={{ request.GET.hien_thi }}">←</a>{% endif %}
+  {% for p in nhan_viens.paginator.page_range %}{% if nhan_viens.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}&q={{ request.GET.q }}&chuc_vu={{ request.GET.chuc_vu }}&hien_thi={{ request.GET.hien_thi }}">{{ p }}</a>{% endif %}{% endfor %}
+  {% if nhan_viens.has_next %}<a href="?page={{ nhan_viens.next_page_number }}&q={{ request.GET.q }}&chuc_vu={{ request.GET.chuc_vu }}&hien_thi={{ request.GET.hien_thi }}">→</a>{% endif %}
+</div>
 {% endif %}
+
 <script>
-function applyFilter(){const q=document.getElementById('nvSearch').value,cv=document.getElementById('cvSel').value,ch=document.getElementById('chSel').value;let url='?';if(q)url+='q='+encodeURIComponent(q)+'&';if(cv)url+='chuc_vu='+cv+'&';if(ch)url+='cua_hang='+ch;window.location=url}
-document.getElementById('nvSearch').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilter()});
+function applyFilter(){
+  const q=document.getElementById('nvQ').value,cv=document.getElementById('nvCV').value,ch=document.getElementById('nvCH').value;
+  const ht=new URLSearchParams(window.location.search).get('hien_thi')||'dang_lam';
+  let url='?hien_thi='+ht;
+  if(q)url+='&q='+encodeURIComponent(q);
+  if(cv)url+='&chuc_vu='+cv;
+  if(ch)url+='&cua_hang='+ch;
+  window.location=url;
+}
+document.getElementById('nvQ').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilter()});
+function setView(v){
+  document.getElementById('view-card').style.display=v==='card'?'grid':'none';
+  document.getElementById('view-table').className='nv-table'+(v==='table'?' show':'');
+  document.getElementById('vt-card').className='vtbtn'+(v==='card'?' on':'');
+  document.getElementById('vt-table').className='vtbtn'+(v==='table'?' on':'');
+  localStorage.setItem('nv-view',v);
+}
+const sv=localStorage.getItem('nv-view');if(sv)setView(sv);
 </script>
 {% endblock %}

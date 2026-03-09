@@ -150,14 +150,65 @@ body { background: var(--sf); }
             <div id="s-ch" {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}style="display:none"{% endif %}>
               <label class="form-label mt-2">Chọn cửa hàng *</label>
               {% if cua_hangs %}
-              <select name="cua_hang" id="inp-ch" class="form-select {% if form_errors.cua_hang %}f-err{% endif %}">
-                <option value="">— Chọn cửa hàng nhận hàng —</option>
-                {% for ch in cua_hangs %}
-                <option value="{{ ch.pk }}" {% if post_data.cua_hang == ch.pk|stringformat:"d" %}selected{% endif %}>
-                  {{ ch.ten }} · {{ ch.quan_huyen }}, {{ ch.tinh_thanh }}
-                </option>
-                {% endfor %}
-              </select>
+
+              <!-- GIS: Tìm gần nhất + mini-map -->
+              <div style="background:#F8FAFC;border:1.5px solid #E4E8F5;border-radius:12px;overflow:hidden;margin-bottom:.7rem">
+
+                <!-- Toolbar -->
+                <div style="padding:.65rem .85rem .5rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #EEF0F9;flex-wrap:wrap">
+                  <button type="button" id="btn-near-me" onclick="findNearMe()"
+                    style="display:flex;align-items:center;gap:.35rem;background:linear-gradient(135deg,var(--or),var(--ord));color:white;border:none;border-radius:9px;padding:.42rem .85rem;font-size:.75rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 3px 10px rgba(255,55,155,.3)">
+                    📡 Tìm gần nhất
+                  </button>
+                  <div style="flex:1;position:relative;min-width:140px">
+                    <input type="text" id="ch-search" placeholder="Tìm theo tên, quận..." oninput="filterChList(this.value)"
+                      style="width:100%;border:1.5px solid #E4E8F5;border-radius:9px;padding:.4rem .7rem .4rem 1.7rem;font-size:.78rem;background:white;outline:none;font-family:inherit">
+                    <span style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);font-size:.75rem">🔍</span>
+                  </div>
+                  <div id="near-status" style="font-size:.68rem;color:#8A8FAF;font-weight:600"></div>
+                </div>
+
+                <!-- Store list + minimap side by side -->
+                <div style="display:grid;grid-template-columns:1fr 200px">
+
+                  <!-- Scrollable store list -->
+                  <div id="ch-list" style="max-height:210px;overflow-y:auto;border-right:1px solid #EEF0F9">
+                    {% for ch in cua_hangs %}
+                    <div class="ch-row" id="chr-{{ ch.pk }}"
+                         data-id="{{ ch.pk }}" data-lat="{{ ch.vi_do|default:'' }}" data-lng="{{ ch.kinh_do|default:'' }}"
+                         data-name="{{ ch.ten|escapejs }}" data-quan="{{ ch.quan_huyen }}"
+                         onclick="selectCH({{ ch.pk }}, '{{ ch.ten|escapejs }}', {{ ch.vi_do|default:'null' }}, {{ ch.kinh_do|default:'null' }})"
+                         style="display:flex;align-items:flex-start;gap:.5rem;padding:.55rem .75rem;border-bottom:1px solid #F3F4F8;cursor:pointer;transition:background .12s;border-left:3px solid transparent">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-weight:700;font-size:.8rem;color:#1C1C2E;line-height:1.3">{{ ch.ten }}</div>
+                        <div style="font-size:.68rem;color:#8A8FAF;margin-top:.1rem">📍 {{ ch.dia_chi }}, {{ ch.quan_huyen }}</div>
+                        <div style="font-size:.65rem;color:#B0B7C3;margin-top:.06rem">🕐 {{ ch.gio_mo_cua|time:"H:i" }}–{{ ch.gio_dong_cua|time:"H:i" }}</div>
+                        <div id="dist-{{ ch.pk }}" style="display:none;font-size:.65rem;font-weight:800;color:var(--or);margin-top:.1rem"></div>
+                      </div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:#E4E8F5;margin-top:4px;flex-shrink:0" id="chk-{{ ch.pk }}"></div>
+                    </div>
+                    {% endfor %}
+                  </div>
+
+                  <!-- Mini map -->
+                  <div style="position:relative">
+                    <div id="ch-minimap" style="height:210px;background:#EEF0F9"></div>
+                    <div id="minimap-hint" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#B0B7C3;text-align:center;padding:.5rem;pointer-events:none;background:rgba(238,240,249,.8)">
+                      🗺️ Chọn cửa hàng<br>để xem vị trí
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Selected info bar -->
+                <div id="ch-sel-bar" style="padding:.5rem .85rem;background:linear-gradient(135deg,rgba(255,55,155,.06),rgba(255,137,155,.04));border-top:1px solid rgba(255,55,155,.12);font-size:.76rem;font-weight:700;color:#1C1C2E;display:none;align-items:center;gap:.4rem">
+                  <span>✅</span> <span id="ch-sel-nm">—</span>
+                  <span id="ch-sel-dist" style="color:var(--or);font-family:monospace;margin-left:.2rem"></span>
+                </div>
+              </div>
+              
+              <!-- Hidden input synced by JS - dùng hidden input thay select để đảm bảo submit đúng -->
+              <input type="hidden" name="cua_hang" id="inp-ch" value="{{ post_data.cua_hang|default:'' }}">
+
               {% else %}
               <div class="form-control" style="background:#FFF5F5;color:#C62828;font-size:.85rem;font-weight:600;">
                 ⚠️ Chưa có cửa hàng hoạt động. Vui lòng chọn <b>Giao tận nơi</b>.
@@ -228,6 +279,8 @@ body { background: var(--sf); }
 {% endblock %}
 
 {% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const RAW_TONG = "{{ tong_tien|floatformat:0 }}";
 const TONG_SP = parseInt(RAW_TONG.replace(/[^\d]/g,'')) || 0;
@@ -250,9 +303,9 @@ function setG(val) {
   phi = isG ? 30000 : 0;
   document.getElementById('v-ship').textContent = isG ? '30.000₫' : 'Miễn phí 🎉';
   updTotal();
+  // Init minimap when store section shown
+  if(!isG && !minimapInit) initMinimap();
 }
-
-// Đồng bộ với server POST data khi tải lại trang
 (function(){ const c = document.querySelector('[name="phuong_thuc_giao"]:checked'); if(c) setG(c.value); })();
 
 function selP(lb) {
@@ -267,33 +320,187 @@ document.getElementById('fo').addEventListener('submit', function(e) {
   const mode = modeEl.value;
   let ok = true;
   document.querySelectorAll('.f-err').forEach(el => el.classList.remove('f-err'));
-
-  // Validate họ tên
   const ht = document.getElementById('inp-ht');
   if (ht && !ht.value.trim()) { ht.classList.add('f-err'); ht.focus(); ok = false; }
-
-  // Validate SĐT
   const sdt = document.getElementById('inp-sdt');
   if (sdt && !sdt.value.trim()) { sdt.classList.add('f-err'); if(ok) sdt.focus(); ok = false; }
-
   if (mode === 'giao_tan_noi') {
-    // Giao tận nơi: cần địa chỉ
     const dc = document.getElementById('inp-dc');
     if (dc && !dc.value.trim()) { dc.classList.add('f-err'); if(ok) dc.focus(); ok = false; }
   } else {
-    // Nhận tại cửa hàng: inp-dc hidden, không validate; cần chọn cửa hàng
     const ch = document.getElementById('inp-ch');
-    if (ch && !ch.value) { ch.classList.add('f-err'); if(ok) ch.focus(); ok = false; }
-    // Đảm bảo dia_chi hidden field không block server-side
+    if (ch && !ch.value) {
+      // Highlight store list container
+      const chList = document.getElementById('ch-list');
+      if(chList) { chList.style.boxShadow='inset 0 0 0 2px #EF4444'; setTimeout(()=>chList.style.boxShadow='',2500); }
+      const schWrap = document.getElementById('s-ch');
+      if(ok && schWrap) schWrap.scrollIntoView({behavior:'smooth',block:'center'});
+      ok = false;
+    }
     const dc = document.getElementById('inp-dc');
-    if (dc && !dc.value.trim()) dc.value = 'Nhận tại cửa hàng (không cần địa chỉ)';
+    if (dc && !dc.value.trim()) dc.value = 'Nhận tại cửa hàng';
   }
-
   if (!ok) { e.preventDefault(); return; }
   const btn = document.getElementById('btn-ok');
   btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
-  // Fallback: re-enable sau 10s nếu server không redirect
   setTimeout(() => { btn.disabled = false; btn.textContent = '✅ Đặt hàng ngay'; }, 10000);
 });
+
+// ════════════════════════════════════════════════════
+// GIS: CỬA HÀNG GẦN NHẤT + MINI MAP
+// ════════════════════════════════════════════════════
+const API_NEAR  = "{% url 'api_cua_hang_gan_nhat' %}";
+const CH_DATA   = {};  // id → {vi_do, kinh_do, ...}
+{% for ch in cua_hangs %}{% if ch.vi_do %}
+CH_DATA[{{ ch.pk }}] = {id:{{ ch.pk }}, vi_do:{{ ch.vi_do }}, kinh_do:{{ ch.kinh_do }}, ten:'{{ ch.ten|escapejs }}'};
+{% endif %}{% endfor %}
+
+let minimap = null, minimapInit = false;
+let mmMarkers = {};   // id → marker
+let selectedCHId = null;
+let myMarker = null;
+
+// ── Init minimap ──────────────────────────────────
+function initMinimap() {
+  if(minimapInit) return;
+  minimapInit = true;
+  minimap = L.map('ch-minimap', {zoomControl:false, attributionControl:false})
+    .setView([10.8231, 106.6297], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(minimap);
+
+  // Add all store markers
+  Object.values(CH_DATA).forEach(ch => {
+    const ico = L.divIcon({
+      html:`<div style="width:10px;height:10px;background:#FF379b;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+      iconSize:[10,10], iconAnchor:[5,10], className:''
+    });
+    const m = L.marker([ch.vi_do, ch.kinh_do], {icon: ico})
+      .on('click', () => selectCH(ch.id, ch.ten, ch.vi_do, ch.kinh_do));
+    mmMarkers[ch.id] = m;
+    m.addTo(minimap);
+  });
+
+  // Restore selection if any
+  const presel = document.getElementById('inp-ch').value;
+  if(presel) {
+    const d = CH_DATA[parseInt(presel)];
+    if(d) selectCH(d.id, d.ten, d.vi_do, d.kinh_do);
+  }
+}
+
+// ── Select store ──────────────────────────────────
+function selectCH(id, name, vi_do, kinh_do) {
+  // Deselect prev
+  if(selectedCHId) {
+    const prevRow = document.getElementById('chr-'+selectedCHId);
+    if(prevRow) { prevRow.style.background=''; prevRow.style.borderLeftColor='transparent'; }
+    const prevChk = document.getElementById('chk-'+selectedCHId);
+    if(prevChk) { prevChk.style.background='#E4E8F5'; prevChk.innerHTML=''; }
+    // Reset marker
+    if(mmMarkers[selectedCHId]) mmMarkers[selectedCHId].setIcon(
+      L.divIcon({html:`<div style="width:10px;height:10px;background:#FF379b;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,iconSize:[10,10],iconAnchor:[5,10],className:''})
+    );
+  }
+
+  selectedCHId = id;
+
+  // Highlight row
+  const row = document.getElementById('chr-'+id);
+  if(row) {
+    row.style.background = 'rgba(255,55,155,.06)';
+    row.style.borderLeftColor = '#FF379b';
+    row.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  // Tick icon
+  const chk = document.getElementById('chk-'+id);
+  if(chk) { chk.style.background='#FF379b'; chk.innerHTML='<div style="width:4px;height:4px;background:white;border-radius:50%;margin:2px auto"></div>'; }
+
+  // Sync hidden select — CRITICAL: must set value so form submits correctly
+  const sel = document.getElementById('inp-ch');
+  if(sel) sel.value = id;
+
+  // Selected bar — use inline style (no CSS class conflict)
+  const bar = document.getElementById('ch-sel-bar');
+  if(bar) {
+    bar.style.display = 'flex';
+    document.getElementById('ch-sel-nm').textContent = name;
+  }
+
+  // Minimap
+  if(vi_do && kinh_do) {
+    document.getElementById('minimap-hint').style.display='none';
+    if(minimap) {
+      minimap.flyTo([vi_do, kinh_do], 15, {duration:.7});
+      // Big selected marker
+      if(mmMarkers[id]) mmMarkers[id].setIcon(
+        L.divIcon({
+          html:`<div style="width:16px;height:16px;background:#FF379b;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 3px 10px rgba(255,55,155,.5)"></div>`,
+          iconSize:[16,16], iconAnchor:[8,16], className:''
+        })
+      );
+    }
+  }
+}
+
+// ── Filter list ───────────────────────────────────
+function filterChList(q) {
+  const rows = document.querySelectorAll('.ch-row');
+  const lq = q.toLowerCase();
+  rows.forEach(r => {
+    const nm = r.dataset.name.toLowerCase();
+    const qu = r.dataset.quan.toLowerCase();
+    r.style.display = (nm.includes(lq) || qu.includes(lq)) ? '' : 'none';
+  });
+}
+
+// ── Find nearest (GPS) ────────────────────────────
+function findNearMe() {
+  if(!navigator.geolocation) { alert('Trình duyệt không hỗ trợ GPS'); return; }
+  const btn = document.getElementById('btn-near-me');
+  const st  = document.getElementById('near-status');
+  btn.textContent = '⏳ Đang định vị...'; btn.disabled = true;
+  st.textContent = '';
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    const {latitude:lat, longitude:lng} = pos.coords;
+
+    // Show my location on minimap
+    if(minimap) {
+      if(!minimapInit) initMinimap();
+      if(myMarker) minimap.removeLayer(myMarker);
+      myMarker = L.marker([lat,lng], {icon:
+        L.divIcon({html:`<div style="width:12px;height:12px;background:#10B981;border-radius:50%;border:2.5px solid white;box-shadow:0 0 0 4px rgba(16,185,129,.25),0 2px 8px rgba(0,0,0,.3)"></div>`,iconSize:[12,12],iconAnchor:[6,6],className:''})
+      }).bindTooltip('Vị trí của bạn', {permanent:false}).addTo(minimap);
+    }
+
+    fetch(`${API_NEAR}?vi_do=${lat}&kinh_do=${lng}&ban_kinh=20`)
+      .then(r => r.json())
+      .then(d => {
+        if(!d.cua_hangs.length) { st.textContent='Không tìm thấy cửa hàng trong 20km'; btn.textContent='📡 Tìm gần nhất'; btn.disabled=false; return; }
+        // Show distances
+        d.cua_hangs.forEach(ch => {
+          const distEl = document.getElementById('dist-'+ch.id);
+          if(distEl) { distEl.style.display='block'; distEl.textContent=`📏 ${ch.khoang_cach_hien_thi} từ bạn`; }
+        });
+        // Auto-select nearest
+        const nearest = d.cua_hangs[0];
+        const nd = CH_DATA[nearest.id];
+        if(nd) selectCH(nearest.id, nearest.ten, nearest.vi_do||nd.vi_do, nearest.kinh_do||nd.kinh_do);
+        st.textContent = `✅ Gần nhất: ${nearest.khoang_cach_hien_thi}`;
+        st.style.color = '#2E7D32';
+        // Fly minimap to show both
+        if(minimap) minimap.flyTo([lat, lng], 13, {duration:.9});
+        btn.textContent = '✅ Đã tìm thấy'; btn.disabled = false;
+      })
+      .catch(() => { st.textContent='Lỗi tìm kiếm'; btn.textContent='📡 Tìm gần nhất'; btn.disabled=false; });
+
+  }, () => { st.textContent='Không lấy được vị trí'; btn.textContent='📡 Tìm gần nhất'; btn.disabled=false; });
+}
+
+// Init minimap if store pickup is already selected on load
+(function(){
+  const c = document.querySelector('[name="phuong_thuc_giao"]:checked');
+  if(c && c.value === 'nhan_tai_cua_hang') setTimeout(initMinimap, 100);
+})();
 </script>
 {% endblock %}
