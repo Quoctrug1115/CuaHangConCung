@@ -5,7 +5,7 @@
 {% block content %}
 
 <!-- Hero Banner -->
-<section class="py-5" style="background: linear-gradient(135deg, #FF379b 0%, #FF889b 100%);">
+<section class="py-5" style="background: linear-gradient(135deg, #E85D7E 0%, #FFB6D9 100%);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6 text-white">
@@ -107,9 +107,24 @@
                 </div>
 
                 <!-- Danh sách cửa hàng gần nhất -->
-                <div id="danh-sach-cua-hang">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-shop"></i> Cửa hàng lân cận</h6>
-                    <p class="text-muted small">Nhập địa chỉ hoặc cho phép truy cập vị trí để xem cửa hàng gần bạn</p>
+                <div class="card" style="border:none;box-shadow:0 2px 12px rgba(0,0,0,.08);">
+                  <div class="card-body p-0">
+                    <div style="padding:.75rem 1rem;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between">
+                      <h6 class="fw-bold mb-0"><i class="bi bi-shop"></i> Cửa hàng gần nhất</h6>
+                      <span id="store-count" style="font-size:.7rem;color:#888"></span>
+                    </div>
+                      <h6 class="fw-bold mb-0"><i class="bi bi-shop"></i> Cửa hàng gần nhất</h6>
+                      <span id="store-count" style="font-size:.7rem;color:#888"></span>
+                    </div>
+                    <div id="danh-sach-cua-hang"
+                         style="max-height:420px;overflow-y:auto;overflow-x:hidden;
+                                scrollbar-width:thin;scrollbar-color:#FFB89A #F8F8F8;
+                                padding:.5rem .75rem">
+                      <p class="text-muted small py-3 text-center mb-0">
+                        Nhập địa chỉ hoặc cho phép truy cập vị trí để xem cửa hàng gần bạn
+                      </p>
+                    </div>
+                  </div>
                 </div>
             </div>
         </div>
@@ -209,34 +224,54 @@ function timCuaHangGanNhat(lat, lng) {
         .then(r => r.json())
         .then(data => {
             const container = document.getElementById('danh-sach-cua-hang');
+            const countEl = document.getElementById('store-count');
             if (!data.cua_hangs || data.cua_hangs.length === 0) {
-                container.innerHTML = '<p class="text-muted small">Không tìm thấy cửa hàng trong bán kính 15km.</p>';
+                container.innerHTML = '<p class="text-muted small py-3 text-center mb-0">Không tìm thấy cửa hàng trong bán kính 15km.</p>';
+                if(countEl) countEl.textContent = '';
                 return;
             }
 
-            let html = '<h6 class="fw-bold mb-3"><i class="bi bi-shop"></i> Cửa hàng gần nhất</h6>';
+            if(countEl) countEl.textContent = `${data.cua_hangs.length} cửa hàng`;
+
+            let html = '';
             data.cua_hangs.forEach(function(ch, idx) {
-                const bg = idx === 0 ? 'border-warning' : '';
+                const isFirst = idx === 0;
                 html += `
-                    <div class="card mb-2 ${bg}" style="cursor:pointer;" onclick="panToCuaHang(${ch.vi_do}, ${ch.kinh_do})">
-                        <div class="card-body py-2 px-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <strong class="small">${idx === 0 ? '⭐ ' : ''}${ch.ten}</strong><br>
-                                    <small class="text-muted">${ch.dia_chi}</small><br>
-                                    <small>📞 ${ch.so_dien_thoai}</small>
-                                </div>
-                                <span class="badge bg-success ms-2 text-nowrap">${ch.khoang_cach_hien_thi}</span>
-                            </div>
-                            <div class="mt-1">
-                                <a href="https://www.google.com/maps/dir/?api=1&destination=${ch.vi_do},${ch.kinh_do}"
-                                   target="_blank" class="btn btn-outline-primary btn-sm"
-                                   onclick="event.stopPropagation()">
-                                    <i class="bi bi-map"></i> Chỉ đường
-                                </a>
-                            </div>
-                        </div>
-                    </div>`;
+                <div style="border:1.5px solid ${isFirst ? '#FFB6D9' : '#F0F0F0'};border-radius:10px;
+                            padding:.65rem .8rem;margin-bottom:.5rem;cursor:pointer;
+                            background:${isFirst ? '#FFF0F5' : 'white'};
+                            transition:border-color .14s"
+                     onmouseover="this.style.borderColor='#E85D7E'"
+                     onmouseout="this.style.borderColor='${isFirst ? '#FFB6D9' : '#F0F0F0'}'"
+                     onclick="panToCuaHang(${ch.vi_do}, ${ch.kinh_do})">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">
+                    <div style="min-width:0">
+                      <div style="font-weight:700;font-size:.82rem;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                        ${isFirst ? '⭐ ' : ''}${ch.ten}
+                      </div>
+                      <div style="font-size:.71rem;color:#777;margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                        📍 ${ch.dia_chi}
+                      </div>
+                      <div style="font-size:.71rem;color:#555;margin-top:.05rem">📞 ${ch.so_dien_thoai}</div>
+                    </div>
+                    <span style="background:#FF6B9D;color:white;
+                                 border-radius:6px;padding:.18rem .5rem;font-size:.67rem;
+                                 font-weight:800;white-space:nowrap;flex-shrink:0">
+                      ${ch.khoang_cach_hien_thi}
+                    </span>
+                  </div>
+                  <div style="margin-top:.5rem">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${ch.vi_do},${ch.kinh_do}"
+                       target="_blank"
+                       style="display:inline-flex;align-items:center;gap:.25rem;font-size:.7rem;
+                              font-weight:700;color:#E85D7E;text-decoration:none;
+                              border:1px solid #FFD4E5;border-radius:6px;padding:.18rem .55rem;
+                              background:#FFF0F5"
+                       onclick="event.stopPropagation()">
+                      <i class="bi bi-map"></i> Chỉ đường
+                    </a>
+                  </div>
+                </div>`;
             });
             container.innerHTML = html;
         });

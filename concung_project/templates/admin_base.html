@@ -12,9 +12,9 @@
     *,*::before,*::after{box-sizing:border-box}
     body{font-family:'DM Sans',sans-serif;background:#F1F5F9;margin:0}
     :root{
-      --or:#FF469e;--ord:#e0358c;--ink:#0F172A;--sub:#64748B;
-      --sur:#FFFFFF;--line:#E2E8F0;--sb:#1E293B;--sb2:#0F172A;
-      --green:#10B981;--red:#EF4444;--blue:#3B82F6;--yellow:#F59E0B;
+      --or:#E85D7E;--ord:#D946A6;--ink:#0F172A;--sub:#64748B;
+      --sur:#FFFFFF;--line:#FFD4E5;--sb:#1E293B;--sb2:#6B1B47;
+      --green:#FFB6D9;--red:#B80040;--blue:#E879B0;--yellow:#FFAFCC;
     }
 
     /* ══ LAYOUT ══ */
@@ -28,22 +28,22 @@
     }
     .sb-logo{padding:1.2rem 1rem .9rem;border-bottom:1px solid rgba(255,255,255,.07)}
     .sb-logo-inner{display:flex;align-items:center;gap:.65rem}
-    .sb-icon{width:38px;height:38px;background:var(--or);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .sb-icon{width:38px;height:38px;background:#E85D7E;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
     .sb-brand{font-weight:800;font-size:.9rem;color:white;line-height:1.2}
     .sb-brand small{display:block;font-size:.62rem;font-weight:500;color:#94A3B8;margin-top:.1rem}
     .sb-user{padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.65rem}
-    .sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.8rem;flex-shrink:0}
+    .sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C21E5E);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.8rem;flex-shrink:0}
     .sb-uname{font-size:.78rem;font-weight:700;color:white;line-height:1.2}
     .sb-urole{font-size:.63rem;color:#94A3B8;font-weight:500}
     .sb-section{padding:.65rem .85rem .1rem}
     .sb-section-lbl{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#475569;padding:0 .2rem .35rem;margin-bottom:.05rem}
     .sb-nav{list-style:none;margin:0;padding:0 0 .4rem;display:flex;flex-direction:column;gap:.1rem}
     .sb-nav a{display:flex;align-items:center;gap:.6rem;padding:.48rem .65rem;color:#94A3B8;text-decoration:none;border-radius:7px;font-size:.8rem;font-weight:600;transition:all .13s;position:relative}
-    .sb-nav a:hover{background:rgba(255,70,158,.18);color:#E2E8F0}
-    .sb-nav a.on{background:rgba(255,70,158,.22);color:#ff6ab8}
+    .sb-nav a:hover{background:rgba(232,93,126,.18);color:#E2E8F0}
+    .sb-nav a.on{background:rgba(232,93,126,.22);color:#FF6B9D}
     .sb-nav a .ic{width:20px;text-align:center;font-size:.85rem;flex-shrink:0}
-    .sb-nav a .cnt{margin-left:auto;background:rgba(255,70,158,.3);color:#ff6ab8;border-radius:10px;padding:.05rem .42rem;font-size:.63rem;font-weight:800}
-    .sb-nav a .badge-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:#EF4444}
+    .sb-nav a .cnt{margin-left:auto;background:rgba(232,93,126,.3);color:#FF6B9D;border-radius:10px;padding:.05rem .42rem;font-size:.63rem;font-weight:800}
+    .sb-nav a .badge-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:#B80040}
     .sb-divider{height:1px;background:rgba(255,255,255,.06);margin:.3rem 1rem}
     .sb-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.07);padding:.5rem .85rem}
     .sb-bottom a{display:flex;align-items:center;gap:.6rem;padding:.45rem .65rem;color:#64748B;text-decoration:none;border-radius:7px;font-size:.78rem;font-weight:600;transition:all .13s}
@@ -57,7 +57,7 @@
     .page-hdr h4{font-size:1.2rem;font-weight:800;color:var(--ink);margin:0;line-height:1.2}
     .page-hdr .sub{font-size:.78rem;color:var(--sub);margin-top:.2rem}
     .breadcrumb-adm{font-size:.75rem;color:var(--sub);margin-bottom:.4rem}
-    .breadcrumb-adm a{color:var(--or);text-decoration:none}
+    .breadcrumb-adm a{color:#E85D7E;text-decoration:none}
 
     /* ══ BUTTONS ══ */
     .btn-adm{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:none;border:none;transition:all .13s;white-space:nowrap}
@@ -107,14 +107,14 @@
     .form-adm .form-group{margin-bottom:1rem}
     .form-adm label{font-size:.77rem;font-weight:700;color:var(--sub);display:block;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em}
     .form-adm .form-control,.form-adm .form-select{border:1.5px solid var(--line);border-radius:9px;padding:.5rem .8rem;font-size:.83rem;font-family:inherit;color:var(--ink);transition:border-color .13s;background:white}
-    .form-adm .form-control:focus,.form-adm .form-select:focus{border-color:var(--or);outline:none;box-shadow:0 0 0 3px rgba(255,70,158,.12)}
+    .form-adm .form-control:focus,.form-adm .form-select:focus{border-color:#E85D7E;outline:none;box-shadow:0 0 0 3px rgba(232,93,126,.12)}
     .form-adm .errorlist{list-style:none;padding:0;margin:.25rem 0 0;color:var(--red);font-size:.73rem}
 
     /* ══ PAGINATION ══ */
     .pg{display:flex;gap:.3rem;justify-content:center;padding:1rem 0 .5rem;flex-wrap:wrap}
     .pg a,.pg span{padding:.3rem .65rem;border-radius:7px;font-size:.78rem;font-weight:700;text-decoration:none;color:var(--sub);background:var(--sur);border:1px solid var(--line);transition:all .13s}
-    .pg a:hover{background:var(--or);color:white;border-color:var(--or)}
-    .pg .cur{background:var(--or);color:white;border-color:var(--or)}
+    .pg a:hover{background:#E85D7E;color:white;border-color:#E85D7E}
+    .pg .cur{background:#E85D7E;color:white;border-color:#E85D7E}
 
     /* ══ EMPTY STATE ══ */
     .empty-state{text-align:center;padding:3rem 1rem;color:var(--sub)}
@@ -211,6 +211,9 @@
         </a></li>
         <li><a href="{% url 'quan_ly_nhan_vien' %}" {% block nav_nhan_vien %}{% endblock %}>
           <span class="ic">👥</span> Nhân viên
+        </a></li>
+        <li><a href="{% url 'them_nhan_vien' %}" {% block nav_them_nv %}{% endblock %}>
+          <span class="ic">➕</span> Thêm nhân viên
         </a></li>
         <li><a href="{% url 'ban_do' %}" {% block nav_ban_do %}{% endblock %}>
           <span class="ic">🗺️</span> Bản đồ GPS

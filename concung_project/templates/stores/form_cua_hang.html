@@ -5,11 +5,12 @@
 {% block top_actions %}
 <a href="{% url 'quan_ly_cua_hang' %}" class="btn-adm btn-gray">← Quay lại</a>
 {% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-.form-layout{display:grid;grid-template-columns:1fr 380px;gap:1rem;align-items:start}
-@media(max-width:960px){.form-layout{grid-template-columns:1fr}}
+.form-layout{display:grid;grid-template-columns:1fr 400px;gap:1.2rem;align-items:start}
+@media(max-width:980px){.form-layout{grid-template-columns:1fr}}
 .fc{background:white;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1rem}
 .fc-hd{padding:.8rem 1.1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.55rem}
 .fc-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem}
@@ -20,7 +21,7 @@
 .fg label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:.26rem}
 .req{color:var(--red)}.hint{font-size:.67rem;color:var(--sub);margin-top:.2rem}
 .err-msg{font-size:.68rem;color:var(--red);margin-top:.18rem}
-.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border .14s,box-shadow .14s;background:white;color:var(--ink)}
+.fi{display:block;width:100%;padding:.44rem .72rem;border:1.5px solid var(--line);border-radius:8px;font-size:.8rem;font-family:inherit;outline:none;transition:border .14s,box-shadow .14s;background:white;color:var(--ink);box-sizing:border-box}
 .fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
 .fi.err{border-color:var(--red)}
 textarea.fi{resize:vertical;min-height:60px}
@@ -28,36 +29,54 @@ select.fi{cursor:pointer}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem}
 @media(max-width:560px){.row2,.row3{grid-template-columns:1fr}}
-
-/* Map picker */
-#map-picker{height:320px;border-radius:10px;border:2px solid var(--line);cursor:crosshair;margin-bottom:.7rem;overflow:hidden}
-.coord-box{background:#FFFBF7;border:1.5px solid #FFD4B5;border-radius:9px;padding:.55rem .85rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;font-size:.79rem}
-.coord-item{display:flex;align-items:center;gap:.3rem;color:var(--ink)}
-.coord-lbl{font-size:.68rem;color:var(--sub);font-weight:600}
-.coord-val{font-weight:700;font-family:'DM Mono',monospace;color:var(--or)}
-.geocode-row{display:flex;gap:.4rem;margin-bottom:.6rem}
-.geocode-row .fi{flex:1;font-size:.79rem}
-.btn-geo{padding:.44rem .85rem;background:var(--blue);color:white;border:none;border-radius:8px;font-size:.76rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .14s}
-.btn-geo:hover{background:#1d4ed8}
-.geo-msg{font-size:.69rem;margin-top:.2rem}
-.geo-ok{color:#166534}.geo-err{color:var(--red)}.geo-loading{color:var(--sub)}
-
-/* Time pickers */
-.time-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;align-items:end}
-
-/* SW toggle */
 .sw-label{display:flex;align-items:center;gap:.6rem;padding:.44rem .7rem;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;transition:border .14s}
 .sw-label:hover{border-color:var(--or)}
-.sw-label input{display:none}
+.sw-label input[type=checkbox]{display:none}
 .sw-tog{width:36px;height:20px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0}
 .sw-tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .sw-label input:checked+.sw-tog{background:var(--green)}
 .sw-label input:checked+.sw-tog::after{transform:translateX(16px)}
 
-.btn-save{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.6rem;background:linear-gradient(135deg,var(--or),#C94A0E);color:white;border:none;border-radius:9px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .17s;box-shadow:0 3px 10px rgba(255,107,53,.28)}
+/* === GPS MAP PICKER === */
+#map-picker{height:340px;border-radius:10px;overflow:hidden;border:2px solid var(--line);margin-bottom:.7rem;cursor:crosshair;transition:border-color .2s,box-shadow .2s}
+#map-picker.has-pin{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,107,53,.12)}
+.geo-bar{display:flex;gap:.4rem;margin-bottom:.5rem}
+.geo-bar .fi{flex:1;padding:.4rem .65rem;font-size:.79rem}
+.btn-geo{padding:.4rem .8rem;background:var(--blue);color:white;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .14s;flex-shrink:0}
+.btn-geo:hover{background:#1d4ed8}
+.btn-geo:disabled{opacity:.55;cursor:not-allowed}
+.gps-actions{display:flex;gap:.4rem;margin-bottom:.5rem;flex-wrap:wrap}
+.btn-gps{flex:1;min-width:80px;padding:.38rem .55rem;border:1.5px solid var(--line);border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;background:white;color:var(--ink);transition:all .14s;display:flex;align-items:center;justify-content:center;gap:.25rem}
+.btn-gps:hover{border-color:var(--or);color:var(--or)}
+.btn-gps.danger{border-color:#FCA5A5;color:#DC2626}
+.btn-gps.danger:hover{background:#DC2626;color:white;border-color:#DC2626}
+.btn-gps:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.coord-box{background:#FFFBF7;border:1.5px solid #FFD4B5;border-radius:9px;padding:.6rem .9rem;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;transition:all .2s}
+.coord-box.empty-coord{background:#F8FAFC;border-color:var(--line)}
+.coord-item{display:flex;flex-direction:column;gap:.05rem}
+.coord-lbl{font-size:.63rem;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.coord-val{font-size:.82rem;font-weight:700;font-family:'DM Mono','Courier New',monospace;color:var(--or)}
+.coord-val.na{color:var(--line)}
+.coord-badge{margin-left:auto;font-size:.69rem;font-weight:700}
+.badge-ok{color:#16A34A}.badge-no{color:var(--sub)}
+.geo-msg{font-size:.69rem;margin-top:.25rem;min-height:1rem;padding:.28rem .5rem;border-radius:6px}
+.geo-msg.geo-ok{background:#DCFCE7;color:#166534}
+.geo-msg.geo-err{background:#FEE2E2;color:#991B1B}
+.geo-msg.geo-loading{background:#F1F5F9;color:var(--sub)}
+.geo-msg:empty{display:none}
+.geo-dropdown{position:relative}
+.geo-list{position:absolute;top:0;left:0;right:0;z-index:9999;background:white;border:1.5px solid var(--or);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden;max-height:200px;overflow-y:auto}
+.geo-list-item{padding:.5rem .8rem;cursor:pointer;font-size:.76rem;color:var(--ink);border-bottom:1px solid #F1F5F9}
+.geo-list-item:hover{background:#FFF7ED}
+.geo-list-item-sub{font-size:.66rem;color:var(--sub);margin-top:.08rem}
+.map-hint{font-size:.67rem;color:var(--sub);margin-bottom:.35rem;display:flex;align-items:center;gap:.3rem}
+.btn-save{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.62rem;background:linear-gradient(135deg,var(--or),#C94A0E);color:white;border:none;border-radius:9px;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .17s;box-shadow:0 3px 10px rgba(255,107,53,.28)}
 .btn-save:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(255,107,53,.38)}
+.btn-save:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .msg-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;padding:.55rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:.9rem}
 .msg-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;padding:.55rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;margin-bottom:.9rem}
+.auto-tip{display:inline-flex;align-items:center;gap:.2rem;font-size:.63rem;font-weight:600;background:#EFF6FF;color:#1E40AF;border-radius:4px;padding:.1rem .35rem;margin-left:.35rem;vertical-align:middle}
+@keyframes pulse-pin{0%{transform:scale(.5);opacity:.8}100%{transform:scale(2.8);opacity:0}}
 </style>
 {% endblock %}
 
@@ -80,27 +99,35 @@ select.fi{cursor:pointer}
       <div class="row2">
         <div class="fg">
           <label>Tên cửa hàng <span class="req">*</span></label>
-          <input name="ten" class="fi {% if form.ten.errors %}err{% endif %}" value="{{ form.ten.value|default:'' }}" placeholder="VD: Con Cưng Quận 1" required>
+          <input name="ten" class="fi {% if form.ten.errors %}err{% endif %}"
+                 value="{{ form.ten.value|default:'' }}" placeholder="VD: Con Cưng Quận 1" required>
           {% if form.ten.errors %}<div class="err-msg">{{ form.ten.errors.0 }}</div>{% endif %}
         </div>
         <div class="fg">
           <label>Mã cửa hàng <span class="req">*</span></label>
-          <input name="ma_cua_hang" class="fi {% if form.ma_cua_hang.errors %}err{% endif %}" value="{{ form.ma_cua_hang.value|default:'' }}" placeholder="VD: CC-Q1-001" required>
+          <input name="ma_cua_hang" class="fi {% if form.ma_cua_hang.errors %}err{% endif %}"
+                 value="{{ form.ma_cua_hang.value|default:'' }}" placeholder="VD: CC-Q1-001" required>
           {% if form.ma_cua_hang.errors %}<div class="err-msg">{{ form.ma_cua_hang.errors.0 }}</div>{% endif %}
         </div>
       </div>
       <div class="fg">
-        <label>Địa chỉ đầy đủ <span class="req">*</span></label>
-        <textarea name="dia_chi" class="fi" rows="2" placeholder="Số nhà, tên đường, phường/xã">{{ form.dia_chi.value|default:'' }}</textarea>
+        <label>Địa chỉ đầy đủ <span class="req">*</span><span class="auto-tip">💡 rời ô → tự geocode</span></label>
+        <textarea id="inp-dia-chi" name="dia_chi" class="fi" rows="2"
+                  placeholder="Số nhà, tên đường, phường/xã"
+                  onblur="autoGeoFromAddr()">{{ form.dia_chi.value|default:'' }}</textarea>
       </div>
       <div class="row3">
         <div class="fg" style="grid-column:span 2">
           <label>Quận/Huyện</label>
-          <input name="quan_huyen" class="fi" value="{{ form.quan_huyen.value|default:'' }}" placeholder="Quận 1">
+          <input id="inp-quan" name="quan_huyen" class="fi"
+                 value="{{ form.quan_huyen.value|default:'' }}" placeholder="Quận 1"
+                 onblur="autoGeoFromAddr()">
         </div>
         <div class="fg">
           <label>Tỉnh/Thành phố</label>
-          <input name="tinh_thanh" class="fi" value="{{ form.tinh_thanh.value|default:'' }}" placeholder="TP.HCM">
+          <input id="inp-tinh" name="tinh_thanh" class="fi"
+                 value="{{ form.tinh_thanh.value|default:'' }}" placeholder="TP.HCM"
+                 onblur="autoGeoFromAddr()">
         </div>
       </div>
     </div>
@@ -127,7 +154,7 @@ select.fi{cursor:pointer}
   <div class="fc">
     <div class="fc-hd"><div class="fc-ic ic-gr">⏰</div><div class="fc-title">Giờ hoạt động</div></div>
     <div class="fc-body">
-      <div class="time-row">
+      <div class="row3">
         <div class="fg">
           <label>Mở cửa</label>
           <input type="time" name="gio_mo_cua" class="fi" value="{{ form.gio_mo_cua.value|default:'08:00' }}">
@@ -146,9 +173,9 @@ select.fi{cursor:pointer}
 
   <!-- Quy mô -->
   <div class="fc">
-    <div class="fc-hd"><div class="fc-ic ic-pu">📊</div><div class="fc-title">Quy mô cửa hàng</div></div>
+    <div class="fc-hd"><div class="fc-ic ic-pu">📊</div><div class="fc-title">Quy mô & Trạng thái</div></div>
     <div class="fc-body">
-      <div class="row2">
+      <div class="row2" style="margin-bottom:.8rem">
         <div class="fg">
           <label>Diện tích (m²)</label>
           <input type="number" name="dien_tich" class="fi" value="{{ form.dien_tich.value|default:'' }}" placeholder="150" min="0">
@@ -162,67 +189,110 @@ select.fi{cursor:pointer}
         <label class="sw-label" for="hd-chk">
           <input type="checkbox" name="dang_hoat_dong" id="hd-chk" {% if form.dang_hoat_dong.value != False %}checked{% endif %}>
           <div class="sw-tog"></div>
-          <div><div style="font-size:.79rem;font-weight:600;color:var(--ink)">✅ Đang hoạt động</div><div class="hint">Tắt để ẩn khỏi danh sách cửa hàng</div></div>
+          <div>
+            <div style="font-size:.79rem;font-weight:600;color:var(--ink)">✅ Đang hoạt động</div>
+            <div class="hint">Tắt để ẩn cửa hàng khỏi danh sách công khai</div>
+          </div>
         </label>
       </div>
     </div>
   </div>
 
+  <!-- Nút lưu thứ 2 ở cột trái — tiện lợi khi form dài -->
+  <div style="display:flex;gap:.5rem;margin-top:.2rem">
+    <button type="submit" form="ch-form"
+            style="flex:1;padding:.58rem;background:linear-gradient(135deg,var(--or),#C94A0E);
+                   color:white;border:none;border-radius:9px;font-size:.82rem;font-weight:700;
+                   cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(255,107,53,.25);
+                   display:flex;align-items:center;justify-content:center;gap:.4rem">
+      💾 {% if form.instance.pk %}Cập nhật cửa hàng{% else %}Thêm cửa hàng mới{% endif %}
+    </button>
+    <a href="{% url 'quan_ly_cua_hang' %}"
+       style="padding:.58rem 1rem;border:1.5px solid var(--line);border-radius:9px;
+              font-size:.82rem;font-weight:700;color:var(--sub);text-decoration:none;
+              display:flex;align-items:center;gap:.3rem;white-space:nowrap">✕ Hủy</a>
+  </div>
+
 </div><!-- /col-left -->
 
-<!-- CỘT PHẢI: Bản đồ -->
+<!-- CỘT PHẢI: GPS MAP PICKER -->
 <div>
   <div class="fc" style="position:sticky;top:80px">
-    <div class="fc-hd"><div class="fc-ic ic-pk">📍</div><div class="fc-title">Vị trí trên bản đồ</div></div>
+    <div class="fc-hd">
+      <div class="fc-ic ic-pk">📍</div>
+      <div class="fc-title">Ghim vị trí GPS</div>
+      {% if form.instance.pk and form.instance.vi_tri %}
+        <span style="margin-left:auto;font-size:.64rem;font-weight:700;background:#DCFCE7;color:#16A34A;border-radius:5px;padding:.15rem .5rem">✓ Đã có GPS</span>
+      {% elif form.instance.pk %}
+        <span style="margin-left:auto;font-size:.64rem;font-weight:700;background:#FEF3C7;color:#92400E;border-radius:5px;padding:.15rem .5rem">⚠ Chưa có GPS</span>
+      {% endif %}
+    </div>
     <div class="fc-body">
 
-      <!-- Geocode -->
+      <!-- Search bar -->
       <div class="fg">
-        <label>Tìm địa chỉ tự động</label>
-        <div class="geocode-row">
-          <input type="text" id="geo-inp" class="fi" placeholder="Nhập địa chỉ để tìm tọa độ...">
-          <button type="button" class="btn-geo" id="btn-geo">🔍 Tìm</button>
+        <label>🔍 Tìm địa chỉ</label>
+        <div class="geo-bar">
+          <input type="text" id="geo-q" class="fi" placeholder="Nhập địa chỉ để tìm tọa độ..." autocomplete="off">
+          <button type="button" class="btn-geo" id="btn-search">🔍</button>
         </div>
-        <div id="geo-msg"></div>
+        <!-- Autocomplete dropdown -->
+        <div class="geo-dropdown">
+          <div class="geo-list" id="geo-list" style="display:none"></div>
+        </div>
+        <div class="geo-msg" id="geo-msg"></div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="gps-actions">
+        <button type="button" class="btn-gps" id="btn-my-gps" onclick="getGPS()">📡 Vị trí tôi</button>
+        <button type="button" class="btn-gps" onclick="geoFromForm()">🏠 Từ địa chỉ</button>
+        <button type="button" class="btn-gps danger" id="btn-clear" onclick="clearPin()" {% if not form.vi_do.value %}disabled{% endif %}>✕ Xóa ghim</button>
       </div>
 
       <!-- Map -->
-      <div class="hint" style="margin-bottom:.4rem">📌 Click lên bản đồ để đặt ghim, kéo ghim để điều chỉnh</div>
+      <div class="map-hint">📌 Click bản đồ để đặt ghim · Kéo ghim để chỉnh chính xác</div>
       <div id="map-picker"></div>
 
-      <!-- Tọa độ -->
-      <div class="coord-box">
-        <div class="coord-item"><span class="coord-lbl">Kinh độ</span><span class="coord-val" id="d-lng">--</span></div>
-        <div class="coord-item"><span class="coord-lbl">Vĩ độ</span><span class="coord-val" id="d-lat">--</span></div>
-        <button type="button" id="btn-clr-coord" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:6px;padding:.2rem .5rem;font-size:.68rem;cursor:pointer;color:var(--sub)">✕ Xóa</button>
+      <!-- Coordinates display -->
+      <div class="coord-box {% if not form.vi_do.value %}empty-coord{% endif %}" id="coord-box">
+        <div class="coord-item">
+          <span class="coord-lbl">Vĩ độ (Lat)</span>
+          <span class="coord-val {% if not form.vi_do.value %}na{% endif %}" id="d-lat">{{ form.vi_do.value|default:'--' }}</span>
+        </div>
+        <div class="coord-item">
+          <span class="coord-lbl">Kinh độ (Lng)</span>
+          <span class="coord-val {% if not form.kinh_do.value %}na{% endif %}" id="d-lng">{{ form.kinh_do.value|default:'--' }}</span>
+        </div>
+        <div class="coord-badge" id="coord-badge">
+          {% if form.vi_do.value %}<span class="badge-ok">✓ GPS xác định</span>{% else %}<span class="badge-no">Chưa có tọa độ</span>{% endif %}
+        </div>
       </div>
-      <input type="hidden" name="kinh_do" id="inp-lng" value="{{ form.kinh_do.value|default:'' }}">
       <input type="hidden" name="vi_do"   id="inp-lat" value="{{ form.vi_do.value|default:'' }}">
+      <input type="hidden" name="kinh_do" id="inp-lng" value="{{ form.kinh_do.value|default:'' }}">
 
-      {% if form.instance.pk and form.instance.vi_tri %}
-      <div style="margin-top:.65rem;padding:.5rem .75rem;background:#EFF6FF;border-radius:8px;font-size:.72rem;color:#1E40AF">
-        ℹ️ Tọa độ hiện tại: {{ form.instance.vi_do|floatformat:6 }}, {{ form.instance.kinh_do|floatformat:6 }}
+      <!-- Guide -->
+      <div style="margin-top:.7rem;padding:.55rem .8rem;background:#F8FAFC;border-radius:8px;font-size:.68rem;color:var(--sub);line-height:1.8;border:1px solid var(--line)">
+        <strong style="color:var(--ink)">3 cách ghim GPS:</strong><br>
+        1️⃣ <b>Click bản đồ</b> — chính xác nhất<br>
+        2️⃣ <b>Vị trí tôi</b> — GPS thiết bị, rồi kéo ghim<br>
+        3️⃣ <b>Từ địa chỉ</b> — geocode từ form bên trái
       </div>
-      {% elif form.instance.pk %}
-      <div style="margin-top:.65rem;padding:.5rem .75rem;background:#FFF7ED;border-radius:8px;font-size:.72rem;color:#9A3412">
-        ⚠️ Cửa hàng này chưa có tọa độ GPS. Hãy chọn vị trí trên bản đồ.
-      </div>
-      {% endif %}
 
-      <div style="margin-top:.65rem;padding:.5rem .75rem;background:#F8FAFC;border-radius:8px;font-size:.7rem;color:var(--sub);line-height:1.6">
-        💡 1. Nhập địa chỉ → Tìm · 2. Click bản đồ đặt ghim · 3. Kéo ghim chỉnh vị trí
+      <!-- NÚT LƯU bên trong card — tránh bị ẩn do sticky parent -->
+      <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.45rem">
+        <button type="submit" class="btn-save" id="btn-submit">
+          💾 {% if form.instance.pk %}Cập nhật cửa hàng{% else %}Thêm cửa hàng mới{% endif %}
+        </button>
+        <a href="{% url 'quan_ly_cua_hang' %}" class="btn-adm btn-gray"
+           style="width:100%;justify-content:center;box-sizing:border-box">✕ Hủy</a>
       </div>
 
     </div>
   </div>
 
-  <!-- Lưu -->
-  <button type="submit" class="btn-save" style="margin-top:.5rem">
-    💾 {% if form.instance.pk %}Cập nhật cửa hàng{% else %}Thêm cửa hàng mới{% endif %}
-  </button>
-  <a href="{% url 'quan_ly_cua_hang' %}" class="btn-adm btn-gray" style="width:100%;justify-content:center;margin-top:.45rem">✕ Hủy</a>
+</div>
 
-</div><!-- /col-right -->
 </div><!-- /form-layout -->
 </form>
 {% endblock %}
@@ -230,59 +300,249 @@ select.fi{cursor:pointer}
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const initLat={{ form.vi_do.value|default:"10.8231" }};
-const initLng={{ form.kinh_do.value|default:"106.6297" }};
-const hasCoord={{ form.vi_do.value|yesno:"true,false" }};
+/* ================================================================
+   GPS MAP PICKER — Con Cưng Admin
+   Fix: OSM tile (không bị block referer) + geocode qua Django API
+   Feature: click ghim, drag, GPS, autocomplete, auto-geocode
+================================================================ */
 
-const map=L.map('map-picker').setView([initLat,initLng],hasCoord?15:12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+const INIT_LAT  = {{ form.vi_do.value|default:"10.8231" }};
+const INIT_LNG  = {{ form.kinh_do.value|default:"106.6297" }};
+const HAS_COORD = {{ form.vi_do.value|yesno:"true,false" }};
+const API_GEO   = "{% url 'api_geocode' %}";
+const API_SUGG  = "{% url 'api_goi_y_dia_chi' %}";
 
-const pinIcon=L.divIcon({
-  html:`<div style="width:28px;height:28px;background:#E85D2F;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,.35)"></div>`,
-  iconSize:[28,28],iconAnchor:[14,28],className:''
+// ── Khởi tạo bản đồ ──────────────────────────────────────────────
+const map = L.map('map-picker', { zoomControl:true, attributionControl:false })
+             .setView([INIT_LAT, INIT_LNG], HAS_COORD ? 16 : 12);
+
+// OSM tile: không bị "Access blocked - Referer is required"
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  crossOrigin: 'anonymous',   // <-- fix CORS khi dùng localhost
+}).addTo(map);
+
+// Attribution nhỏ
+L.control.attribution({prefix:false})
+ .addAttribution('© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>')
+ .addTo(map);
+
+// ── Pin icon ──────────────────────────────────────────────────────
+function pinIcon(pulse) {
+  return L.divIcon({
+    html: `<div style="position:relative;width:36px;height:36px">
+      ${pulse?`<div style="position:absolute;top:2px;left:2px;width:32px;height:32px;
+        border-radius:50%;background:rgba(232,93,47,.3);
+        animation:pulse-pin 1.4s ease-out infinite"></div>`:''}
+      <div style="position:absolute;top:2px;left:2px;width:32px;height:32px;
+        background:linear-gradient(135deg,#E85D2F,#C94A0E);
+        border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+        border:3px solid white;box-shadow:0 4px 14px rgba(0,0,0,.35)"></div>
+      <div style="position:absolute;top:10px;left:10px;width:8px;height:8px;
+        background:white;border-radius:50%"></div>
+    </div>`,
+    iconSize:[36,36], iconAnchor:[18,36], className:''
+  });
+}
+
+// ── State ─────────────────────────────────────────────────────────
+let marker = null;
+let lastAutoAddr = '';
+
+// ── Đặt ghim ─────────────────────────────────────────────────────
+function setPin(lat, lng, fly=true, pulse=false) {
+  lat = +parseFloat(lat).toFixed(6);
+  lng = +parseFloat(lng).toFixed(6);
+  if (marker) map.removeLayer(marker);
+  marker = L.marker([lat,lng], {icon:pinIcon(pulse), draggable:true}).addTo(map);
+  marker.on('drag', e => updateUI(e.target.getLatLng().lat, e.target.getLatLng().lng, false));
+  marker.on('dragend', e => updateUI(e.target.getLatLng().lat, e.target.getLatLng().lng));
+  updateUI(lat, lng);
+  if (fly) map.flyTo([lat,lng], Math.max(map.getZoom(),16), {duration:.8});
+  document.getElementById('map-picker').classList.add('has-pin');
+  document.getElementById('btn-clear').disabled = false;
+}
+
+// ── Cập nhật giao diện tọa độ ────────────────────────────────────
+function updateUI(lat, lng, save=true) {
+  const ls = parseFloat(lat).toFixed(6), ls2 = parseFloat(lng).toFixed(6);
+  document.getElementById('d-lat').textContent = ls;
+  document.getElementById('d-lng').textContent = ls2;
+  document.getElementById('d-lat').classList.remove('na');
+  document.getElementById('d-lng').classList.remove('na');
+  if (save) {
+    document.getElementById('inp-lat').value = ls;
+    document.getElementById('inp-lng').value = ls2;
+  }
+  const box = document.getElementById('coord-box');
+  box.classList.remove('empty-coord');
+  box.style.cssText = 'background:#FFFBF7;border-color:#FFD4B5';
+  document.getElementById('coord-badge').innerHTML = '<span class="badge-ok">✓ GPS xác định</span>';
+}
+
+// ── Xóa ghim ─────────────────────────────────────────────────────
+function clearPin() {
+  if (marker) { map.removeLayer(marker); marker = null; }
+  ['inp-lat','inp-lng'].forEach(id => document.getElementById(id).value = '');
+  ['d-lat','d-lng'].forEach(id => { const el=document.getElementById(id); el.textContent='--'; el.classList.add('na'); });
+  const box = document.getElementById('coord-box');
+  box.classList.add('empty-coord'); box.style.cssText = '';
+  document.getElementById('coord-badge').innerHTML = '<span class="badge-no">Chưa có tọa độ</span>';
+  document.getElementById('map-picker').classList.remove('has-pin');
+  document.getElementById('btn-clear').disabled = true;
+}
+
+// ── Init nếu đã có tọa độ ────────────────────────────────────────
+if (HAS_COORD) setPin(INIT_LAT, INIT_LNG, false);
+
+// ── Click bản đồ → ghim ──────────────────────────────────────────
+map.on('click', e => { setPin(e.latlng.lat, e.latlng.lng, false); map.panTo(e.latlng,{animate:true,duration:.3}); });
+
+// ═══ GEOCODING QUA DJANGO API ═══════════════════════════════════
+
+async function geocode(addr) {
+  if (!addr || addr.length < 5) return null;
+  try {
+    const r = await fetch(`${API_GEO}?dia_chi=${encodeURIComponent(addr)}`, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const d = await r.json();
+    return (d.vi_do && d.kinh_do) ? d : null;
+  } catch { return null; }
+}
+
+// ── Auto geocode khi rời ô địa chỉ (chỉ nếu chưa có ghim) ──────
+async function autoGeoFromAddr() {
+  if (marker) return;   // đã có ghim → không ghi đè
+  const parts = [
+    document.getElementById('inp-dia-chi').value.trim(),
+    document.getElementById('inp-quan').value.trim(),
+    document.getElementById('inp-tinh').value.trim(),
+  ].filter(Boolean);
+  const addr = parts.join(', ');
+  if (!addr || addr.length < 8 || addr === lastAutoAddr) return;
+  lastAutoAddr = addr;
+  setMsg('loading','⏳ Đang tự động tìm tọa độ...');
+  const d = await geocode(addr);
+  if (d) { setPin(d.vi_do, d.kinh_do, true, true); setMsg('ok',`✅ Tự động ghim: ${(d.ten_hien_thi||addr).slice(0,55)}...`); }
+  else { setMsg('err','⚠ Không tự geocode được. Click bản đồ để ghim thủ công.'); }
+}
+
+// ── Nút "Từ địa chỉ" ─────────────────────────────────────────────
+async function geoFromForm() {
+  const parts = [
+    document.getElementById('inp-dia-chi').value.trim(),
+    document.getElementById('inp-quan').value.trim(),
+    document.getElementById('inp-tinh').value.trim(),
+  ].filter(Boolean);
+  const addr = parts.join(', ');
+  if (!addr) { setMsg('err','❌ Nhập địa chỉ bên trái trước.'); return; }
+  setMsg('loading','⏳ Đang geocode từ địa chỉ...');
+  const d = await geocode(addr);
+  if (d) { setPin(d.vi_do, d.kinh_do, true, true); setMsg('ok',`✅ ${(d.ten_hien_thi||addr).slice(0,60)}`); }
+  else { setMsg('err','❌ Không tìm được. Thử địa chỉ chi tiết hơn.'); }
+}
+
+// ── Tìm theo ô search ────────────────────────────────────────────
+let sugTimer = null;
+const geoQ = document.getElementById('geo-q');
+const geoList = document.getElementById('geo-list');
+
+geoQ.addEventListener('input', e => {
+  clearTimeout(sugTimer);
+  const q = e.target.value.trim();
+  if (q.length < 3) { geoList.style.display='none'; return; }
+  sugTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`${API_SUGG}?q=${encodeURIComponent(q)}`);
+      const d = await r.json();
+      if (d.goi_y && d.goi_y.length) showList(d.goi_y);
+      else geoList.style.display='none';
+    } catch { geoList.style.display='none'; }
+  }, 320);
 });
 
-let mk=null;
-function setMk(lat,lng){
-  if(mk)map.removeLayer(mk);
-  mk=L.marker([lat,lng],{icon:pinIcon,draggable:true}).addTo(map);
-  mk.on('dragend',e=>{const p=e.target.getLatLng();upCoord(p.lat,p.lng)});
-  upCoord(lat,lng);
+geoQ.addEventListener('keydown', e => {
+  if (e.key==='Enter') { e.preventDefault(); doSearch(); }
+  if (e.key==='Escape') geoList.style.display='none';
+});
+
+document.getElementById('btn-search').addEventListener('click', doSearch);
+
+function showList(items) {
+  geoList.innerHTML = items.map(it =>
+    `<div class="geo-list-item"
+         onclick="pickItem(${it.vi_do},${it.kinh_do},'${it.ten.replace(/'/g,"\\'")}')">
+      <div style="font-weight:600">📍 ${it.ten}</div>
+      ${it.day_du ? `<div class="geo-list-item-sub">${it.day_du.slice(0,70)}</div>` : ''}
+    </div>`
+  ).join('');
+  geoList.style.display = 'block';
 }
-function upCoord(lat,lng){
-  document.getElementById('d-lat').textContent=lat.toFixed(6);
-  document.getElementById('d-lng').textContent=lng.toFixed(6);
-  document.getElementById('inp-lat').value=lat.toFixed(6);
-  document.getElementById('inp-lng').value=lng.toFixed(6);
+
+function pickItem(lat, lng, ten) {
+  setPin(lat, lng, true, true);
+  geoQ.value = ten; geoList.style.display='none';
+  setMsg('ok', `✅ Đã ghim: ${ten}`);
 }
 
-if(hasCoord)setMk(initLat,initLng);
-
-map.on('click',e=>{ setMk(e.latlng.lat,e.latlng.lng); map.panTo(e.latlng); });
-
-document.getElementById('btn-clr-coord').onclick=()=>{
-  if(mk){map.removeLayer(mk);mk=null}
-  ['d-lat','d-lng'].forEach(id=>document.getElementById(id).textContent='--');
-  ['inp-lat','inp-lng'].forEach(id=>document.getElementById(id).value='');
-};
-
-// Geocode
-const btnGeo=document.getElementById('btn-geo');
-async function doGeocode(){
-  const q=document.getElementById('geo-inp').value.trim();if(!q)return;
-  const msg=document.getElementById('geo-msg');
-  msg.className='geo-msg geo-loading';msg.textContent='⏳ Đang tìm địa chỉ...';
-  try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+', Vietnam')}&format=json&limit=1`);
-    const d=await r.json();
-    if(d.length){
-      const lat=parseFloat(d[0].lat),lng=parseFloat(d[0].lon);
-      setMk(lat,lng);map.setView([lat,lng],16);
-      msg.className='geo-msg geo-ok';msg.textContent='✅ Tìm thấy: '+d[0].display_name.slice(0,60)+'...';
-    }else{msg.className='geo-msg geo-err';msg.textContent='❌ Không tìm thấy địa chỉ này'}
-  }catch(e){msg.className='geo-msg geo-err';msg.textContent='❌ Lỗi kết nối. Thử lại sau.'}
+async function doSearch() {
+  geoList.style.display='none';
+  const q = geoQ.value.trim(); if (!q) return;
+  const btn = document.getElementById('btn-search');
+  btn.disabled=true; btn.textContent='⏳';
+  setMsg('loading','⏳ Đang tìm...');
+  const d = await geocode(q);
+  if (d) { setPin(d.vi_do, d.kinh_do, true, true); setMsg('ok',`✅ ${(d.ten_hien_thi||q).slice(0,65)}`); }
+  else { setMsg('err','❌ Không tìm thấy. Thử từ khóa khác.'); }
+  btn.disabled=false; btn.textContent='🔍';
 }
-btnGeo.onclick=doGeocode;
-document.getElementById('geo-inp').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();doGeocode()}};
+
+// ── GPS thiết bị ─────────────────────────────────────────────────
+function getGPS() {
+  const btn = document.getElementById('btn-my-gps');
+  if (!navigator.geolocation) { setMsg('err','❌ Trình duyệt không hỗ trợ GPS.'); return; }
+  btn.disabled=true; btn.textContent='⏳';
+  setMsg('loading','⏳ Đang lấy GPS từ thiết bị...');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const {latitude:lat, longitude:lng, accuracy:acc} = pos.coords;
+      setPin(lat, lng, true, true);
+      setMsg('ok',`✅ GPS ~${Math.round(acc)}m — kéo ghim để chỉnh vị trí cửa hàng`);
+      btn.disabled=false; btn.textContent='📡 Vị trí tôi';
+    },
+    err => {
+      const msgs={1:'Bị từ chối GPS.',2:'Không lấy được vị trí.',3:'GPS timeout.'};
+      setMsg('err',`❌ ${msgs[err.code]||'Lỗi GPS.'} Hãy click bản đồ.`);
+      btn.disabled=false; btn.textContent='📡 Vị trí tôi';
+    },
+    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
+  );
+}
+
+// ── Helper hiển thị message ───────────────────────────────────────
+function setMsg(type, txt) {
+  const el = document.getElementById('geo-msg');
+  el.className = `geo-msg geo-${type}`;
+  el.textContent = txt;
+  if (type !== 'loading') setTimeout(()=>{ el.textContent=''; el.className='geo-msg'; }, 6000);
+}
+
+// ── Đóng dropdown khi click ngoài ───────────────────────────────
+document.addEventListener('click', e => {
+  if (!e.target.closest('#geo-q') && !e.target.closest('.geo-list')) geoList.style.display='none';
+});
+
+// ── Validate trước submit (cảnh báo nhẹ, không chặn) ────────────
+document.getElementById('ch-form').addEventListener('submit', function(e) {
+  if (!document.getElementById('inp-lat').value) {
+    if (!confirm('⚠ Chưa ghim tọa độ GPS.\n\nCửa hàng sẽ không hiển thị trên bản đồ.\n\nBấm OK để lưu, Cancel để quay lại ghim.')) {
+      e.preventDefault(); return;
+    }
+  }
+  const btn = document.getElementById('btn-submit');
+  btn.disabled=true; btn.innerHTML='⏳ Đang lưu...';
+});
+
+// ── Invalidate map sau render ─────────────────────────────────────
+setTimeout(() => map.invalidateSize(), 250);
 </script>
 {% endblock %}

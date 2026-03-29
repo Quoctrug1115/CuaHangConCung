@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ cua_hang.ten }} — Con Cưng{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box}
@@ -60,7 +61,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
 .btn-back:hover{border-color:var(--ord);color:var(--ord)}
 
 /* Leaflet map */
-#cstore-map{height:280px;border-radius:14px;margin:0 1.4rem 1.4rem}
+#cstore-map{height:320px;border-radius:14px;margin:0 1.4rem 1.4rem;overflow:hidden;position:relative;z-index:0;width:auto}
 
 /* Staff */
 .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.65rem;padding:0 1.4rem 1.4rem}
@@ -98,12 +99,13 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
   background:white;border-radius:18px;overflow:hidden;
   box-shadow:0 3px 16px rgba(0,0,0,.07);margin-bottom:1rem
 }
-
+/* Map card: overflow visible để Leaflet render tile đúng */
+.info-card.map-card{overflow:visible}
 @media(max-width:640px){
   .info-grid{grid-template-columns:1fr}
   .ig-full{grid-column:span 1}
   .c-hero h1{font-size:1.7rem}
-  #cstore-map{margin:0 .8rem .8rem;height:220px}
+  #cstore-map{margin:0 .8rem .8rem;height:260px;overflow:hidden}
 }
 </style>
 {% endblock %}
@@ -264,7 +266,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
     <div class="col-lg-7">
 
       <!-- Bản đồ nâng cao -->
-      <div class="info-card" style="padding:0;overflow:hidden;">
+      <div class="info-card map-card" style="padding:0;">
         {% if cua_hang.vi_tri %}
         <div style="padding:.65rem 1rem;border-bottom:1px solid #F0F2F9;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
           <div style="font-weight:800;font-size:.83rem;color:#1A1A2E;display:flex;align-items:center;gap:.4rem"><i class="bi bi-map-fill" style="color:var(--ord)"></i> Vị trí trên bản đồ</div>
@@ -343,12 +345,51 @@ const STORE_LAT = {{ cua_hang.vi_do }};
 const STORE_LNG = {{ cua_hang.kinh_do }};
 const API_ROUTE = "{% url 'api_duong_di' %}";
 
-// ── Map init ─────────────────────────────────────
-const map = L.map('cstore-map', {zoomControl:false}).setView([STORE_LAT, STORE_LNG], 16);
-L.control.zoom({position:'bottomright'}).addTo(map);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>', maxZoom:19
-}).addTo(map);
+// ── Map init — khởi tạo sau khi DOM + Bootstrap grid render xong ────────
+let map;
+
+function initMap() {
+  const el = document.getElementById('cstore-map');
+  if (!el || map) return;
+  
+  // Đảm bảo container có kích thước thực sự
+  if (el.offsetWidth === 0 || el.offsetHeight === 0) {
+    requestAnimationFrame(initMap);
+    return;
+  }
+
+  map = L.map('cstore-map', {zoomControl: false})
+          .setView([STORE_LAT, STORE_LNG], 16);
+
+  L.control.zoom({position: 'bottomright'}).addTo(map);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 19,
+    crossOrigin: 'anonymous',
+  }).addTo(map);
+
+  // Sau khi add tile layer, invalidate để tile load đúng
+  setTimeout(() => { if(map) map.invalidateSize(true); }, 50);
+  setTimeout(() => { if(map) map.invalidateSize(true); }, 300);
+
+  // Theo dõi resize của container (khi sidebar collapse, responsive...)
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => { if(map) map.invalidateSize(true); }).observe(el);
+  }
+
+  initMapFeatures(); // Thêm markers, routing etc.
+}
+
+// Gọi sau khi window load xong (Bootstrap đã tính xong layout)
+window.addEventListener('load', initMap);
+// Fallback nếu load đã xong
+if (document.readyState === 'complete') initMap();
+
+function initMapFeatures() {
+// These functions are called from HTML buttons — need global scope
+window.findRouteToStore = findRouteToStore;
+window.clearRoute = clearRoute;
 
 // ── Store pin ────────────────────────────────────
 const storePin = L.divIcon({
@@ -400,12 +441,17 @@ function findRouteToStore() {
     map.fitBounds([[myLat,myLng],[STORE_LAT,STORE_LNG]], {padding:[40,40]});
 
     // Fetch route via OSRM API
-    fetch(`${API_ROUTE}?tu_vi_do=${myLat}&tu_kinh_do=${myLng}&den_vi_do=${STORE_LAT}&den_kinh_do=${STORE_LNG}`)
+    fetch(`${API_ROUTE}?tu_lat=${myLat}&tu_lng=${myLng}&den_lat=${STORE_LAT}&den_lng=${STORE_LNG}`)
       .then(r => r.json())
       .then(d => {
         if(routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
-        if(d.duong_di && d.duong_di.length) {
-          const coords = d.duong_di.map(p => [p[1], p[0]]);
+        // API trả về GeoJSON geometry: {type:"LineString", coordinates:[[lng,lat],...]}
+        const geo = d.geometry;
+        const rawCoords = geo && geo.coordinates ? geo.coordinates
+                        : (d.duong_di || []);  // fallback
+        if(rawCoords.length) {
+          // GeoJSON: [lng, lat] → Leaflet cần [lat, lng]
+          const coords = rawCoords.map(p => Array.isArray(p) ? [p[1], p[0]] : p);
           routeLayer = L.polyline(coords, {
             color:'#1565C0', weight:4, opacity:.85, dashArray:null,
             lineCap:'round', lineJoin:'round'
@@ -447,6 +493,8 @@ function clearRoute() {
   document.getElementById('route-bar').style.display = 'none';
   map.setView([STORE_LAT, STORE_LNG], 16);
 }
+
+} // end initMapFeatures()
 </script>
 {% endif %}
 {% endblock %}
