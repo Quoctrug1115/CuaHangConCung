@@ -73,7 +73,7 @@
 
 <!-- Status tabs -->
 <div class="dg-tabs">
-  <a href="{% url 'dang_giao_hang' %}" class="dg-tab {% if not request.GET.trang_thai %}active{% endif %}">🚀 Tất cả đang vận chuyển</a>
+  <a href="{% url 'quan_ly_don_hang' %}?trang_thai=dang_dong_goi" class="dg-tab {% if not request.GET.trang_thai %}active{% endif %}">🚀 Tất cả đang vận chuyển</a>
   <a href="?trang_thai=dang_dong_goi" class="dg-tab {% if request.GET.trang_thai == 'dang_dong_goi' %}active{% endif %}">📦 Đang đóng gói</a>
   <a href="?trang_thai=ban_giao_van_chuyen" class="dg-tab {% if request.GET.trang_thai == 'ban_giao_van_chuyen' %}active{% endif %}">🏷 Bàn giao VC</a>
   <a href="?trang_thai=dang_giao" class="dg-tab {% if request.GET.trang_thai == 'dang_giao' %}active{% endif %}">🚚 Đang giao</a>
@@ -173,20 +173,20 @@
       {% endif %}
     </div>
     <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-      <a href="{% url 'chi_tiet_don_hang' dh.pk %}" class="btn-adm btn-blue btn-sm">👁 Chi tiết</a>
-      <button class="btn-adm btn-gray btn-sm" onclick="openCapNhatModal({{ dh.id }},'{{ dh.ma_don_hang }}','{{ ts }}')">✏️ Cập nhật</button>
+      <a href="{% url 'theo_doi_don_hang' dh.ma_don_hang %}" class="btn-adm btn-blue btn-sm">👁 Chi tiết</a>
+      <button class="btn-adm btn-gray btn-sm" onclick="openCapNhatModal({{ dh.id }},'{{ dh.ma_don_hang|escapejs }}','{{ ts|escapejs }}')">✏️ Cập nhật</button>
       {% if ts == 'dang_giao' %}
-      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+      <form method="POST" action="{% url 'cap_nhat_trang_thai' dh.pk %}" style="display:inline">
         {% csrf_token %}<input type="hidden" name="trang_thai" value="da_giao">
         <button type="submit" class="btn-adm btn-or">🎉 Đã giao thành công</button>
       </form>
       {% elif ts == 'dang_dong_goi' %}
-      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+      <form method="POST" action="{% url 'cap_nhat_trang_thai' dh.pk %}" style="display:inline">
         {% csrf_token %}<input type="hidden" name="trang_thai" value="ban_giao_van_chuyen">
         <button type="submit" class="btn-adm btn-green btn-sm">→ Bàn giao VC</button>
       </form>
       {% elif ts == 'ban_giao_van_chuyen' %}
-      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+      <form method="POST" action="{% url 'cap_nhat_trang_thai' dh.pk %}" style="display:inline">
         {% csrf_token %}<input type="hidden" name="trang_thai" value="dang_giao">
         <button type="submit" class="btn-adm btn-green btn-sm">🚚 Bắt đầu giao</button>
       </form>
@@ -256,7 +256,7 @@
 <script>
 function openCapNhatModal(id,ma,status){
   document.getElementById('capNhatDonInfo').textContent='Đơn hàng #'+ma;
-  document.getElementById('capNhatForm').action='/orders/'+id+'/cap-nhat-trang-thai/';
+  document.getElementById('capNhatForm').action='/don-hang/quan-ly/'+id+'/cap-nhat/';
   document.getElementById('newStatusSel').value=status;
   document.getElementById('capNhatModal').classList.add('open');
 }

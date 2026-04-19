@@ -37,9 +37,13 @@ class CuaHangForm(forms.ModelForm):
         cua_hang = super().save(commit=False)
         kinh_do = self.cleaned_data.get('kinh_do')
         vi_do = self.cleaned_data.get('vi_do')
-        if kinh_do and vi_do:
+        if kinh_do is not None and vi_do is not None:
+            # Có tọa độ → lưu GPS
             from django.contrib.gis.geos import Point
-            cua_hang.vi_tri = Point(kinh_do, vi_do, srid=4326)
+            cua_hang.vi_tri = Point(float(kinh_do), float(vi_do), srid=4326)
+        else:
+            # Không có tọa độ → xóa GPS (user đã nhấn Xóa ghim)
+            cua_hang.vi_tri = None
         if commit:
             cua_hang.save()
         return cua_hang

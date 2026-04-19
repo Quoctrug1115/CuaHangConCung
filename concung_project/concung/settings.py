@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'concung.middleware.PermissionsPolicyMiddleware',  # GPS + OSM tile headers
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -108,3 +109,8 @@ if os.name == 'nt':  # Windows
     PROJ_LIB = r'C:\Users\TRUNG\AppData\Local\Programs\OSGeo4W\share\proj'
     os.environ['PATH'] = r'C:\Users\TRUNG\AppData\Local\Programs\OSGeo4W\bin' + ';' + os.environ.get('PATH', '')
 
+
+# Permissions-Policy: cho phép Geolocation API hoạt động
+# Cần thiết để navigator.geolocation.getCurrentPosition() hoạt động
+# khi truy cập qua một số browser với chính sách restrictive
+SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'

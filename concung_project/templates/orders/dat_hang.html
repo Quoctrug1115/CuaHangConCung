@@ -5,7 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
 * { font-family: 'Be Vietnam Pro', sans-serif; }
 :root {
-  --or: #E85D7E; --ord: #FFB6D9; --orp: #FFF0F5; --orb: #FFD4E5;
+  --or: #FF379b; --ord: #ff889b; --orp: #FFF3E8; --orb: #FFD5B0;
   --ink: #1C1C2E; --mu: #8A8FAF; --sf: #F7F8FC;
 }
 body { background: var(--sf); }
@@ -126,14 +126,14 @@ body { background: var(--sf); }
         <div class="sc">
           <div class="sc-head"><div class="sc-num">2</div><div class="sc-title">Phương thức giao hàng</div></div>
           <div class="sc-body">
-            <label class="dm {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}sel{% endif %}" id="lbl-g" onclick="setG('giao_tan_noi')">
-              <input type="radio" name="phuong_thuc_giao" value="giao_tan_noi" {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}checked{% endif %}>
+            <label class="dm {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}sel{% endif %}" id="lbl-g" for="radio-giao">
+              <input type="radio" id="radio-giao" name="phuong_thuc_giao" value="giao_tan_noi" {% if post_data.phuong_thuc_giao != 'nhan_tai_cua_hang' %}checked{% endif %} onchange="setG('giao_tan_noi')">
               <span class="dm-ic">🚚</span>
               <div><div class="dm-nm">Giao tận nơi</div><div class="dm-ds">Nhận hàng trong 2–4 ngày làm việc</div></div>
               <span class="dm-bj p">30.000₫</span>
             </label>
-            <label class="dm {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}sel{% endif %}" id="lbl-c" onclick="setG('nhan_tai_cua_hang')">
-              <input type="radio" name="phuong_thuc_giao" value="nhan_tai_cua_hang" {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}checked{% endif %}>
+            <label class="dm {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}sel{% endif %}" id="lbl-c" for="radio-cua-hang">
+              <input type="radio" id="radio-cua-hang" name="phuong_thuc_giao" value="nhan_tai_cua_hang" {% if post_data.phuong_thuc_giao == 'nhan_tai_cua_hang' %}checked{% endif %} onchange="setG('nhan_tai_cua_hang')">
               <span class="dm-ic">🏪</span>
               <div><div class="dm-nm">Nhận tại cửa hàng</div><div class="dm-ds">Sẵn sàng sau 2 giờ · Hoàn toàn miễn phí</div></div>
               <span class="dm-bj f">Miễn phí</span>
@@ -295,16 +295,25 @@ updTotal();
 function setG(val) {
   const isG = val === 'giao_tan_noi';
   document.getElementById('s-dc').style.display = isG ? '' : 'none';
-  document.getElementById('s-ch').style.display = isG ? 'none' : '';
+  const sCh = document.getElementById('s-ch');
+  sCh.style.display = isG ? 'none' : '';
   document.getElementById('lbl-g').classList.toggle('sel', isG);
   document.getElementById('lbl-c').classList.toggle('sel', !isG);
-  document.querySelector('[value="giao_tan_noi"]').checked = isG;
-  document.querySelector('[value="nhan_tai_cua_hang"]').checked = !isG;
   phi = isG ? 30000 : 0;
   document.getElementById('v-ship').textContent = isG ? '30.000₫' : 'Miễn phí 🎉';
   updTotal();
-  // Init minimap when store section shown
-  if(!isG && !minimapInit) initMinimap();
+  // FIX: dùng double-rAF để Leaflet tính đúng kích thước sau khi display:none → block
+  if (!isG) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!minimapInit) {
+          initMinimap();
+        } else if (minimap) {
+          minimap.invalidateSize(true);
+        }
+      });
+    });
+  }
 }
 (function(){ const c = document.querySelector('[name="phuong_thuc_giao"]:checked'); if(c) setG(c.value); })();
 
@@ -366,12 +375,20 @@ function initMinimap() {
   minimapInit = true;
   minimap = L.map('ch-minimap', {zoomControl:false, attributionControl:false})
     .setView([10.8231, 106.6297], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(minimap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    crossOrigin: 'anonymous',
+    attribution: '© OpenStreetMap'
+  }).addTo(minimap);
+
+  // FIX: force Leaflet recalculate container size (container was display:none on init)
+  setTimeout(() => minimap.invalidateSize(true), 50);
+  setTimeout(() => minimap.invalidateSize(true), 300);
 
   // Add all store markers
   Object.values(CH_DATA).forEach(ch => {
     const ico = L.divIcon({
-      html:`<div style="width:10px;height:10px;background:#E85D7E;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+      html:`<div style="width:10px;height:10px;background:#FF379b;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
       iconSize:[10,10], iconAnchor:[5,10], className:''
     });
     const m = L.marker([ch.vi_do, ch.kinh_do], {icon: ico})
@@ -398,7 +415,7 @@ function selectCH(id, name, vi_do, kinh_do) {
     if(prevChk) { prevChk.style.background='#E4E8F5'; prevChk.innerHTML=''; }
     // Reset marker
     if(mmMarkers[selectedCHId]) mmMarkers[selectedCHId].setIcon(
-      L.divIcon({html:`<div style="width:10px;height:10px;background:#E85D7E;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,iconSize:[10,10],iconAnchor:[5,10],className:''})
+      L.divIcon({html:`<div style="width:10px;height:10px;background:#FF379b;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,iconSize:[10,10],iconAnchor:[5,10],className:''})
     );
   }
 
@@ -408,12 +425,12 @@ function selectCH(id, name, vi_do, kinh_do) {
   const row = document.getElementById('chr-'+id);
   if(row) {
     row.style.background = 'rgba(255,55,155,.06)';
-    row.style.borderLeftColor = '#E85D7E';
+    row.style.borderLeftColor = '#FF379b';
     row.scrollIntoView({behavior:'smooth', block:'nearest'});
   }
   // Tick icon
   const chk = document.getElementById('chk-'+id);
-  if(chk) { chk.style.background='#E85D7E'; chk.innerHTML='<div style="width:4px;height:4px;background:white;border-radius:50%;margin:2px auto"></div>'; }
+  if(chk) { chk.style.background='#FF379b'; chk.innerHTML='<div style="width:4px;height:4px;background:white;border-radius:50%;margin:2px auto"></div>'; }
 
   // Sync hidden select — CRITICAL: must set value so form submits correctly
   const sel = document.getElementById('inp-ch');
@@ -434,7 +451,7 @@ function selectCH(id, name, vi_do, kinh_do) {
       // Big selected marker
       if(mmMarkers[id]) mmMarkers[id].setIcon(
         L.divIcon({
-          html:`<div style="width:16px;height:16px;background:#E85D7E;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 3px 10px rgba(232,93,126,.5)"></div>`,
+          html:`<div style="width:16px;height:16px;background:#FF379b;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 3px 10px rgba(255,55,155,.5)"></div>`,
           iconSize:[16,16], iconAnchor:[8,16], className:''
         })
       );
@@ -498,9 +515,17 @@ function findNearMe() {
 }
 
 // Init minimap if store pickup is already selected on load
-(function(){
+// FIX: dùng window.load để đảm bảo CSS đã apply + container có kích thước thật
+window.addEventListener('load', function() {
   const c = document.querySelector('[name="phuong_thuc_giao"]:checked');
-  if(c && c.value === 'nhan_tai_cua_hang') setTimeout(initMinimap, 100);
-})();
+  if (c && c.value === 'nhan_tai_cua_hang') {
+    // Container đang visible → init ngay
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        initMinimap();
+      });
+    });
+  }
+});
 </script>
 {% endblock %}

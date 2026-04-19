@@ -1,38 +1,35 @@
 {% extends 'admin_base.html' %}
-{% block title %}Xác nhận nghỉ việc - {{ nv.nguoi_dung.get_full_name }}{% endblock %}
-{% block page_title %}Xác nhận nghỉ việc{% endblock %}
-{% block breadcrumb %} › <a href="{% url 'quan_ly_nhan_vien' %}">Nhân viên</a> › Xác nhận nghỉ việc{% endblock %}
+{% block title %}Xác nhận vô hiệu hoá nhân viên - Con Cưng{% endblock %}
+{% block page_title %}Xác nhận vô hiệu hoá{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nhan_vien' %}">Nhân viên</a> › Xác nhận xoá{% endblock %}
 
 {% block admin_content %}
-<div style="max-width:520px;margin:0 auto">
+<div style="max-width:500px;margin:0 auto">
   <div style="background:white;border-radius:16px;border:1px solid var(--line);overflow:hidden">
-    <!-- Warning header -->
-    <div style="background:linear-gradient(135deg,#FEF2F2,#FFF5F5);padding:1.8rem;text-align:center;border-bottom:1px solid #FECACA">
-      <div style="width:60px;height:60px;background:#FEE2E2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto .8rem">⚠️</div>
-      <h5 style="font-size:1.1rem;font-weight:800;color:#991B1B;margin-bottom:.3rem">Xác nhận cho nghỉ việc</h5>
-      <p style="font-size:.83rem;color:#DC2626;margin:0">Thao tác này sẽ đánh dấu nhân viên là <strong>nghỉ việc</strong>.</p>
+    <div style="background:linear-gradient(135deg,#FEF2F2,#FFF5F5);padding:2rem;text-align:center;border-bottom:1px solid #FECACA">
+      <div style="font-size:3rem;margin-bottom:.5rem">⚠️</div>
+      <h5 style="font-weight:800;color:#991B1B;margin:0">Xác nhận vô hiệu hoá nhân viên</h5>
+      <p style="font-size:.83rem;color:#DC2626;margin:.5rem 0 0">Nhân viên sẽ bị đánh dấu <strong>nghỉ việc</strong>, tài khoản vẫn được giữ lại.</p>
     </div>
-
-    <!-- Staff info -->
-    <div style="padding:1.3rem">
-      <div style="background:#F8FAFC;border-radius:10px;padding:.9rem 1rem;margin-bottom:1.3rem;display:flex;align-items:center;gap:.85rem">
-        <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:white;flex-shrink:0">
+    <div style="padding:1.5rem">
+      <div style="background:#F8FAFC;border-radius:12px;padding:1rem;margin-bottom:1.3rem;display:flex;align-items:center;gap:.9rem">
+        <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:white;flex-shrink:0">
           {{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}
         </div>
         <div>
-          <div style="font-weight:800;font-size:.95rem;color:var(--ink)">{{ nv.nguoi_dung.get_full_name }}</div>
-          <div style="font-size:.73rem;color:var(--sub);margin-top:.1rem">{{ nv.ma_nhan_vien }} · {{ nv.get_chuc_vu_display }} · {{ nv.cua_hang.ten|default:"—" }}</div>
+          <div style="font-weight:800;font-size:.92rem;color:var(--ink)">{{ nv.nguoi_dung.get_full_name }}</div>
+          <div style="font-size:.75rem;color:var(--sub);margin-top:.1rem">{{ nv.ma_nhan_vien }} · {{ nv.get_chuc_vu_display }}</div>
+          {% if nv.cua_hang %}<div style="font-size:.73rem;color:var(--sub)">🏪 {{ nv.cua_hang.ten }}</div>{% endif %}
         </div>
       </div>
-
-      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:.7rem .9rem;margin-bottom:1.3rem;font-size:.78rem;color:#92400E">
-        ℹ️ Nhân viên sẽ bị thu hồi quyền đăng nhập admin. Dữ liệu lịch sử vẫn được giữ nguyên.
-      </div>
-
-      <form method="post" style="display:flex;gap:.6rem;justify-content:flex-end">
+      <form method="post" style="display:flex;gap:.6rem">
         {% csrf_token %}
-        <a href="{% url 'chi_tiet_nhan_vien' nv.pk %}" style="display:inline-flex;align-items:center;gap:.35rem;background:#F1F5F9;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:.55rem 1.1rem;font-size:.83rem;font-weight:700;text-decoration:none">✕ Huỷ</a>
-        <button type="submit" style="display:inline-flex;align-items:center;gap:.35rem;background:#DC2626;color:white;border:none;border-radius:9px;padding:.55rem 1.3rem;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit">🗑 Xác nhận nghỉ việc</button>
+        <button type="submit" style="flex:1;padding:.65rem;background:#DC2626;color:white;border:none;border-radius:10px;font-weight:800;font-size:.88rem;cursor:pointer">
+          ✓ Xác nhận vô hiệu hoá
+        </button>
+        <a href="{% url 'quan_ly_nhan_vien' %}" style="flex:1;padding:.65rem;border:2px solid var(--line);border-radius:10px;font-weight:700;font-size:.88rem;text-align:center;text-decoration:none;color:var(--ink)">
+          Huỷ bỏ
+        </a>
       </form>
     </div>
   </div>

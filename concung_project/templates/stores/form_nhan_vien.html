@@ -55,7 +55,7 @@
 
 {% if messages %}{% for msg in messages %}<div class="flash flash-{% if msg.tags == 'error' %}err{% else %}ok{% endif %}">{% if msg.tags == 'success' %}✅{% else %}❌{% endif %} {{ msg }}</div>{% endfor %}{% endif %}
 
-<form id="nvForm" method="POST" enctype="multipart/form-data">
+<form id="nvForm" method="POST" enctype="multipart/form-data" action="{% if nhan_vien %}{% url 'sua_nhan_vien' nhan_vien.pk %}{% else %}{% url 'them_nhan_vien' %}{% endif %}">
 {% csrf_token %}
 <div class="form-layout">
   <!-- LEFT: Form fields -->
@@ -80,12 +80,12 @@
         </div>
         {% endif %}
         <div class="row2">
-          <div class="fg"><label>Họ <span style="color:var(--red)">*</span></label><input type="text" name="last_name" class="fi" value="{{ form.last_name.value|default:nhan_vien.nguoi_dung.last_name|default:'' }}" placeholder="Nguyễn" required oninput="upPrev()"></div>
-          <div class="fg"><label>Tên <span style="color:var(--red)">*</span></label><input type="text" name="first_name" class="fi" value="{{ form.first_name.value|default:nhan_vien.nguoi_dung.first_name|default:'' }}" placeholder="Văn An" required oninput="upPrev()"></div>
+          <div class="fg"><label>Họ <span style="color:var(--red)">*</span></label><input type="text" name="last_name" class="fi" value="{% if nhan_vien %}{{ nhan_vien.nguoi_dung.last_name }}{% endif %}" placeholder="Nguyễn" required oninput="upPrev()"></div>
+          <div class="fg"><label>Tên <span style="color:var(--red)">*</span></label><input type="text" name="first_name" class="fi" value="{% if nhan_vien %}{{ nhan_vien.nguoi_dung.first_name }}{% endif %}" placeholder="Văn An" required oninput="upPrev()"></div>
         </div>
         <div class="fg">
           <label>Số điện thoại</label>
-          <input type="tel" name="so_dien_thoai" class="fi" value="{{ form.so_dien_thoai.value|default:nhan_vien.nguoi_dung.so_dien_thoai|default:'' }}" placeholder="0901 234 567">
+          <input type="tel" name="so_dien_thoai" class="fi" value="{% if nhan_vien %}{{ nhan_vien.nguoi_dung.so_dien_thoai }}{% endif %}" placeholder="0901 234 567">
         </div>
       </div>
     </div>
@@ -97,11 +97,11 @@
         <div class="row2">
           <div class="fg">
             <label>Mã nhân viên <span style="color:var(--red)">*</span></label>
-            <input type="text" name="ma_nhan_vien" class="fi" value="{{ form.ma_nhan_vien.value|default:nhan_vien.ma_nhan_vien|default:'' }}" placeholder="NV001" required oninput="upPrev()">
+            <input type="text" name="ma_nhan_vien" class="fi" value="{% if nhan_vien %}{{ nhan_vien.ma_nhan_vien }}{% endif %}" placeholder="NV001" required oninput="upPrev()">
           </div>
           <div class="fg">
             <label>Ngày vào làm <span style="color:var(--red)">*</span></label>
-            <input type="date" name="ngay_vao_lam" class="fi" value="{{ form.ngay_vao_lam.value|default:nhan_vien.ngay_vao_lam|default:'' }}" required>
+            <input type="date" name="ngay_vao_lam" class="fi" value="{% if nhan_vien %}{{ nhan_vien.ngay_vao_lam|date:'Y-m-d' }}{% endif %}" required>
           </div>
         </div>
         <div class="fg">
@@ -127,7 +127,7 @@
         </div>
         <div class="fg">
           <label>Lương cơ bản (VNĐ/tháng)</label>
-          <input type="number" name="luong_co_ban" class="fi" value="{{ form.luong_co_ban.value|default:nhan_vien.luong_co_ban|default:'' }}" placeholder="5000000" min="0" step="100000">
+          <input type="number" name="luong_co_ban" class="fi" value="{% if nhan_vien %}{{ nhan_vien.luong_co_ban }}{% endif %}" placeholder="5000000" min="0" step="100000">
         </div>
         <div class="fg">
           <label>Trạng thái</label>

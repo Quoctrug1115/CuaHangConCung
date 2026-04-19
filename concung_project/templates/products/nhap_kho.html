@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Nhập kho - Con Cưng{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-1">📥 Nhập kho</h5>
+                    <p class="text-muted mb-4">
+                        Sản phẩm: <strong>{{ ton_kho.san_pham.ten }}</strong><br>
+                        Cửa hàng: <strong>{{ ton_kho.cua_hang.ten }}</strong><br>
+                        Tồn kho hiện tại: <strong>{{ ton_kho.so_luong }}</strong>
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Số lượng nhập <span class="text-danger">*</span></label>
+                            <input type="number" name="so_luong" class="form-control" min="1" required
+                                   placeholder="Nhập số lượng cần thêm vào kho">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Ghi chú</label>
+                            <textarea name="ghi_chu" class="form-control" rows="3"
+                                      placeholder="Lý do nhập kho, nguồn hàng..."></textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-chinh fw-bold px-4">
+                                📥 Xác nhận nhập kho
+                            </button>
+                            <a href="{% url 'quan_ly_kho' %}" class="btn btn-outline-secondary px-4">
+                                ← Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

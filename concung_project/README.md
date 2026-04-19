@@ -80,6 +80,8 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver
 ```
+## lỗi thư viện : python -m pip install Pillow
+##                python -m pip install psycopg
 
 Truy cập: http://127.0.0.1:8000
 

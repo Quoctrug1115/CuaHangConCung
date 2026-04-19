@@ -163,99 +163,115 @@ def quan_ly_nhan_vien(request):
         messages.error(request, 'Bạn không có quyền truy cập.')
         return redirect('trang_chu')
 
-    qs = NhanVien.objects.select_related('nguoi_dung', 'cua_hang').all()
+    nhan_viens = NhanVien.objects.select_related('nguoi_dung', 'cua_hang').filter(dang_lam_viec=True)
+
     if not request.user.la_admin and hasattr(request.user, 'nhan_vien'):
-        qs = qs.filter(cua_hang=request.user.nhan_vien.cua_hang)
+        nhan_viens = nhan_viens.filter(cua_hang=request.user.nhan_vien.cua_hang)
 
-    q = request.GET.get('q', '').strip()
-    if q:
-        qs = qs.filter(
-            Q(nguoi_dung__first_name__icontains=q) |
-            Q(nguoi_dung__last_name__icontains=q) |
-            Q(ma_nhan_vien__icontains=q)
-        )
-    chuc_vu = request.GET.get('chuc_vu', '').strip()
-    if chuc_vu:
-        qs = qs.filter(chuc_vu=chuc_vu)
-    cua_hang_id = request.GET.get('cua_hang', '').strip()
-    if cua_hang_id:
-        qs = qs.filter(cua_hang_id=cua_hang_id)
-    hien_thi = request.GET.get('hien_thi', 'dang_lam')
-    if hien_thi == 'nghi_viec':
-        qs = qs.filter(dang_lam_viec=False)
-    elif hien_thi != 'tat_ca':
-        qs = qs.filter(dang_lam_viec=True)
-
-    from django.db.models import Count
-    stats = NhanVien.objects.aggregate(
-        tong=Count('id'),
-        dang_lam=Count('id', filter=Q(dang_lam_viec=True)),
-        quan_ly=Count('id', filter=Q(chuc_vu='quan_ly', dang_lam_viec=True)),
-        shipper=Count('id', filter=Q(chuc_vu='giao_hang', dang_lam_viec=True)),
-    )
-
-    paginator = Paginator(qs.order_by('cua_hang__ten', 'nguoi_dung__last_name'), 20)
+    paginator = Paginator(nhan_viens, 15)
     return render(request, 'stores/quan_ly_nhan_vien.html', {
-        'nhan_viens': paginator.get_page(request.GET.get('page', 1)),
-        'tong_nv': stats['tong'],
-        'dang_lam': stats['dang_lam'],
-        'quan_ly': stats['quan_ly'],
-        'shipper': stats['shipper'],
-        'so_cua_hang': CuaHang.objects.filter(dang_hoat_dong=True).count(),
-        'cua_hangs': CuaHang.objects.filter(dang_hoat_dong=True).order_by('ten'),
+        'nhan_viens': paginator.get_page(request.GET.get('page', 1))
     })
 
-# ═══════════════════════════════════════════════════════════════
-# CRUD NHÂN VIÊN ĐẦY ĐỦ
-# ═══════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════════
+#  NHÂN VIÊN CRUD
+# ════════════════════════════════════════════════════════════════════════
 
 @login_required
 def them_nhan_vien(request):
-    """Admin: Thêm nhân viên mới"""
+    """Admin: Thêm nhân viên mới — tạo NguoiDung + NhanVien cùng lúc"""
     if not request.user.la_quan_ly:
         messages.error(request, 'Bạn không có quyền truy cập.')
         return redirect('trang_chu')
+
+    from accounts.models import NguoiDung
+
+    cua_hangs = CuaHang.objects.filter(dang_hoat_dong=True).order_by('ten')
+    errors = {}
 
     if request.method == 'POST':
-        form = NhanVienForm(request.POST)
-        if form.is_valid():
-            nv = form.save()
-            # Cập nhật quyền tài khoản
-            nv.nguoi_dung.is_staff = True
-            nv.nguoi_dung.save()
-            messages.success(request, f'✅ Đã thêm nhân viên "{nv.nguoi_dung.get_full_name()}" thành công!')
+        p = request.POST
+
+        # ── Validate NguoiDung fields ──────────────────────────────
+        username = p.get('username', '').strip()
+        email    = p.get('email', '').strip()
+        pw1      = p.get('password1', '')
+        pw2      = p.get('password2', '')
+        last_name  = p.get('last_name', '').strip()
+        first_name = p.get('first_name', '').strip()
+        so_dt      = p.get('so_dien_thoai', '').strip()
+
+        if not username:
+            errors['username'] = 'Vui lòng nhập tên đăng nhập.'
+        elif NguoiDung.objects.filter(username=username).exists():
+            errors['username'] = f'Tên đăng nhập "{username}" đã tồn tại.'
+        if not pw1:
+            errors['password1'] = 'Vui lòng nhập mật khẩu.'
+        elif pw1 != pw2:
+            errors['password'] = 'Mật khẩu xác nhận không khớp.'
+        elif len(pw1) < 6:
+            errors['password1'] = 'Mật khẩu phải có ít nhất 6 ký tự.'
+        if not last_name:
+            errors['last_name'] = 'Vui lòng nhập họ.'
+        if not first_name:
+            errors['first_name'] = 'Vui lòng nhập tên.'
+
+        # ── Validate NhanVien fields ──────────────────────────────
+        ma_nv       = p.get('ma_nhan_vien', '').strip()
+        chuc_vu     = p.get('chuc_vu', '').strip()
+        ngay_vao    = p.get('ngay_vao_lam', '').strip()
+        luong       = p.get('luong_co_ban', '').strip()
+        cua_hang_id = p.get('cua_hang', '').strip()
+        dang_lam    = p.get('dang_lam_viec') == 'on'
+
+        if not ma_nv:
+            errors['ma_nhan_vien'] = 'Vui lòng nhập mã nhân viên.'
+        elif NhanVien.objects.filter(ma_nhan_vien=ma_nv).exists():
+            errors['ma_nhan_vien'] = f'Mã nhân viên "{ma_nv}" đã tồn tại.'
+        if not chuc_vu:
+            errors['chuc_vu'] = 'Vui lòng chọn chức vụ.'
+        if not ngay_vao:
+            errors['ngay_vao_lam'] = 'Vui lòng nhập ngày vào làm.'
+        if not luong:
+            errors['luong_co_ban'] = 'Vui lòng nhập lương cơ bản.'
+
+        if not errors:
+            # Tạo NguoiDung
+            nd = NguoiDung.objects.create_user(
+                username=username,
+                email=email,
+                password=pw1,
+                last_name=last_name,
+                first_name=first_name,
+                vai_tro='nhan_vien',
+                is_staff=True,
+            )
+            nd.so_dien_thoai = so_dt
+            if 'anh_dai_dien' in request.FILES:
+                nd.anh_dai_dien = request.FILES['anh_dai_dien']
+            nd.save()
+
+            # Tạo NhanVien
+            nv = NhanVien(
+                nguoi_dung=nd,
+                ma_nhan_vien=ma_nv,
+                chuc_vu=chuc_vu,
+                ngay_vao_lam=ngay_vao,
+                luong_co_ban=luong or 0,
+                dang_lam_viec=dang_lam,
+            )
+            if cua_hang_id:
+                nv.cua_hang_id = int(cua_hang_id)
+            nv.save()
+
+            messages.success(request, f'✅ Đã thêm nhân viên "{nd.get_full_name()}" ({ma_nv}) thành công!')
             return redirect('quan_ly_nhan_vien')
-        else:
-            messages.error(request, 'Có lỗi trong form. Vui lòng kiểm tra lại.')
-    else:
-        form = NhanVienForm()
 
     return render(request, 'stores/form_nhan_vien.html', {
-        'form': form,
-        'tieu_de': 'Thêm nhân viên mới',
-        'la_them_moi': True,
-    })
-
-
-@login_required
-def chi_tiet_nhan_vien(request, pk):
-    """Admin: Chi tiết nhân viên"""
-    if not request.user.la_quan_ly:
-        messages.error(request, 'Bạn không có quyền truy cập.')
-        return redirect('trang_chu')
-
-    nv = get_object_or_404(
-        NhanVien.objects.select_related('nguoi_dung', 'cua_hang'),
-        pk=pk
-    )
-    from orders.models import DonHang
-    don_hangs = DonHang.objects.filter(
-        cua_hang=nv.cua_hang
-    ).order_by('-ngay_tao')[:10] if nv.cua_hang else []
-
-    return render(request, 'stores/chi_tiet_nhan_vien.html', {
-        'nv': nv,
-        'don_hangs_gan_day': don_hangs,
+        'nhan_vien': None,
+        'cua_hangs': cua_hangs,
+        'chuc_vu_choices': NhanVien.CHUC_VU,
+        'errors': errors,
     })
 
 
@@ -266,44 +282,81 @@ def sua_nhan_vien(request, pk):
         messages.error(request, 'Bạn không có quyền truy cập.')
         return redirect('trang_chu')
 
-    nv = get_object_or_404(NhanVien, pk=pk)
+    nv = get_object_or_404(
+        NhanVien.objects.select_related('nguoi_dung', 'cua_hang'), pk=pk
+    )
+    cua_hangs = CuaHang.objects.filter(dang_hoat_dong=True).order_by('ten')
+    errors = {}
 
     if request.method == 'POST':
-        form = NhanVienForm(request.POST, instance=nv)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'✅ Đã cập nhật nhân viên "{nv.nguoi_dung.get_full_name()}"!')
-            return redirect('chi_tiet_nhan_vien', pk=nv.pk)
-        else:
-            messages.error(request, 'Có lỗi trong form. Vui lòng kiểm tra lại.')
-    else:
-        form = NhanVienForm(instance=nv)
+        p = request.POST
+        nd = nv.nguoi_dung
+
+        # Cập nhật NguoiDung
+        nd.last_name  = p.get('last_name', '').strip()
+        nd.first_name = p.get('first_name', '').strip()
+        nd.email      = p.get('email', '').strip()
+        nd.so_dien_thoai = p.get('so_dien_thoai', '').strip()
+        if 'anh_dai_dien' in request.FILES:
+            nd.anh_dai_dien = request.FILES['anh_dai_dien']
+
+        if not nd.last_name:
+            errors['last_name'] = 'Vui lòng nhập họ.'
+        if not nd.first_name:
+            errors['first_name'] = 'Vui lòng nhập tên.'
+
+        # Cập nhật NhanVien
+        ma_nv    = p.get('ma_nhan_vien', '').strip()
+        chuc_vu  = p.get('chuc_vu', '').strip()
+        ngay_vao = p.get('ngay_vao_lam', '').strip()
+        luong    = p.get('luong_co_ban', '').strip()
+        ch_id    = p.get('cua_hang', '').strip()
+        dang_lam = p.get('dang_lam_viec') == 'on'
+
+        if not ma_nv:
+            errors['ma_nhan_vien'] = 'Vui lòng nhập mã nhân viên.'
+        elif NhanVien.objects.filter(ma_nhan_vien=ma_nv).exclude(pk=pk).exists():
+            errors['ma_nhan_vien'] = f'Mã "{ma_nv}" đã được dùng bởi nhân viên khác.'
+        if not chuc_vu:
+            errors['chuc_vu'] = 'Vui lòng chọn chức vụ.'
+        if not ngay_vao:
+            errors['ngay_vao_lam'] = 'Vui lòng nhập ngày vào làm.'
+
+        if not errors:
+            nd.save()
+
+            nv.ma_nhan_vien = ma_nv
+            nv.chuc_vu      = chuc_vu
+            nv.ngay_vao_lam = ngay_vao
+            nv.luong_co_ban = luong or 0
+            nv.dang_lam_viec = dang_lam
+            nv.cua_hang_id  = int(ch_id) if ch_id else None
+            nv.save()
+
+            messages.success(request, f'✅ Đã cập nhật thông tin nhân viên "{nd.get_full_name()}"!')
+            return redirect('quan_ly_nhan_vien')
 
     return render(request, 'stores/form_nhan_vien.html', {
-        'form': form,
         'nhan_vien': nv,
-        'tieu_de': f'Sửa: {nv.nguoi_dung.get_full_name()}',
-        'la_them_moi': False,
+        'cua_hangs': cua_hangs,
+        'chuc_vu_choices': NhanVien.CHUC_VU,
+        'errors': errors,
     })
 
 
 @login_required
 def xoa_nhan_vien(request, pk):
-    """Admin: Nghỉ việc nhân viên (xóa mềm)"""
+    """Admin: Vô hiệu hoá nhân viên (soft delete)"""
     if not request.user.la_quan_ly:
         messages.error(request, 'Bạn không có quyền truy cập.')
         return redirect('trang_chu')
 
-    nv = get_object_or_404(NhanVien, pk=pk)
+    nv = get_object_or_404(NhanVien.objects.select_related('nguoi_dung'), pk=pk)
 
     if request.method == 'POST':
-        ten = nv.nguoi_dung.get_full_name()
         nv.dang_lam_viec = False
         nv.save()
-        # Thu hồi quyền staff
-        nv.nguoi_dung.is_staff = False
-        nv.nguoi_dung.save()
-        messages.success(request, f'Đã đánh dấu "{ten}" nghỉ việc.')
+        messages.success(request, f'Đã vô hiệu hoá nhân viên "{nv.nguoi_dung.get_full_name()}".')
         return redirect('quan_ly_nhan_vien')
 
     return render(request, 'stores/xac_nhan_xoa_nv.html', {'nv': nv})

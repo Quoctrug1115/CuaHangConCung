@@ -38,7 +38,7 @@
     <option>Tất cả cửa hàng</option>
     {% for ch in cua_hangs %}<option value="{{ ch.id }}">{{ ch.ten }}</option>{% endfor %}
   </select>
-  <a href="{% url 'xuat_bao_cao_kho' %}" class="btn-adm btn-blue">📊 Xuất báo cáo</a>
+  <a href="{% url 'quan_ly_kho' %}" class="btn-adm btn-blue">📋 Quản lý kho</a>
   <button class="btn-adm btn-or" onclick="document.getElementById('nhapModal').classList.add('open')">📥 Nhập hàng nhanh</button>
 </div>
 
@@ -57,7 +57,7 @@
     <div class="progress-mini"><div class="pm-fill" style="width:0;background:var(--red)"></div></div>
   </div>
   <div>
-    <button class="btn-adm btn-or btn-sm" onclick="quickNhap({{ tk.id }},'{{ tk.san_pham.ten }}')">📥 Nhập ngay</button>
+    <button class="btn-adm btn-or btn-sm" onclick="quickNhap({{ tk.id }},'{{ tk.san_pham.ten|escapejs }}')">📥 Nhập ngay</button>
   </div>
 </div>
 {% endfor %}
@@ -75,10 +75,10 @@
   <div class="alert-stock">
     <div class="alert-num" style="color:#D97706">{{ tk.so_luong }}</div>
     <div class="alert-limit">/ {{ tk.so_luong_toi_thieu }}</div>
-    <div class="progress-mini"><div class="pm-fill" style="width:{% widthratio tk.so_luong tk.so_luong_toi_thieu 100 %}%;background:#E85D7E"></div></div>
+    <div class="progress-mini"><div class="pm-fill" style="width:{% if tk.so_luong_toi_thieu %}{% widthratio tk.so_luong tk.so_luong_toi_thieu 100 %}{% else %}0{% endif %}%;background:#E85D7E"></div></div>
   </div>
   <div>
-    <button class="btn-adm btn-blue btn-sm" onclick="quickNhap({{ tk.id }},'{{ tk.san_pham.ten }}')">📥 Nhập</button>
+    <button class="btn-adm btn-blue btn-sm" onclick="quickNhap({{ tk.id }},'{{ tk.san_pham.ten|escapejs }}')">📥 Nhập</button>
   </div>
 </div>
 {% endfor %}
@@ -100,7 +100,7 @@
       <div class="modal-title">Nhập hàng nhanh</div>
       <button onclick="document.getElementById('nhapModal').classList.remove('open')" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--sub)">✕</button>
     </div>
-    <form method="POST" action="{% url 'cap_nhat_ton_kho' %}">
+    <form method="POST" id="quickNhapForm" action="">
       {% csrf_token %}
       <input type="hidden" name="loai" value="nhap">
       <input type="hidden" name="ton_kho_id" id="quickTonKhoId">
@@ -117,7 +117,13 @@
   </div>
 </div>
 <script>
-function quickNhap(id,name){document.getElementById('quickTonKhoId').value=id;document.getElementById('quickSpName').textContent='Sản phẩm: '+name;document.getElementById('nhapModal').classList.add('open')}
+function quickNhap(id,name){
+  document.getElementById('quickTonKhoId').value=id;
+  document.getElementById('quickSpName').textContent='Sản phẩm: '+name;
+  // Set action to correct nhap_kho URL with ton_kho_id
+  document.getElementById('quickNhapForm').action='/san-pham/kho/'+id+'/nhap/';
+  document.getElementById('nhapModal').classList.add('open');
+}
 document.getElementById('nhapModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open')});
 </script>
 {% endblock %}

@@ -12,6 +12,7 @@ urlpatterns = [
     path('dat-hang/', views.dat_hang, name='dat_hang'),
     path('cua-toi/', views.don_hang_cua_toi, name='don_hang_cua_toi'),
     path('theo-doi/<str:ma>/', views.theo_doi_don_hang, name='theo_doi_don_hang'),
+    path('don-hang/<int:pk>/huy/', views.huy_don_hang, name='huy_don_hang'),
 
     # Quản lý (Admin)
     path('quan-ly/', views.quan_ly_don_hang, name='quan_ly_don_hang'),

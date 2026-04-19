@@ -140,7 +140,8 @@ class ChiTietDonHang(models.Model):
         verbose_name_plural = 'Chi tiết đơn hàng'
 
     def __str__(self):
-        return f"{self.don_hang.ma_don_hang} - {self.san_pham.ten}"
+        ten_sp = self.san_pham.ten if self.san_pham else 'Sản phẩm đã xóa'
+        return f"{self.don_hang.ma_don_hang} - {ten_sp}"
 
     @property
     def thanh_tien(self):
@@ -156,8 +157,16 @@ class LichSuTrangThai(models.Model):
         related_name='lich_su_trang_thais',
         verbose_name='Đơn hàng'
     )
-    trang_thai_cu = models.CharField(max_length=25, verbose_name='Trạng thái cũ')
-    trang_thai_moi = models.CharField(max_length=25, verbose_name='Trạng thái mới')
+    trang_thai_cu = models.CharField(
+        max_length=25,
+        choices=DonHang.TRANG_THAI,
+        verbose_name='Trạng thái cũ'
+    )
+    trang_thai_moi = models.CharField(
+        max_length=25,
+        choices=DonHang.TRANG_THAI,
+        verbose_name='Trạng thái mới'
+    )
     ghi_chu = models.TextField(blank=True, verbose_name='Ghi chú')
     nguoi_thuc_hien = models.ForeignKey(
         NguoiDung, on_delete=models.SET_NULL,

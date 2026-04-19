@@ -60,7 +60,7 @@
   <span style="font-size:.82rem;font-weight:800;color:var(--ink)">⚡ Có {{ don_hangs|length }} đơn hàng cần xác nhận</span>
   <div style="flex:1"></div>
   <button class="btn-adm btn-or" onclick="if(confirm('Xác nhận tất cả {{ don_hangs|length }} đơn?')) document.getElementById('confirmAllForm').submit()">✅ Xác nhận tất cả</button>
-  <form id="confirmAllForm" method="POST" action="{% url 'xac_nhan_tat_ca' %}" style="display:none">{% csrf_token %}</form>
+  <form id="confirmAllForm" method="POST" action="{% url 'quan_ly_don_hang' %}" style="display:none">{% csrf_token %}</form>
 </div>
 {% endif %}
 
@@ -131,9 +131,9 @@
       <div style="font-size:.67rem;color:var(--sub)">Tổng thanh toán</div>
     </div>
     <div class="cx-actions">
-      <button class="btn-adm btn-red btn-sm" onclick="openHuyModal({{ dh.id }},'{{ dh.ma_don_hang }}')">🚫 Hủy</button>
-      <a href="{% url 'chi_tiet_don_hang' dh.pk %}" class="btn-adm btn-blue btn-sm">👁 Xem</a>
-      <form method="POST" action="{% url 'cap_nhat_trang_thai_don_hang' dh.pk %}" style="display:inline">
+      <button class="btn-adm btn-red btn-sm" onclick="openHuyModal({{ dh.id }},'{{ dh.ma_don_hang|escapejs }}')">🚫 Hủy</button>
+      <a href="{% url 'theo_doi_don_hang' dh.ma_don_hang %}" class="btn-adm btn-blue btn-sm">👁 Xem</a>
+      <form method="POST" action="{% url 'cap_nhat_trang_thai' dh.pk %}" style="display:inline">
         {% csrf_token %}<input type="hidden" name="trang_thai" value="da_xac_nhan">
         <button type="submit" class="btn-adm btn-or">✅ Xác nhận đơn</button>
       </form>
@@ -172,7 +172,7 @@
 <script>
 function openHuyModal(id,ma){
   document.getElementById('huyDonInfo').textContent='Hủy đơn #'+ma;
-  document.getElementById('huyForm').action='/orders/'+id+'/cap-nhat-trang-thai/';
+  document.getElementById('huyForm').action='/don-hang/'+id+'/huy/';
   document.getElementById('huyModal').classList.add('open');
 }
 document.getElementById('huyModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open')});
