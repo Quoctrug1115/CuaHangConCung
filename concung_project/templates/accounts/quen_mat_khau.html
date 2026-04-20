@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Đăng nhập - Con Cưng{% endblock %}
+{% block title %}Quên mật khẩu - Con Cưng{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -8,9 +8,9 @@
             <div class="card">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
-                        <div style="font-size:3rem;">🐾</div>
-                        <h4 class="fw-bold">Đăng nhập</h4>
-                        <p class="text-muted">Chào mừng trở lại!</p>
+                        <div style="font-size:3rem;">🔐</div>
+                        <h4 class="fw-bold">Quên mật khẩu</h4>
+                        <p class="text-muted">Nhập email của bạn, hệ thống sẽ gửi liên kết để tạo mật khẩu mới.</p>
                     </div>
                     <form method="post">
                         {% csrf_token %}
@@ -23,17 +23,13 @@
                             {% endif %}
                         </div>
                         {% endfor %}
-                        <div class="text-end mb-3">
-                            <a href="{% url 'quen_mat_khau' %}" class="small text-decoration-none" style="color: #E85D7E; font-weight: 600;">Quên mật khẩu?</a>
-                        </div>
                         <button type="submit" class="btn btn-chinh w-100 py-2 fw-bold">
-                            <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                            Gửi liên kết khôi phục
                         </button>
                     </form>
                     <hr>
                     <div class="text-center">
-                        <span class="text-muted">Chưa có tài khoản?</span>
-                        <a href="{% url 'dang_ky' %}" class="fw-bold ms-1">Đăng ký ngay</a>
+                        <a href="{% url 'dang_nhap' %}" class="text-muted text-decoration-none">← Quay lại đăng nhập</a>
                     </div>
                 </div>
             </div>

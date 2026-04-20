@@ -114,3 +114,17 @@ if os.name == 'nt':  # Windows
 # Cần thiết để navigator.geolocation.getCurrentPosition() hoạt động
 # khi truy cập qua một số browser với chính sách restrictive
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
+
+
+# settings.py
+# Cấu hình gửi mail qua Mailtrap
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '1098de8c76bcaa' # Lấy trên Mailtrap
+EMAIL_HOST_PASSWORD = '5a932b3c9c7b06' # Lấy trên Mailtrap
+EMAIL_PORT = '2525'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+# Email mặc định hiển thị người gửi
+DEFAULT_FROM_EMAIL = 'Con Cưng Admin <noreply@concung.com>'

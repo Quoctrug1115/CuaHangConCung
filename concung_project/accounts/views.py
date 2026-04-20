@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.utils import timezone
 from .forms import DangKyForm, DangNhapForm, CapNhatHoSoForm, AdminNguoiDungForm, DoiMatKhauAdminForm
 from .models import NguoiDung
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 def dang_ky(request):
@@ -18,8 +20,35 @@ def dang_ky(request):
             nguoi_dung = form.save(commit=False)
             nguoi_dung.vai_tro = 'khach_hang'
             nguoi_dung.save()
+            
+            # --- BẮT ĐẦU: LOGIC GỬI MAIL CHÀO MỪNG ---
+            # Nên kiểm tra xem user có nhập email không (vì đôi khi form đăng ký chỉ bắt buộc username/password)
+            if nguoi_dung.email: 
+                tieu_de = 'Chào mừng bạn đến với hệ thống Con Cưng!'
+                noi_dung = f'''
+Chào {nguoi_dung.first_name or nguoi_dung.username},
+                
+Cảm ơn bạn đã đăng ký tài khoản tại Con Cưng. 
+Hệ thống quản lý tích hợp bản đồ GIS của chúng tôi đã sẵn sàng để bạn trải nghiệm.
+                
+Trân trọng,
+Đội ngũ phát triển.
+'''
+                try:
+                    send_mail(
+                        tieu_de,
+                        noi_dung,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [nguoi_dung.email],
+                        fail_silently=False, # fail_silently=False để nếu cấu hình sai nó sẽ báo lỗi ra terminal cho mình biết
+                    )
+                except Exception as e:
+                    # In lỗi ra màn hình console (terminal) để dev dễ debug, không làm gián đoạn việc đăng nhập của user
+                    print(f"Lỗi gửi mail Mailtrap: {e}")
+            # --- KẾT THÚC: LOGIC GỬI MAIL ---
+
             login(request, nguoi_dung)
-            messages.success(request, f'Chào mừng {nguoi_dung.username} đã đăng ký thành công!')
+            messages.success(request, f'Chào mừng {nguoi_dung.username} đã đăng ký thành công! Hãy kiểm tra email của bạn.')
             return redirect('trang_chu')
     else:
         form = DangKyForm()
@@ -70,9 +99,13 @@ def ho_so(request):
             return redirect('ho_so')
     else:
         form = CapNhatHoSoForm(instance=request.user)
-
-    return render(request, 'accounts/ho_so.html', {'form': form})
-
+        
+    so_don_da_giao = request.user.don_hangs.filter(trang_thai='da_giao').count()
+    
+    return render(request, 'accounts/ho_so.html', {
+        'form': form,
+        'so_don_da_giao': so_don_da_giao # Truyền biến này sang template
+    })
 
 @login_required
 def quan_ly_nguoi_dung(request):
