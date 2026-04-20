@@ -198,7 +198,7 @@ select.fi{cursor:pointer}
         <div style="font-size:2rem;margin-bottom:.4rem">📸</div>
         <div style="font-size:.77rem;font-weight:600;color:var(--sub)">Click hoặc kéo thả ảnh vào đây</div>
         <div style="font-size:.67rem;color:var(--sub);margin-top:.15rem">Có thể bôi đen chọn nhiều ảnh cùng lúc</div>
-        {% if form.instance.danh_sach_anh.all %}
+        {% if form.instance.pk and form.instance.danh_sach_anh.all %}
         <div class="mt-3">
             <label class="small fw-bold text-muted mb-2">Gallery hiện tại:</label>
             <div class="d-flex gap-2 flex-wrap">
