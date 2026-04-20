@@ -15,6 +15,7 @@ urlpatterns = [
     # Staff CRUD (admin)
     path('nhan-vien/', views.quan_ly_nhan_vien, name='quan_ly_nhan_vien'),
     path('nhan-vien/them/', views.them_nhan_vien, name='them_nhan_vien'),
+    path('nhan-vien/<int:pk>/', views.chi_tiet_nhan_vien, name='chi_tiet_nhan_vien'),
     path('nhan-vien/<int:pk>/sua/', views.sua_nhan_vien, name='sua_nhan_vien'),
     path('nhan-vien/<int:pk>/xoa/', views.xoa_nhan_vien, name='xoa_nhan_vien'),
 ]

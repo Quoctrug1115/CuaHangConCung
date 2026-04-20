@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import SanPham, DanhMuc, TonKho, LichSuKho
+from .models import SanPham, DanhMuc, TonKho, LichSuKho, HinhAnhSanPham
 from .forms import SanPhamForm, TonKhoForm
 
 
@@ -229,6 +229,9 @@ def quan_ly_san_pham(request):
     })
 
 
+# views.py
+# Nhớ thêm dòng này ở đầu file: from .models import SanPham, HinhAnhSanPham, ...
+
 @login_required
 def them_san_pham(request):
     if not request.user.la_quan_ly:
@@ -237,8 +240,16 @@ def them_san_pham(request):
     if request.method == 'POST':
         form = SanPhamForm(request.POST, request.FILES)
         if form.is_valid():
+            # Bước 1: Lưu thông tin chính của sản phẩm
             sp = form.save()
-            messages.success(request, f'Đã thêm sản phẩm "{sp.ten}"!')
+            
+            # Bước 2: Xử lý lưu nhiều ảnh kèm theo
+            # Dùng getlist để lấy toàn bộ file từ input 'anh_kem_theo'
+            files = request.FILES.getlist('anh_kem_theo')
+            for f in files:
+                HinhAnhSanPham.objects.create(san_pham=sp, anh=f)
+            
+            messages.success(request, f'Đã thêm sản phẩm "{sp.ten}" cùng {len(files)} ảnh kèm theo!')
             return redirect('quan_ly_san_pham')
     else:
         form = SanPhamForm()
@@ -255,16 +266,31 @@ def sua_san_pham(request, pk):
 
     san_pham = get_object_or_404(SanPham, pk=pk)
     if request.method == 'POST':
+        # 1. Quan trọng: Phải có request.FILES
         form = SanPhamForm(request.POST, request.FILES, instance=san_pham)
+        
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Đã cập nhật sản phẩm!')
+            # Lưu thông tin cơ bản của sản phẩm
+            sp = form.save()
+            
+            # 2. Xử lý lưu thêm ảnh vào Gallery (nếu có chọn thêm)
+            files = request.FILES.getlist('anh_kem_theo')
+            for f in files:
+                HinhAnhSanPham.objects.create(san_pham=sp, anh=f)
+            
+            messages.success(request, 'Đã cập nhật sản phẩm thành công!')
             return redirect('quan_ly_san_pham')
+        else:
+            # 3. Debug: Nếu không lưu được, in lỗi ra Terminal để xem bị lỗi gì
+            print("Lỗi Form:", form.errors)
+            messages.error(request, 'Có lỗi xảy ra, vui lòng kiểm tra lại thông tin.')
     else:
         form = SanPhamForm(instance=san_pham)
 
     return render(request, 'products/form_san_pham.html', {
-        'form': form, 'tieu_de': 'Sửa sản phẩm'
+        'form': form,
+        'tieu_de': 'Sửa sản phẩm',
+        'san_pham': san_pham # Truyền thêm object san_pham để hiển thị ảnh cũ nếu cần
     })
 
 @login_required

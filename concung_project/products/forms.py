@@ -1,6 +1,5 @@
 from django import forms
-from .models import SanPham, TonKho
-
+from .models import SanPham, TonKho, HinhAnhSanPham
 
 class SanPhamForm(forms.ModelForm):
     class Meta:

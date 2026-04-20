@@ -251,7 +251,26 @@
                class="sp-main-img"
                id="main-img">
         {% else %}
-          <div class="img-placeholder">👶</div>
+          <div class="img-placeholder" id="main-img-ph">👶</div>
+        {% endif %}
+
+        {% if san_pham.danh_sach_anh.all %}
+        <div class="d-flex gap-2 mt-3" style="overflow-x: auto; padding-bottom: 5px; scrollbar-width: thin;" id="thumbnail-container">
+          
+          {% if san_pham.hinh_anh %}
+          <img src="{{ san_pham.hinh_anh.url }}" 
+               class="thumbnail-img active" 
+               onclick="changeMainImage(this.src, this)"
+               style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #ff6b35; transition: all 0.2s; flex-shrink: 0;">
+          {% endif %}
+
+          {% for anh_phu in san_pham.danh_sach_anh.all %}
+          <img src="{{ anh_phu.anh.url }}"
+               class="thumbnail-img"
+               onclick="changeMainImage(this.src, this)"
+               style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0; opacity: 0.7;">
+          {% endfor %}
+        </div>
         {% endif %}
 
         <!-- Thông tin nhanh bên dưới ảnh -->
@@ -842,6 +861,28 @@ if (stars.length) {
       });
     });
   });
+}
+
+// ── Xử lý đổi ảnh Gallery ──────────────────────────────
+function changeMainImage(newSrc, element) {
+  // 1. Đổi ảnh to
+  const mainImg = document.getElementById('main-img');
+  if (mainImg) {
+    mainImg.src = newSrc;
+  }
+  
+  // 2. Xóa hiệu ứng "đang chọn" (viền cam) của tất cả ảnh nhỏ
+  const thumbnails = document.querySelectorAll('.thumbnail-img');
+  for (let i = 0; i < thumbnails.length; i++) {
+    thumbnails[i].style.borderColor = 'transparent';
+    thumbnails[i].style.opacity = '0.5';
+    thumbnails[i].classList.remove('active');
+  }
+  
+  // 3. Thêm hiệu ứng "đang chọn" cho ảnh vừa click
+  element.style.borderColor = '#ff6b35';
+  element.style.opacity = '1';
+  element.classList.add('active');
 }
 </script>
 {% endblock %}

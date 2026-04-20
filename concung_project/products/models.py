@@ -69,6 +69,18 @@ class SanPham(models.Model):
         return bool(self.gia_khuyen_mai and self.gia_khuyen_mai < self.gia_ban)
 
 
+class HinhAnhSanPham(models.Model):
+    san_pham = models.ForeignKey(SanPham, on_delete=models.CASCADE, related_name='danh_sach_anh', verbose_name='Sản phẩm')
+    anh = models.ImageField(upload_to='san_pham/gallery/', verbose_name='Ảnh kèm theo')
+    ngay_tao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Hình ảnh sản phẩm'
+        verbose_name_plural = 'Hình ảnh sản phẩm'
+
+    def __str__(self):
+        return f"Ảnh của {self.san_pham.ten}"
+
 class TonKho(models.Model):
     """Model tồn kho theo từng cửa hàng"""
 

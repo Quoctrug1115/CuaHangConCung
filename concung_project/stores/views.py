@@ -173,6 +173,20 @@ def quan_ly_nhan_vien(request):
         'nhan_viens': paginator.get_page(request.GET.get('page', 1))
     })
 
+@login_required
+def chi_tiet_nhan_vien(request, pk):
+    """Admin: Xem chi tiết nhân viên"""
+    if not request.user.la_quan_ly:
+        messages.error(request, 'Bạn không có quyền truy cập.')
+        return redirect('trang_chu')
+
+    # Dùng select_related để tối ưu truy vấn (join bảng NguoiDung và CuaHang)
+    nv = get_object_or_404(NhanVien.objects.select_related('nguoi_dung', 'cua_hang'), pk=pk)
+
+    return render(request, 'stores/chi_tiet_nhan_vien.html', {
+        'nv': nv,
+        'tieu_de': f'Hồ sơ: {nv.nguoi_dung.get_full_name() or nv.nguoi_dung.username}'
+    })
 # ════════════════════════════════════════════════════════════════════════
 #  NHÂN VIÊN CRUD
 # ════════════════════════════════════════════════════════════════════════
