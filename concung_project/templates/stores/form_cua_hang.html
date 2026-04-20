@@ -196,8 +196,8 @@ select.fi{cursor:pointer}
         <div class="coord-item"><span class="coord-lbl">Vĩ độ</span><span class="coord-val" id="d-lat">--</span></div>
         <button type="button" id="btn-clr-coord" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:6px;padding:.2rem .5rem;font-size:.68rem;cursor:pointer;color:var(--sub)">✕ Xóa</button>
       </div>
-      <input type="hidden" name="kinh_do" id="inp-lng" value="{{ form.kinh_do.value|default:'' }}">
-      <input type="hidden" name="vi_do"   id="inp-lat" value="{{ form.vi_do.value|default:'' }}">
+      <input type="hidden" name="kinh_do" id="inp-lng" value="{{ form.kinh_do.value|default:''|floatformat:6 }}">
+      <input type="hidden" name="vi_do"   id="inp-lat" value="{{ form.vi_do.value|default:''|floatformat:6 }}">
 
       {% if form.instance.pk and form.instance.vi_tri %}
       <div style="margin-top:.65rem;padding:.5rem .75rem;background:#EFF6FF;border-radius:8px;font-size:.72rem;color:#1E40AF">
@@ -230,76 +230,110 @@ select.fi{cursor:pointer}
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const initLat={{ form.vi_do.value|default:"10.8231" }};
-const initLng={{ form.kinh_do.value|default:"106.6297" }};
-const hasCoord={{ form.vi_do.value|yesno:"true,false" }};
+// ── Tọa độ ban đầu từ Django form ──────────────────────────────
+// floatformat:6 bắt buộc dùng dấu chấm thập phân, tránh lỗi locale vi (dấu phẩy)
+const initLat = {{ form.vi_do.value|default:"10.8231"|floatformat:6 }};
+const initLng = {{ form.kinh_do.value|default:"106.6297"|floatformat:6 }};
+const hasCoord = {{ form.vi_do.value|yesno:"true,false" }};
 
-// FIX: Dùng window.load để đảm bảo container có kích thước thực trước khi Leaflet init
-let map, mk=null;
+let map = null, mk = null;
 
-const pinIcon=L.divIcon({
-  html:`<div style="width:28px;height:28px;background:#E85D2F;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,.35)"></div>`,
-  iconSize:[28,28],iconAnchor:[14,28],className:''
+const pinIcon = L.divIcon({
+  html: `<div style="width:30px;height:30px;background:#E85D2F;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);border:3px solid white;box-shadow:0 4px 14px rgba(0,0,0,.35)"></div>`,
+  iconSize: [30,30], iconAnchor: [15,30], className: ''
 });
 
-function initMap(){
-  if(map) return;
-  const el = document.getElementById('map-picker');
-  if(!el || el.offsetWidth === 0) { requestAnimationFrame(initMap); return; }
-  map = L.map('map-picker',{zoomControl:true}).setView([initLat,initLng],hasCoord?15:12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap',maxZoom:19,crossOrigin:'anonymous'
-  }).addTo(map);
-  // FIX: invalidateSize sau khi render để tile load đúng
-  setTimeout(()=>map.invalidateSize(true),100);
-  setTimeout(()=>map.invalidateSize(true),400);
-  if(hasCoord) setMk(initLat,initLng);
-  map.on('click',e=>{ setMk(e.latlng.lat,e.latlng.lng); map.panTo(e.latlng); });
-}
-window.addEventListener('load', initMap);
-if(document.readyState==='complete') initMap();
-function setMk(lat,lng){
-  if(mk)map.removeLayer(mk);
-  mk=L.marker([lat,lng],{icon:pinIcon,draggable:true}).addTo(map);
-  mk.on('dragend',e=>{const p=e.target.getLatLng();upCoord(p.lat,p.lng)});
-  upCoord(lat,lng);
-}
-function upCoord(lat,lng){
-  document.getElementById('d-lat').textContent=lat.toFixed(6);
-  document.getElementById('d-lng').textContent=lng.toFixed(6);
-  document.getElementById('inp-lat').value=lat.toFixed(6);
-  document.getElementById('inp-lng').value=lng.toFixed(6);
+// ── Khởi tạo map ───────────────────────────────────────────────
+// Dùng DOMContentLoaded + setTimeout để đảm bảo container đã có kích thước thực
+document.addEventListener('DOMContentLoaded', function() {
+  // Chờ 1 tick để sticky layout tính toán xong
+  setTimeout(function() {
+    const el = document.getElementById('map-picker');
+    if (!el) return;
+
+    map = L.map('map-picker', { zoomControl: true })
+           .setView([initLat, initLng], hasCoord ? 16 : 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      maxZoom: 19,
+      crossOrigin: 'anonymous'
+    }).addTo(map);
+
+    // invalidateSize 3 lần để tile chắc chắn load đúng trong sticky container
+    [50, 200, 600].forEach(ms => setTimeout(() => map.invalidateSize(true), ms));
+
+    // Nếu đã có tọa độ → hiển thị ghim ngay
+    if (hasCoord) setMk(initLat, initLng, false);
+
+    // Click bản đồ → đặt ghim
+    map.on('click', function(e) {
+      setMk(e.latlng.lat, e.latlng.lng, true);
+    });
+
+  }, 50);
+});
+
+// ── Đặt/di chuyển ghim ─────────────────────────────────────────
+function setMk(lat, lng, panTo) {
+  if (mk) map.removeLayer(mk);
+  mk = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(map);
+  mk.on('dragend', function(e) {
+    const p = e.target.getLatLng();
+    upCoord(p.lat, p.lng);
+  });
+  upCoord(lat, lng);
+  if (panTo && map) map.panTo([lat, lng], { animate: true });
 }
 
-// map click & init handled in initMap()
+// ── Cập nhật hiển thị tọa độ ───────────────────────────────────
+function upCoord(lat, lng) {
+  document.getElementById('d-lat').textContent = lat.toFixed(6);
+  document.getElementById('d-lng').textContent = lng.toFixed(6);
+  document.getElementById('inp-lat').value = lat.toFixed(6);
+  document.getElementById('inp-lng').value = lng.toFixed(6);
+}
 
-document.getElementById('btn-clr-coord').onclick=()=>{
-  if(mk){map.removeLayer(mk);mk=null}
-  ['d-lat','d-lng'].forEach(id=>document.getElementById(id).textContent='--');
-  ['inp-lat','inp-lng'].forEach(id=>document.getElementById(id).value='');
+// ── Xóa ghim ───────────────────────────────────────────────────
+document.getElementById('btn-clr-coord').onclick = function() {
+  if (mk) { map.removeLayer(mk); mk = null; }
+  ['d-lat', 'd-lng'].forEach(id => document.getElementById(id).textContent = '--');
+  ['inp-lat', 'inp-lng'].forEach(id => document.getElementById(id).value = '');
 };
 
-// Geocode
-const btnGeo=document.getElementById('btn-geo');
-async function doGeocode(){
-  const q=document.getElementById('geo-inp').value.trim();if(!q)return;
-  const msg=document.getElementById('geo-msg');
-  msg.className='geo-msg geo-loading';msg.textContent='⏳ Đang tìm địa chỉ...';
-  try{
-    // FIX: Dùng Django API /api/geocode/ thay Nominatim trực tiếp (tránh CORS + rate limit)
-    const r=await fetch(`/api/geocode/?dia_chi=${encodeURIComponent(q+', Vietnam')}`,{
-      headers:{'X-Requested-With':'XMLHttpRequest'}
-    });
-    const d=await r.json();
-    if(d.vi_do&&d.kinh_do){
-      setMk(d.vi_do,d.kinh_do);
-      if(map) map.setView([d.vi_do,d.kinh_do],16);
-      msg.className='geo-msg geo-ok';
-      msg.textContent='✅ Tìm thấy: '+(d.ten_hien_thi||q).slice(0,60);
-    }else{msg.className='geo-msg geo-err';msg.textContent='❌ Không tìm thấy địa chỉ này'}
-  }catch(e){msg.className='geo-msg geo-err';msg.textContent='❌ Lỗi kết nối. Thử lại sau.'}
+// ── Geocode địa chỉ ────────────────────────────────────────────
+const btnGeo = document.getElementById('btn-geo');
+async function doGeocode() {
+  const q = document.getElementById('geo-inp').value.trim();
+  if (!q) return;
+  const msg = document.getElementById('geo-msg');
+  msg.className = 'geo-msg geo-loading';
+  msg.textContent = '⏳ Đang tìm địa chỉ...';
+  try {
+    // Dùng Django backend thay Nominatim trực tiếp (tránh CORS + rate limit)
+    const r = await fetch(
+      `/api/geocode/?dia_chi=${encodeURIComponent(q + ', Việt Nam')}`,
+      { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+    );
+    const d = await r.json();
+    if (d.vi_do && d.kinh_do) {
+      if (map) setMk(d.vi_do, d.kinh_do, true);
+      if (map) map.setView([d.vi_do, d.kinh_do], 16);
+      msg.className = 'geo-msg geo-ok';
+      msg.textContent = '✅ Tìm thấy: ' + (d.ten_hien_thi || q).slice(0, 60);
+    } else {
+      msg.className = 'geo-msg geo-err';
+      msg.textContent = '❌ Không tìm thấy địa chỉ này. Thử nhập chi tiết hơn.';
+    }
+  } catch (e) {
+    msg.className = 'geo-msg geo-err';
+    msg.textContent = '❌ Lỗi kết nối. Thử lại sau.';
+  }
 }
-btnGeo.onclick=doGeocode;
-document.getElementById('geo-inp').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();doGeocode()}};
+btnGeo.onclick = doGeocode;
+document.getElementById('geo-inp').onkeydown = function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); doGeocode(); }
+};
 </script>
 {% endblock %}
