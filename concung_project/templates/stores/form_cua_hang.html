@@ -232,10 +232,12 @@ select.fi{cursor:pointer}
 <script>
 // ── Tọa độ ban đầu từ Django form ──────────────────────────────
 // floatformat:6 bắt buộc dùng dấu chấm thập phân, tránh lỗi locale vi (dấu phẩy)
-const initLat = {{ form.vi_do.value|default:"10.8231"|floatformat:6 }};
-const initLng = {{ form.kinh_do.value|default:"106.6297"|floatformat:6 }};
-const hasCoord = {{ form.vi_do.value|yesno:"true,false" }};
+const rawLat = "{{ form.vi_do.value|default:'' }}";
+const rawLng = "{{ form.kinh_do.value|default:'' }}";
 
+const hasCoord = rawLat !== "" && rawLat !== "None";
+const initLat = hasCoord ? parseFloat(rawLat.replace(',', '.')) : 10.8231;
+const initLng = hasCoord ? parseFloat(rawLng.replace(',', '.')) : 106.6297;
 let map = null, mk = null;
 
 const pinIcon = L.divIcon({

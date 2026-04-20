@@ -341,10 +341,12 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#F4F6FA}
 {% if cua_hang.vi_tri %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const STORE_LAT = {{ cua_hang.vi_do }};
-const STORE_LNG = {{ cua_hang.kinh_do }};
-const API_ROUTE = "{% url 'api_duong_di' %}";
+const rawLat = "{{ cua_hang.vi_do|default:'0' }}";
+const rawLng = "{{ cua_hang.kinh_do|default:'0' }}";
 
+const STORE_LAT = parseFloat(rawLat.replace(',', '.'));
+const STORE_LNG = parseFloat(rawLng.replace(',', '.'));
+const API_ROUTE = "{% url 'api_duong_di' %}";
 // ── Map init — khởi tạo sau khi DOM + Bootstrap grid render xong ────────
 let map;
 

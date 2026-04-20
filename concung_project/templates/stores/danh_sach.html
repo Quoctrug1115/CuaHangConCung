@@ -438,28 +438,30 @@ body{font-family:'DM Sans',sans-serif;background:#F5F4F0}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// 1. Fix lỗi dấu phẩy thập phân trong vòng lặp STORES
 const STORES = [
   {% for ch in cua_hangs %}{% if ch.vi_do %}
-  {id:{{ ch.pk }}, ten:'{{ ch.ten|escapejs }}', dia_chi:'{{ ch.dia_chi|escapejs }}, {{ ch.quan_huyen|escapejs }}', gio:'{{ ch.gio_mo_cua|time:"H:i" }}\u2013{{ ch.gio_dong_cua|time:"H:i" }}', vi_do:{{ ch.vi_do }}, kinh_do:{{ ch.kinh_do }}, active:{{ ch.dang_hoat_dong|yesno:'true,false' }}, url:'{% url "chi_tiet_cua_hang" ch.pk %}'},
+  {
+    id: {{ ch.pk }}, 
+    ten: '{{ ch.ten|escapejs }}', 
+    dia_chi: '{{ ch.dia_chi|escapejs }}, {{ ch.quan_huyen|escapejs }}', 
+    gio: '{{ ch.gio_mo_cua|time:"H:i" }}\u2013{{ ch.gio_dong_cua|time:"H:i" }}', 
+    vi_do: parseFloat("{{ ch.vi_do }}".replace(',', '.')), 
+    kinh_do: parseFloat("{{ ch.kinh_do }}".replace(',', '.')), 
+    active: {{ ch.dang_hoat_dong|yesno:'true,false' }}, 
+    url: '{% url "chi_tiet_cua_hang" ch.pk %}'
+  },
   {% endif %}{% endfor %}
 ];
 
 const amap = L.map('all-stores-map', {zoomControl:true, attributionControl:false}).setView([10.8231, 106.6297], 11);
-// Tile: Stadia dark (hoạt động trên localhost, không yêu cầu Referer)
-// Fallback sang OSM nếu Stadia fail
-(function() {
-  var dark = L.tileLayer(
-    'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-    {maxZoom:20, crossOrigin:'anonymous', attribution:'© Stadia'}
-  );
-  dark.on('tileerror', function() {
-    // Fallback: OSM standard nếu Stadia fail
-    amap.eachLayer(function(l){ if(l instanceof L.TileLayer) amap.removeLayer(l); });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {maxZoom:19, crossOrigin:'anonymous'}).addTo(amap);
-  });
-  dark.addTo(amap);
-})();
+
+// 2. Thay thế Stadia Maps bị lỗi bằng CartoDB Dark Matter (Bản đồ tối cực đẹp & miễn phí)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    crossOrigin: 'anonymous',
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> & © <a href="https://carto.com/">CartoDB</a>'
+}).addTo(amap);
 
 function makeIcon(active, size) {
   size = size||14;
@@ -481,7 +483,9 @@ STORES.forEach(s => {
     document.getElementById('mip-name').textContent = s.ten;
     document.getElementById('mip-addr').textContent = '📍 ' + s.dia_chi;
     document.getElementById('mip-hours').textContent = '🕐 ' + s.gio;
-    document.getElementById('mip-dir').href = `https://www.google.com/maps?q=${s.vi_do},${s.kinh_do}`;
+    
+    // Fix link URL chỉ đường của Google Maps
+    document.getElementById('mip-dir').href = `http://googleusercontent.com/maps.google.com/maps?daddr=${s.vi_do},${s.kinh_do}`;
     document.getElementById('mip-detail').href = s.url;
   });
   m._sid = s.id;
@@ -494,6 +498,8 @@ amap.on('click', () => {
 
 if(STORES.length > 1) {
   amap.fitBounds(L.latLngBounds(STORES.map(s=>[s.vi_do,s.kinh_do])), {padding:[40,40]});
+} else if (STORES.length === 1) {
+  amap.setView([STORES[0].vi_do, STORES[0].kinh_do], 15);
 }
 
 function mapFindMe() {
