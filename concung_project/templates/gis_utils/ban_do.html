@@ -12,36 +12,98 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
   --sb-w:380px;
   --shadow:0 2px 12px rgba(0,0,0,.08);
 }
-
+/* ── TOGGLE BUTTON (always visible) ── */
+.sb-toggle {
+  position: absolute;
+  top: 100px;
+  right: -24px; /* Luôn lồi ra ngoài sidebar 24px */
+  width: 24px;
+  height: 48px;
+  background: white;
+  border: 1.5px solid var(--border);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1100; /* Luôn nằm trên mọi nội dung */
+  color: var(--or);
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
+.sb-toggle:hover {
+  background: #f8f8f8;
+  color: var(--orb);
+}
+#sb-toggle-icon {
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.sidebar.collapsed ~ .sb-toggle, 
+.sidebar.collapsed + .sb-toggle {
+  left: 0;
+}
 /* ── LAYOUT ── */
-.wrap{display:flex;height:calc(100vh - 56px);background:var(--bg);position:relative}
+.wrap {
+  display: flex;
+  height: calc(100vh - 56px);
+  width: 100vw;
+  overflow: hidden;
+}
+.main-wrapper {
+    display: flex;
+    /* Trừ đi chiều cao navbar chính của Django nếu có, ví dụ 56px */
+    height: calc(100vh - 56px); 
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+}
 
+.map-header {
+    flex-shrink: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+}
+
+.map-outer {
+    flex: 1;
+    position: relative;
+}
+.right-col {
+  flex: 1; /* Chiếm trọn phần còn lại */
+  display: flex;
+  flex-direction: column; /* Xếp Header -> Map -> Footer */
+  min-width: 0;
+}
 /* ── SIDEBAR ── */
-.sidebar{
-  width:var(--sb-w);flex-shrink:0;
-  display:flex;flex-direction:column;
-  background:var(--panel);
-  border-right:1px solid var(--border);
-  box-shadow:var(--shadow);
-  z-index:30;overflow:hidden;
-  transition:width .3s cubic-bezier(.4,0,.2,1),
-             transform .3s cubic-bezier(.4,0,.2,1);
-  position:relative;
+.sidebar {
+  width: var(--sb-w);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  position: relative; /* Gốc tọa độ cho nút bấm */
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  z-index: 1000;
 }
-.sidebar.collapsed{
-  width:0;transform:translateX(-100%);
-  border-right:none;
+.sidebar.collapsed {
+  transform: translateX(-100%);
 }
-
 /* Sidebar inner — scrollable */
-.sb-inner{
-  display:flex;flex-direction:column;
-  height:100%;overflow:hidden;
-  min-width:var(--sb-w);
+.sb-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%; /* Cưỡng ép rộng bằng Sidebar */
+  overflow: hidden;
 }
-.sb-scroll{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+.sb-scroll {
+  flex: 1; /* Tự động lấp đầy phần diện tích còn lại */
+  overflow-y: auto !important; /* Bật thanh cuộn dọc */
+  overflow-x: hidden;
+  background: #fff;
+  width: 100%;
 }
 .sb-scroll::-webkit-scrollbar{width:4px}
 .sb-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
@@ -58,27 +120,6 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .sb-sub{font-size:.68rem;color:rgba(255,255,255,.45);margin-top:.1rem}
 
-/* ── TOGGLE BUTTON (always visible) ── */
-.sb-toggle{
-  position:absolute;top:50%;
-  right:-18px;transform:translateY(-50%);
-  width:18px;height:52px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-left:none;
-  border-radius:0 8px 8px 0;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--muted);font-size:.65rem;
-  box-shadow:3px 0 8px rgba(0,0,0,.06);
-  z-index:100;
-  transition:background .14s,color .14s;
-}
-.sb-toggle:hover{background:var(--card);color:var(--text)}
-.sidebar.collapsed .sb-toggle{
-  right:calc(-18px - var(--sb-w));
-  /* stays attached to map edge */
-}
 
 /* FAB toggle button on map (when sidebar collapsed) */
 .fab-sidebar{
@@ -259,7 +300,18 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
 .btn-go-sm:hover{background:rgba(232,93,47,.18)}
 
 /* ── MAP AREA ── */
-.map-outer{position:relative;flex:1;overflow:hidden}
+.map-outer {
+    flex: 1; /* Chiếm toàn bộ không gian còn lại ở giữa */
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+.map-footer {
+    flex-shrink: 0;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    z-index: 10;
+}
 #map{width:100%;height:100%}
 
 /* Map chips */
@@ -408,288 +460,284 @@ body{font-family:'DM Sans',sans-serif;overflow:hidden}
 @keyframes fadeUp{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 .rresult.show{animation:fadeUp .2s ease}
 
-@media(max-width:768px){
-  .sidebar{
-    position:absolute;left:0;top:0;bottom:0;
-    width:min(100vw, 360px)!important;
-    border-right:1px solid var(--border);
-    transform:translateX(0);
+@media(max-width: 768px) {
+  .sidebar {
+    position: absolute; /* Trên mobile thì cho đè lên */
+    z-index: 2000;
+    width: 300px !important;
   }
-  .sidebar.collapsed{transform:translateX(-100%)!important;width:min(100vw,360px)!important}
-  .wrap{flex-direction:column}
-  #map{height:100%}
 }
+
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="wrap">
+<div class="main-wrapper">
+    <!-- CỘT TRÁI: SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
 
-  <!-- ══ SIDEBAR ══ -->
-  <aside class="sidebar" id="sidebar">
-    <!-- Toggle tab (always visible) -->
-    <button class="sb-toggle" id="sb-toggle" onclick="toggleSidebar()" title="Đóng/mở bảng điều khiển">
-      <span id="sb-toggle-icon">◀</span>
-    </button>
+        <button class="sb-toggle" id="sb-toggle">
+          <span id="sb-toggle-icon">◀</span>
+        </button>
 
-    <div class="sb-inner">
-      <!-- Header với stats -->
-      <div class="sb-head">
-        <div class="sb-title"><span class="dot"></span>Con Cưng · Bản đồ & Tìm đường</div>
-        <div class="sb-sub">{{ tong_cua_hang }} cửa hàng · {{ so_co_ban_do }} có GPS · OSRM Routing</div>
-        <div class="sb-stats-row">
-          <div class="sb-stat orange"><div class="sb-stat-val">{{ tong_cua_hang }}</div><div class="sb-stat-lbl">Cửa hàng</div></div>
-          <div class="sb-stat green"><div class="sb-stat-val" id="stat-open">—</div><div class="sb-stat-lbl">Đang mở</div></div>
-          <div class="sb-stat blue"><div class="sb-stat-val">{{ so_co_ban_do }}</div><div class="sb-stat-lbl">Có GPS</div></div>
+      <div class="sb-inner">
+        <!-- Header với stats -->
+        <div class="sb-head">
+          <div class="sb-title"><span class="dot"></span>Con Cưng · Bản đồ & Tìm đường</div>
+          <div class="sb-sub">{{ tong_cua_hang }} cửa hàng · {{ so_co_ban_do }} có GPS · OSRM Routing</div>
+          <div class="sb-stats-row">
+            <div class="sb-stat orange"><div class="sb-stat-val">{{ tong_cua_hang }}</div><div class="sb-stat-lbl">Cửa hàng</div></div>
+            <div class="sb-stat green"><div class="sb-stat-val" id="stat-open">—</div><div class="sb-stat-lbl">Đang mở</div></div>
+            <div class="sb-stat blue"><div class="sb-stat-val">{{ so_co_ban_do }}</div><div class="sb-stat-lbl">Có GPS</div></div>
+          </div>
         </div>
-      </div>
 
-      <!-- Scrollable body -->
-      <div class="sb-scroll">
+        <!-- Scrollable body -->
+        <div class="sb-scroll">
 
-        <!-- Route inputs -->
-        <div class="route-panel">
-          <div class="route-input-group">
-            <div class="route-connector"></div>
-            <div class="route-field">
-              <div class="rdot a">A</div>
-              <div class="input-wrap">
-                <span class="inp-ic">📍</span>
-                <input type="text" id="inp-from" class="rinp" placeholder="Địa chỉ của bạn..." autocomplete="off">
-                <div class="drop" id="drop-from"></div>
-              </div>
-            </div>
-            <div class="route-field">
-              <div class="rdot b">B</div>
-              <div class="input-wrap">
-                <span class="inp-ic">🏪</span>
-                <input type="text" id="inp-to" class="rinp" placeholder="Chọn cửa hàng bên dưới..." autocomplete="off" readonly>
-              </div>
-            </div>
-          </div>
-
-          <div class="route-progress" id="route-progress"></div>
-          <div class="btn-row">
-            <button class="btnx btn-gps" id="btn-gps"><i class="bi bi-crosshair2"></i> GPS</button>
-            <button class="btnx btn-swap" title="Đổi điểm A↔B" onclick="swapAB()">⇅</button>
-            <button class="btnx btn-near" id="btn-near"><i class="bi bi-radar"></i> Gần nhất</button>
-            <button class="btnx btn-go" id="btn-route" disabled>
-              <i class="bi bi-signpost-split-fill"></i> Tìm đường
-            </button>
-          </div>
-          <div class="statusx" id="statusx">
-            <i class="bi bi-info-circle"></i> Nhập địa chỉ hoặc dùng GPS để bắt đầu
-          </div>
-
-          <!-- Route result panel -->
-          <div class="rresult" id="rresult">
-            <div class="rr-head">
-              <div class="rr-stats">
-                <div class="rr-block">
-                  <div class="rr-val km" id="rr-km">—</div>
-                  <div class="rr-lbl">km</div>
-                </div>
-                <div class="rr-divider"></div>
-                <div class="rr-block">
-                  <div class="rr-val mn" id="rr-mn">—</div>
-                  <div class="rr-lbl">phút</div>
-                </div>
-                <div class="rr-divider"></div>
-                <div class="rr-dest">
-                  <div class="rr-dest-name" id="rr-dest-name">—</div>
-                  <div class="rr-dest-from" id="rr-dest-from">Từ: —</div>
+          <!-- Route inputs -->
+          <div class="route-panel">
+            <div class="route-input-group">
+              <div class="route-connector"></div>
+              <div class="route-field">
+                <div class="rdot a">A</div>
+                <div class="input-wrap">
+                  <span class="inp-ic">📍</span>
+                  <input type="text" id="inp-from" class="rinp" placeholder="Địa chỉ của bạn..." autocomplete="off">
+                  <div class="drop" id="drop-from"></div>
                 </div>
               </div>
-              <div class="rr-actions">
-                <button class="btn-share-route" onclick="shareRoute()" title="Sao chép link chia sẻ">📤</button>
-                <button class="btn-clear-route" onclick="clearRoute()">✕ Xóa</button>
+              <div class="route-field">
+                <div class="rdot b">B</div>
+                <div class="input-wrap">
+                  <span class="inp-ic">🏪</span>
+                  <input type="text" id="inp-to" class="rinp" placeholder="Chọn cửa hàng bên dưới..." autocomplete="off" readonly>
+                </div>
               </div>
             </div>
-            <div class="steps-header">
-              <span>📋 Chỉ dẫn chi tiết</span>
-              <button class="steps-toggle" id="steps-toggle" onclick="toggleSteps()">Thu gọn ▲</button>
-            </div>
-            <div class="steps" id="steps"></div>
-          </div>
-        </div>
 
-        <!-- ── RADIUS PICKER ── -->
-        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
-          <div class="radius-label">📡 Bán kính tìm kiếm cửa hàng gần nhất</div>
-          <div class="radius-pills">
-            <button class="rpill" onclick="setRadius(1)">1 km</button>
-            <button class="rpill" onclick="setRadius(2)">2 km</button>
-            <button class="rpill active" onclick="setRadius(5)">5 km</button>
-            <button class="rpill" onclick="setRadius(10)">10 km</button>
-            <button class="rpill" onclick="setRadius(20)">20 km</button>
-            <button class="rpill" onclick="setRadius(50)">50 km</button>
-          </div>
-          <div class="radius-custom">
-            <label for="radius-slider">Tùy chỉnh:</label>
-            <input type="range" id="radius-slider" class="radius-slider" min="1" max="50" step="1" value="5" oninput="onSliderChange(this.value)">
-            <span class="radius-val" id="radius-val">5 km</span>
-          </div>
-        </div>
-
-        <!-- ── LỌC CỬA HÀNG ── -->
-        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
-          <div class="sec-title">🔍 Lọc & Sắp xếp cửa hàng</div>
-          <div class="filter-row">
-            <button class="fpill active" id="filter-all" onclick="setFilter('all')"><span class="fdot"></span>Tất cả</button>
-            <button class="fpill" id="filter-open" onclick="setFilter('open')"><span class="fdot" style="background:var(--green)"></span>Đang mở</button>
-            <button class="fpill" id="filter-gps" onclick="setFilter('gps')">📍 Có GPS</button>
-          </div>
-          <select class="filter-select" id="filter-quan" onchange="applyFilters()">
-            <option value="">— Tất cả quận/huyện —</option>
-            {% for ch in tat_ca_cua_hang %}<option value="{{ ch.quan_huyen }}">{{ ch.quan_huyen }}</option>{% endfor %}
-          </select>
-        </div>
-
-        <!-- ── LOẠI BẢN ĐỒ ── -->
-        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
-          <div class="sec-title">🗺 Kiểu bản đồ nền</div>
-          <div class="map-type-row">
-            <button class="mtpill active" id="mt-osm" onclick="setMapType('osm')">🗺 Bản đồ</button>
-            <button class="mtpill" id="mt-sat" onclick="setMapType('sat')">🛰 Vệ tinh</button>
-            <button class="mtpill" id="mt-topo" onclick="setMapType('topo')">⛰ Địa hình</button>
-            <button class="mtpill" id="mt-dark" onclick="setMapType('dark')">🌙 Tối</button>
-          </div>
-        </div>
-
-        <!-- ── LỊCH SỬ TÌM ĐƯỜNG ── -->
-        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
-          <div class="sec-title">
-            🕐 Lịch sử tìm đường
-            <button onclick="clearHistory()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600">Xóa tất cả</button>
-          </div>
-          <div id="hist-list"><div class="hist-empty">Chưa có lịch sử</div></div>
-        </div>
-
-        <!-- ── GHIM VỊ TRÍ TÙY CHỈNH ── -->
-        <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
-          <div class="sec-title">
-            📌 Ghim vị trí của tôi
-            <div style="display:flex;gap:.25rem">
-              <button onclick="xoaHetGhim()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600">Xóa hết</button>
-              <button onclick="toggleGhimPanel()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600" id="ghim-toggle-lbl">Thu gọn ▲</button>
-            </div>
-          </div>
-          <div id="ghim-panel">
-            <!-- Form thêm ghim -->
-            <div style="background:#F8FAFC;border:1.5px dashed var(--border);border-radius:9px;padding:.65rem .75rem;margin-bottom:.55rem">
-              <div style="font-size:.69rem;font-weight:700;color:var(--text);margin-bottom:.4rem">➕ Thêm ghim mới</div>
-              <input id="ghim-name" type="text" placeholder="Tên ghim (VD: Nhà tôi, Văn phòng...)"
-                style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:.38rem .6rem;font-size:.76rem;font-family:inherit;outline:none;margin-bottom:.35rem">
-              <div style="display:flex;gap:.3rem;margin-bottom:.35rem;flex-wrap:wrap;align-items:center">
-                <span style="font-size:.68rem;color:var(--muted);font-weight:600">Biểu tượng:</span>
-                <button class="ghim-ic-btn" data-ic="📍" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">📍</button>
-                <button class="ghim-ic-btn" data-ic="🏠" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏠</button>
-                <button class="ghim-ic-btn" data-ic="🏢" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏢</button>
-                <button class="ghim-ic-btn" data-ic="⭐" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">⭐</button>
-                <button class="ghim-ic-btn" data-ic="❤️" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">❤️</button>
-                <button class="ghim-ic-btn" data-ic="🎯" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🎯</button>
-                <button class="ghim-ic-btn" data-ic="🚩" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🚩</button>
-                <button class="ghim-ic-btn" data-ic="🏥" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏥</button>
-              </div>
-              <div style="display:flex;gap:.3rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap">
-                <span style="font-size:.68rem;color:var(--muted);font-weight:600">Màu:</span>
-                <button class="ghim-clr-btn" data-clr="#E85D2F" style="width:20px;height:20px;border-radius:50%;background:#E85D2F;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-                <button class="ghim-clr-btn" data-clr="#2563EB" style="width:20px;height:20px;border-radius:50%;background:#2563EB;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-                <button class="ghim-clr-btn" data-clr="#16A34A" style="width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-                <button class="ghim-clr-btn" data-clr="#7C3AED" style="width:20px;height:20px;border-radius:50%;background:#7C3AED;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-                <button class="ghim-clr-btn" data-clr="#DB2777" style="width:20px;height:20px;border-radius:50%;background:#DB2777;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-                <button class="ghim-clr-btn" data-clr="#D97706" style="width:20px;height:20px;border-radius:50%;background:#D97706;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-                <button class="ghim-clr-btn" data-clr="#0891B2" style="width:20px;height:20px;border-radius:50%;background:#0891B2;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
-              </div>
-              <div style="display:flex;gap:.35rem">
-                <button onclick="addGhimByGPS()" style="flex:1;background:var(--green);color:white;border:none;border-radius:7px;padding:.38rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">📡 GPS</button>
-                <button onclick="addGhimByClick()" id="btn-ghim-click" style="flex:1;background:var(--blue);color:white;border:none;border-radius:7px;padding:.38rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🗺 Click bản đồ</button>
-              </div>
-            </div>
-            <!-- Danh sách ghim -->
-            <div id="ghim-list"><div class="hist-empty">Chưa có ghim nào</div></div>
-          </div>
-        </div>
-        <div class="tab-bar">
-          <button class="on" id="tab-all" onclick="sw('all')">🏪 Tất cả <span class="cnt-bj" id="cnt-all">{{ tong_cua_hang }}</span></button>
-          <button id="tab-near" onclick="sw('near')">📡 Gần nhất <span class="cnt-bj" id="near-cnt" style="display:none">0</span></button>
-        </div>
-        <div class="qbox" style="display:flex;gap:.3rem;align-items:center">
-          <input type="text" id="qinp" placeholder="Tìm tên, địa chỉ cửa hàng..." style="flex:1">
-          <select class="sort-select" id="sort-sel" onchange="applyFilters()">
-            <option value="default">↕ Sắp xếp</option>
-            <option value="name">A-Z Tên</option>
-            <option value="dist">📏 Gần nhất</option>
-          </select>
-        </div>
-
-        <!-- All stores list -->
-        <div class="slist" id="list-all">
-          {% for ch in tat_ca_cua_hang %}
-          <div class="sitem" id="si-{{ ch.id }}"
-               data-id="{{ ch.id }}" data-lat="{{ ch.vi_do|default:'' }}" data-lng="{{ ch.kinh_do|default:'' }}"
-               data-name="{{ ch.ten|escapejs }}" data-quan="{{ ch.quan_huyen }}"
-               onclick="selStore({{ ch.id }},{{ ch.vi_do|default:'null' }},{{ ch.kinh_do|default:'null' }},'{{ ch.ten|escapejs }}')">
-            <div class="sn">
-              <div class="sname">{{ ch.ten }}</div>
-              <button class="btn-go-sm"
-                onclick="event.stopPropagation();tapR({{ ch.id }},{{ ch.vi_do|default:'null' }},{{ ch.kinh_do|default:'null' }},'{{ ch.ten|escapejs }}')">
-                ↗ Đi
+            <div class="route-progress" id="route-progress"></div>
+            <div class="btn-row">
+              <button class="btnx btn-gps" id="btn-gps"><i class="bi bi-crosshair2"></i> GPS</button>
+              <button class="btnx btn-swap" title="Đổi điểm A↔B" onclick="swapAB()">⇅</button>
+              <button class="btnx btn-near" id="btn-near"><i class="bi bi-radar"></i> Gần nhất</button>
+              <button class="btnx btn-go" id="btn-route" disabled>
+                <i class="bi bi-signpost-split-fill"></i> Tìm đường
               </button>
             </div>
-            <div class="saddr">📍 {{ ch.dia_chi }}, {{ ch.quan_huyen }}</div>
-            <div class="smeta">📞 {{ ch.so_dien_thoai }} · 🕐 {{ ch.gio_mo_cua|time:"H:i" }}–{{ ch.gio_dong_cua|time:"H:i" }}</div>
-            <div class="sbadges">
-              <span class="bdg open status-bdg" id="sb-{{ ch.id }}">● Mở cửa</span>
-              {% if not ch.vi_tri %}<span class="bdg nogps">⚠ Chưa có GPS</span>{% endif %}
+            <div class="statusx" id="statusx">
+              <i class="bi bi-info-circle"></i> Nhập địa chỉ hoặc dùng GPS để bắt đầu
+            </div>
+
+            <!-- Route result panel -->
+            <div class="rresult" id="rresult">
+              <div class="rr-head">
+                <div class="rr-stats">
+                  <div class="rr-block">
+                    <div class="rr-val km" id="rr-km">—</div>
+                    <div class="rr-lbl">km</div>
+                  </div>
+                  <div class="rr-divider"></div>
+                  <div class="rr-block">
+                    <div class="rr-val mn" id="rr-mn">—</div>
+                    <div class="rr-lbl">phút</div>
+                  </div>
+                  <div class="rr-divider"></div>
+                  <div class="rr-dest">
+                    <div class="rr-dest-name" id="rr-dest-name">—</div>
+                    <div class="rr-dest-from" id="rr-dest-from">Từ: —</div>
+                  </div>
+                </div>
+                <div class="rr-actions">
+                  <button class="btn-share-route" onclick="shareRoute()" title="Sao chép link chia sẻ">📤</button>
+                  <button class="btn-clear-route" onclick="clearRoute()">✕ Xóa</button>
+                </div>
+              </div>
+              <div class="steps-header">
+                <span>📋 Chỉ dẫn chi tiết</span>
+                <button class="steps-toggle" id="steps-toggle" onclick="toggleSteps()">Thu gọn ▲</button>
+              </div>
+              <div class="steps" id="steps"></div>
             </div>
           </div>
-          {% empty %}
-          <div style="padding:2.5rem;text-align:center;color:var(--muted);font-size:.8rem;">
-            Chưa có dữ liệu.<br>
-            <code style="color:var(--or)">python manage.py seed_cua_hang</code>
+
+          <!-- ── RADIUS PICKER ── -->
+          <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+            <div class="radius-label">📡 Bán kính tìm kiếm cửa hàng gần nhất</div>
+            <div class="radius-pills">
+              <button class="rpill" onclick="setRadius(1)">1 km</button>
+              <button class="rpill" onclick="setRadius(2)">2 km</button>
+              <button class="rpill active" onclick="setRadius(5)">5 km</button>
+              <button class="rpill" onclick="setRadius(10)">10 km</button>
+              <button class="rpill" onclick="setRadius(20)">20 km</button>
+              <button class="rpill" onclick="setRadius(50)">50 km</button>
+            </div>
+            <div class="radius-custom">
+              <label for="radius-slider">Tùy chỉnh:</label>
+              <input type="range" id="radius-slider" class="radius-slider" min="1" max="50" step="1" value="5" oninput="onSliderChange(this.value)">
+              <span class="radius-val" id="radius-val">5 km</span>
+            </div>
           </div>
-          {% endfor %}
-        </div>
 
-        <!-- Near stores list -->
-        <div class="slist" id="list-near" style="display:none">
-          <div style="padding:2.5rem 1rem;text-align:center;color:var(--muted);font-size:.79rem;" id="near-ph">
-            <i class="bi bi-radar" style="font-size:1.7rem;display:block;margin-bottom:.55rem;opacity:.25"></i>
-            Nhấn <strong style="color:var(--blue)">Gần nhất</strong> hoặc <strong style="color:var(--green)">GPS</strong><br>để tìm cửa hàng gần bạn
+          <!-- ── LỌC CỬA HÀNG ── -->
+          <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+            <div class="sec-title">🔍 Lọc & Sắp xếp cửa hàng</div>
+            <div class="filter-row">
+              <button class="fpill active" id="filter-all" onclick="setFilter('all')"><span class="fdot"></span>Tất cả</button>
+              <button class="fpill" id="filter-open" onclick="setFilter('open')"><span class="fdot" style="background:var(--green)"></span>Đang mở</button>
+              <button class="fpill" id="filter-gps" onclick="setFilter('gps')">📍 Có GPS</button>
+            </div>
+            <select class="filter-select" id="filter-quan" onchange="applyFilters()">
+              <option value="">— Tất cả quận/huyện —</option>
+              {% for ch in tat_ca_cua_hang %}<option value="{{ ch.quan_huyen }}">{{ ch.quan_huyen }}</option>{% endfor %}
+            </select>
           </div>
-        </div>
 
-      </div><!-- /sb-scroll -->
+          <!-- ── LOẠI BẢN ĐỒ ── -->
+          <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+            <div class="sec-title">🗺 Kiểu bản đồ nền</div>
+            <div class="map-type-row">
+              <button class="mtpill active" id="mt-osm" onclick="setMapType('osm')">🗺 Bản đồ</button>
+              <button class="mtpill" id="mt-sat" onclick="setMapType('sat')">🛰 Vệ tinh</button>
+              <button class="mtpill" id="mt-topo" onclick="setMapType('topo')">⛰ Địa hình</button>
+              <button class="mtpill" id="mt-dark" onclick="setMapType('dark')">🌙 Tối</button>
+            </div>
+          </div>
 
-      <!-- Scroll to top sticky button -->
-      <button class="scroll-top-sb" id="scroll-top-btn" onclick="scrollToTop()" title="Về đầu trang">▲</button>
+          <!-- ── LỊCH SỬ TÌM ĐƯỜNG ── -->
+          <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+            <div class="sec-title">
+              🕐 Lịch sử tìm đường
+              <button onclick="clearHistory()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600">Xóa tất cả</button>
+            </div>
+            <div id="hist-list"><div class="hist-empty">Chưa có lịch sử</div></div>
+          </div>
 
-    </div><!-- /sb-inner -->
-  </aside>
+          <!-- ── GHIM VỊ TRÍ TÙY CHỈNH ── -->
+          <div class="sec" style="padding:.65rem .9rem;border-bottom:1px solid var(--border)">
+            <div class="sec-title">
+              📌 Ghim vị trí của tôi
+              <div style="display:flex;gap:.25rem">
+                <button onclick="xoaHetGhim()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600">Xóa hết</button>
+                <button onclick="toggleGhimPanel()" style="background:none;border:none;font-size:.61rem;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:600" id="ghim-toggle-lbl">Thu gọn ▲</button>
+              </div>
+            </div>
+            <div id="ghim-panel">
+              <!-- Form thêm ghim -->
+              <div style="background:#F8FAFC;border:1.5px dashed var(--border);border-radius:9px;padding:.65rem .75rem;margin-bottom:.55rem">
+                <div style="font-size:.69rem;font-weight:700;color:var(--text);margin-bottom:.4rem">➕ Thêm ghim mới</div>
+                <input id="ghim-name" type="text" placeholder="Tên ghim (VD: Nhà tôi, Văn phòng...)"
+                  style="width:100%;border:1.5px solid var(--border);border-radius:7px;padding:.38rem .6rem;font-size:.76rem;font-family:inherit;outline:none;margin-bottom:.35rem">
+                <div style="display:flex;gap:.3rem;margin-bottom:.35rem;flex-wrap:wrap;align-items:center">
+                  <span style="font-size:.68rem;color:var(--muted);font-weight:600">Biểu tượng:</span>
+                  <button class="ghim-ic-btn" data-ic="📍" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">📍</button>
+                  <button class="ghim-ic-btn" data-ic="🏠" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏠</button>
+                  <button class="ghim-ic-btn" data-ic="🏢" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏢</button>
+                  <button class="ghim-ic-btn" data-ic="⭐" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">⭐</button>
+                  <button class="ghim-ic-btn" data-ic="❤️" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">❤️</button>
+                  <button class="ghim-ic-btn" data-ic="🎯" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🎯</button>
+                  <button class="ghim-ic-btn" data-ic="🚩" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🚩</button>
+                  <button class="ghim-ic-btn" data-ic="🏥" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:.15rem .3rem;font-size:.9rem;cursor:pointer">🏥</button>
+                </div>
+                <div style="display:flex;gap:.3rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap">
+                  <span style="font-size:.68rem;color:var(--muted);font-weight:600">Màu:</span>
+                  <button class="ghim-clr-btn" data-clr="#E85D2F" style="width:20px;height:20px;border-radius:50%;background:#E85D2F;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                  <button class="ghim-clr-btn" data-clr="#2563EB" style="width:20px;height:20px;border-radius:50%;background:#2563EB;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                  <button class="ghim-clr-btn" data-clr="#16A34A" style="width:20px;height:20px;border-radius:50%;background:#16A34A;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                  <button class="ghim-clr-btn" data-clr="#7C3AED" style="width:20px;height:20px;border-radius:50%;background:#7C3AED;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                  <button class="ghim-clr-btn" data-clr="#DB2777" style="width:20px;height:20px;border-radius:50%;background:#DB2777;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                  <button class="ghim-clr-btn" data-clr="#D97706" style="width:20px;height:20px;border-radius:50%;background:#D97706;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                  <button class="ghim-clr-btn" data-clr="#0891B2" style="width:20px;height:20px;border-radius:50%;background:#0891B2;border:2px solid white;box-shadow:0 0 0 1.5px #ccc;cursor:pointer"></button>
+                </div>
+                <div style="display:flex;gap:.35rem">
+                  <button onclick="addGhimByGPS()" style="flex:1;background:var(--green);color:white;border:none;border-radius:7px;padding:.38rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">📡 GPS</button>
+                  <button onclick="addGhimByClick()" id="btn-ghim-click" style="flex:1;background:var(--blue);color:white;border:none;border-radius:7px;padding:.38rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🗺 Click bản đồ</button>
+                </div>
+              </div>
+              <!-- Danh sách ghim -->
+              <div id="ghim-list"><div class="hist-empty">Chưa có ghim nào</div></div>
+            </div>
+          </div>
+          <div class="tab-bar">
+            <button class="on" id="tab-all" onclick="sw('all')">🏪 Tất cả <span class="cnt-bj" id="cnt-all">{{ tong_cua_hang }}</span></button>
+            <button id="tab-near" onclick="sw('near')">📡 Gần nhất <span class="cnt-bj" id="near-cnt" style="display:none">0</span></button>
+          </div>
+          <div class="qbox" style="display:flex;gap:.3rem;align-items:center">
+            <input type="text" id="qinp" placeholder="Tìm tên, địa chỉ cửa hàng..." style="flex:1">
+            <select class="sort-select" id="sort-sel" onchange="applyFilters()">
+              <option value="default">↕ Sắp xếp</option>
+              <option value="name">A-Z Tên</option>
+              <option value="dist">📏 Gần nhất</option>
+            </select>
+          </div>
+
+          <!-- All stores list -->
+          <div class="slist" id="list-all">
+            {% for ch in tat_ca_cua_hang %}
+            <div class="sitem" id="si-{{ ch.id }}"
+                data-id="{{ ch.id }}" data-lat="{{ ch.vi_do|default:'' }}" data-lng="{{ ch.kinh_do|default:'' }}"
+                data-name="{{ ch.ten|escapejs }}" data-quan="{{ ch.quan_huyen }}"
+                onclick="selStore({{ ch.id }},{{ ch.vi_do|default:'null' }},{{ ch.kinh_do|default:'null' }},'{{ ch.ten|escapejs }}')">
+              <div class="sn">
+                <div class="sname">{{ ch.ten }}</div>
+                <button class="btn-go-sm"
+                  onclick="event.stopPropagation();tapR({{ ch.id }},{{ ch.vi_do|default:'null' }},{{ ch.kinh_do|default:'null' }},'{{ ch.ten|escapejs }}')">
+                  ↗ Đi
+                </button>
+              </div>
+              <div class="saddr">📍 {{ ch.dia_chi }}, {{ ch.quan_huyen }}</div>
+              <div class="smeta">📞 {{ ch.so_dien_thoai }} · 🕐 {{ ch.gio_mo_cua|time:"H:i" }}–{{ ch.gio_dong_cua|time:"H:i" }}</div>
+              <div class="sbadges">
+                <span class="bdg open status-bdg" id="sb-{{ ch.id }}">● Mở cửa</span>
+                {% if not ch.vi_tri %}<span class="bdg nogps">⚠ Chưa có GPS</span>{% endif %}
+              </div>
+            </div>
+            {% empty %}
+            <div style="padding:2.5rem;text-align:center;color:var(--muted);font-size:.8rem;">
+              Chưa có dữ liệu.<br>
+              <code style="color:var(--or)">python manage.py seed_cua_hang</code>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Near stores list -->
+          <div class="slist" id="list-near" style="display:none">
+            <div style="padding:2.5rem 1rem;text-align:center;color:var(--muted);font-size:.79rem;" id="near-ph">
+              <i class="bi bi-radar" style="font-size:1.7rem;display:block;margin-bottom:.55rem;opacity:.25"></i>
+              Nhấn <strong style="color:var(--blue)">Gần nhất</strong> hoặc <strong style="color:var(--green)">GPS</strong><br>để tìm cửa hàng gần bạn
+            </div>
+          </div>
+
+        </div><!-- /sb-scroll -->
+
+        <!-- Scroll to top sticky button -->
+        <button class="scroll-top-sb" id="scroll-top-btn" onclick="scrollToTop()" title="Về đầu trang">▲</button>
+
+      </div><!-- /sb-inner -->
+    </aside>
 
   <!-- ══ MAP AREA ══ -->
-  <div class="map-outer">
-    <!-- FAB to reopen sidebar -->
-    <button class="fab-sidebar" id="fab-sidebar" onclick="toggleSidebar()" title="Mở bảng điều khiển">☰</button>
+    <div class="map-outer">
+      <!-- FAB to reopen sidebar -->
+      <button class="fab-sidebar" id="fab-sidebar" onclick="toggleSidebar()" title="Mở bảng điều khiển">☰</button>
 
-    <div id="map"></div>
+      <div id="map"></div>
 
-    <!-- Info chips bottom-left -->
-    <div class="mapov">
-      <div class="mchip"><strong>{{ so_co_ban_do }}</strong> / {{ tong_cua_hang }} cửa hàng có GPS</div>
-      <div class="mchip route" id="chip-r" style="display:none">
-        Tuyến: <strong id="chip-km">—</strong> · <strong id="chip-mn">—</strong> phút
+      <!-- Info chips bottom-left -->
+      <div class="mapov">
+        <div class="mchip"><strong>{{ so_co_ban_do }}</strong> / {{ tong_cua_hang }} cửa hàng có GPS</div>
+        <div class="mchip route" id="chip-r" style="display:none">
+          Tuyến: <strong id="chip-km">—</strong> · <strong id="chip-mn">—</strong> phút
+        </div>
+      </div>
+
+      <!-- FABs top-right -->
+      <div class="map-fabs">
+        <button class="fab" id="fab-myloc" title="Vị trí của tôi">📍</button>
+        <button class="fab" title="Thu về TP.HCM" onclick="map.setView([10.8231,106.6297],12)">🏙</button>
+        <button class="fab" id="fab-all" title="Hiện tất cả cửa hàng" onclick="showAllMarkers()">👁</button>
       </div>
     </div>
-
-    <!-- FABs top-right -->
-    <div class="map-fabs">
-      <button class="fab" id="fab-myloc" title="Vị trí của tôi">📍</button>
-      <button class="fab" title="Thu về TP.HCM" onclick="map.setView([10.8231,106.6297],12)">🏙</button>
-      <button class="fab" id="fab-all" title="Hiện tất cả cửa hàng" onclick="showAllMarkers()">👁</button>
-    </div>
-  </div>
 
 </div>
 
@@ -713,14 +761,26 @@ function toast(msg,dur=2400){
 
 // ── SIDEBAR TOGGLE ─────────────────────────────────────────────
 let sbOpen=true;
-function toggleSidebar(){
-  sbOpen=!sbOpen;
-  const sb=document.getElementById('sidebar');
-  sb.classList.toggle('collapsed',!sbOpen);
-  document.getElementById('sb-toggle-icon').textContent=sbOpen?'◀':'▶';
-  setTimeout(()=>map.invalidateSize(),320);
-}
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const icon = document.getElementById('sb-toggle-icon');
+  
+  sb.classList.toggle('collapsed');
+  
+  // Đổi icon mũi tên khớp với trạng thái
+  if (sb.classList.contains('collapsed')) {
+    icon.textContent = '▶';
+  } else {
+    icon.textContent = '◀';
+  }
 
+  // Ép bản đồ cập nhật kích thước khung nhìn mới sau khi Sidebar đóng hẳn
+  setTimeout(() => {
+    if (typeof map !== 'undefined') {
+      map.invalidateSize();
+    }
+  }, 350); 
+}
 // ── SCROLL TO TOP (sidebar) ────────────────────────────────────
 const sbScroll=document.getElementById('sb-scroll');
 if(sbScroll){
@@ -1371,5 +1431,30 @@ map.on('contextmenu',ev=>{
   ).openOn(map);
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('sb-toggle');
+    const sb = document.getElementById('sidebar');
+    const icon = document.getElementById('sb-toggle-icon');
+
+    if (btn) {
+        btn.addEventListener('click', function() {
+            sb.classList.toggle('collapsed');
+            
+            // Đổi icon và trạng thái đóng mở
+            if (sb.classList.contains('collapsed')) {
+                icon.textContent = '▶';
+            } else {
+                icon.textContent = '◀';
+            }
+
+            // Ép bản đồ tính toán lại kích thước khung hình mới
+            setTimeout(() => {
+                if (typeof map !== 'undefined') {
+                    map.invalidateSize({animate: true});
+                }
+            }, 350);
+        });
+    }
+});
 </script>
 {% endblock %}

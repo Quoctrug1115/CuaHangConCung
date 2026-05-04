@@ -7,6 +7,7 @@ from .forms import DangKyForm, DangNhapForm, CapNhatHoSoForm, AdminNguoiDungForm
 from .models import NguoiDung
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth.forms import PasswordChangeForm
 
 
 def dang_ky(request):
@@ -90,22 +91,42 @@ def dang_xuat(request):
 
 @login_required
 def ho_so(request):
-    """Xem và cập nhật hồ sơ"""
+    """Xem và cập nhật hồ sơ + Đổi mật khẩu"""
+    from django.contrib.auth.forms import PasswordChangeForm
+    
+    form = CapNhatHoSoForm(instance=request.user)
+    password_form = PasswordChangeForm(request.user)
+
     if request.method == 'POST':
-        form = CapNhatHoSoForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Cập nhật hồ sơ thành công!')
-            return redirect('ho_so')
-    else:
-        form = CapNhatHoSoForm(instance=request.user)
+        # 1. Xử lý đổi mật khẩu
+        if 'change_password' in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                # Cập nhật session để không bị logout
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Đã đổi mật khẩu thành công!')
+                return redirect('ho_so')
+            else:
+                messages.error(request, 'Vui lòng kiểm tra lại thông tin mật khẩu.')
         
+        # 2. Xử lý cập nhật thông tin hồ sơ
+        else:
+            form = CapNhatHoSoForm(request.POST, request.FILES, instance=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Cập nhật hồ sơ thành công!')
+                return redirect('ho_so')
+
+    # Dòng bị lỗi chính là ở đây (đã xóa bỏ[cite: 11])
     so_don_da_giao = request.user.don_hangs.filter(trang_thai='da_giao').count()
     
     return render(request, 'accounts/ho_so.html', {
         'form': form,
-        'so_don_da_giao': so_don_da_giao # Truyền biến này sang template
+        'password_form': password_form,
+        'so_don_da_giao': so_don_da_giao
     })
+    
 
 @login_required
 def quan_ly_nguoi_dung(request):

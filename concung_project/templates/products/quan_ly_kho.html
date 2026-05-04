@@ -127,14 +127,19 @@
         <td><span style="font-size:.78rem;color:var(--sub)">{{ tk.so_luong_toi_thieu }}</span></td>
         <td>
           <div class="progress-wrap">
-            {% with pct=tk.so_luong|default:0 %}
             <div class="stock-bar {% if tk.so_luong == 0 %}stock-out{% elif tk.can_canh_bao %}stock-low{% else %}stock-ok{% endif %}">
-              <div class="stock-fill" style="width:{% if tk.so_luong_toi_thieu > 0 %}{% widthratio tk.so_luong tk.so_luong_toi_thieu 100 %}{% else %}100{% endif %}%"></div>
+            <div class="stock-fill" 
+              style="width:{% if tk.so_luong_toi_thieu and tk.so_luong_toi_thieu > 0 %}{% widthratio tk.so_luong|default:0 tk.so_luong_toi_thieu|default:1 100 %}{% else %}100{% endif %}%">
             </div>
-            {% endwith %}
-            {% if tk.so_luong == 0 %}<span class="bdg bdg-red" style="font-size:.62rem">Hết</span>
-            {% elif tk.can_canh_bao %}<span class="bdg bdg-orange" style="font-size:.62rem">Thấp</span>
-            {% else %}<span class="bdg bdg-green" style="font-size:.62rem">OK</span>{% endif %}
+          </div>
+            
+            {% if tk.so_luong == 0 %}
+              <span class="bdg bdg-red" style="font-size:.62rem">Hết</span>
+            {% elif tk.can_canh_bao %}
+              <span class="bdg bdg-orange" style="font-size:.62rem">Thấp</span>
+            {% else %}
+              <span class="bdg bdg-green" style="font-size:.62rem">OK</span>
+            {% endif %}
           </div>
         </td>
         <td><span style="font-size:.75rem;color:var(--sub)">{{ tk.vi_tri_ke|default:"—" }}</span></td>

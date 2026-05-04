@@ -53,39 +53,82 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Thống kê nhanh -->
-            <div class="card">
+                        <!-- Form Đổi Mật Khẩu -->
+            <!-- PHẦN ĐỔI MẬT KHẨU ĐÃ ĐƯỢC TỐI ƯU LAYOUT -->
+            <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3">📊 Thống kê tài khoản</h6>
-                    <div class="row g-3 text-center">
-                        <div class="col-4">
-                            <div style="font-size:1.8rem;font-weight:800;color:#E85D7E;">
-                                {{ request.user.don_hangs.count }}
+                    <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                        <span style="font-size: 1.2rem;">🔐</span> Thay đổi mật khẩu
+                    </h5>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            {% for field in password_form %}
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small text-secondary">{{ field.label }}</label>
+                                <!-- Tự viết thẻ input để kiểm soát class CSS hoàn toàn -->
+                                <input type="password" 
+                                    name="{{ field.name }}" 
+                                    class="form-control" 
+                                    style="padding: 0.6rem 1rem; border-radius: 8px; border: 1.5px solid #E7E5E4;"
+                                    placeholder="Nhập {{ field.label|lower }}...">
+                                
+                                {% if field.errors %}
+                                <div class="text-danger small mt-1" style="font-size: 0.75rem;">⚠️ {{ field.errors.0 }}</div>
+                                {% endif %}
                             </div>
-                            <small class="text-muted">Đơn hàng</small>
+                            {% endfor %}
                         </div>
-                        <div class="col-4">
-                            <div style="font-size:1.8rem;font-weight:800;color:#E85D7E;">
-                                {{ request.user.gio_hangs.count }}
+
+                        <div class="mt-4">
+                            <button type="submit" name="change_password" class="btn btn-danger px-4 fw-bold w-100" 
+                                    style="background: #E85D7E; border: none; padding: 0.75rem; border-radius: 8px; transition: 0.3s;">
+                                🚀 Xác nhận đổi mật khẩu
+                            </button>
+                            <p class="text-center text-muted small mt-3">
+                                Lưu ý: Bạn sẽ không bị đăng xuất sau khi đổi mật khẩu thành công.
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Đưa phần thống kê xuống dưới cùng -->
+            <div class="card shadow-sm border-0 rounded-4 mt-4">
+                <!-- Thống kê nhanh -->
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3">📊 Thống kê tài khoản</h6>
+                        <div class="row g-3 text-center">
+                            <div class="col-4">
+                                <div style="font-size:1.8rem;font-weight:800;color:#E85D7E;">
+                                    {{ request.user.don_hangs.count }}
+                                </div>
+                                <small class="text-muted">Đơn hàng</small>
                             </div>
-                            <small class="text-muted">Trong giỏ</small>
-                        </div>
-                        <div class="col-4">
-                            <div style="font-size:1.8rem;font-weight:800;color:#E85D7E;">
-                                {{ so_don_da_giao }}
+                            <div class="col-4">
+                                <div style="font-size:1.8rem;font-weight:800;color:#E85D7E;">
+                                    {{ request.user.gio_hangs.count }}
+                                </div>
+                                <small class="text-muted">Trong giỏ</small>
                             </div>
-                            <small class="text-muted">Đã nhận</small>
+                            <div class="col-4">
+                                <div style="font-size:1.8rem;font-weight:800;color:#E85D7E;">
+                                    {{ so_don_da_giao }}
+                                </div>
+                                <small class="text-muted">Đã nhận</small>
+                            </div>
                         </div>
-                    </div>
-                    <hr>
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'don_hang_cua_toi' %}" class="btn btn-outline-secondary btn-sm">
-                            📋 Đơn hàng của tôi
-                        </a>
-                        <a href="{% url 'xem_gio_hang' %}" class="btn btn-outline-secondary btn-sm">
-                            🛒 Giỏ hàng
-                        </a>
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'don_hang_cua_toi' %}" class="btn btn-outline-secondary btn-sm">
+                                📋 Đơn hàng của tôi
+                            </a>
+                            <a href="{% url 'xem_gio_hang' %}" class="btn btn-outline-secondary btn-sm">
+                                🛒 Giỏ hàng
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

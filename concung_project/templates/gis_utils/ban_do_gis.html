@@ -215,6 +215,33 @@
 .gtst.info { background:#0C1E3A; border-color:rgba(59,130,246,.35); color:#93C5FD; }
 
 @media(max-width:860px) { .gis-shell{grid-template-columns:1fr;height:auto} .gis-side{max-height:50vh} .gis-map{height:55vw;min-height:360px} }
+
+@media (max-width: 992px) {
+  .gis-shell {
+    grid-template-columns: 1fr; /* Chuyển từ 2 cột sang 1 cột */
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .gis-side {
+    max-height: 400px; /* Giới hạn chiều cao bảng điều khiển */
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .gis-map {
+    height: 500px; /* Cố định chiều cao bản đồ để dễ thao tác */
+  }
+  .gside-stats {
+    grid-template-columns: repeat(4, 1fr); /* Dàn hàng ngang stats trên tablet */
+  }
+}
+
+@media (max-width: 576px) {
+  .gside-stats {
+    grid-template-columns: 1fr 1fr; /* Quay lại 2 cột trên điện thoại */
+  }
+}
+
 </style>
 {% endblock %}
 
