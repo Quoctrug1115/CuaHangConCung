@@ -1,0 +1,97 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ nv.nguoi_dung.get_full_name }} - Nhân viên{% endblock %}
+{% block page_title %}Chi tiết nhân viên{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nhan_vien' %}">Nhân viên</a> › {{ nv.nguoi_dung.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.nv-hero{background:linear-gradient(135deg,var(--sb2),#1E293B);border-radius:16px;padding:1.8rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap}
+.nv-av-lg{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:800;color:white;background:linear-gradient(135deg,var(--or),#C94A0E);flex-shrink:0;overflow:hidden;border:3px solid rgba(255,255,255,.15)}
+.nv-av-lg img{width:100%;height:100%;object-fit:cover}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:640px){.info-grid{grid-template-columns:1fr}.nv-hero{flex-direction:column;text-align:center}}
+.icard{background:white;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1rem}
+.icard-hd{padding:.8rem 1.1rem;border-bottom:1px solid var(--line);background:#FAFAFA;font-size:.83rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:.5rem}
+.icard-bd{padding:.4rem 1.1rem}
+.ir{display:flex;align-items:center;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #F8FAFC;font-size:.82rem}
+.ir:last-child{border-bottom:none}
+.il{color:var(--sub);font-weight:600;font-size:.75rem}
+.iv{color:var(--ink);font-weight:700;text-align:right;max-width:65%}
+.bdg{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:20px;font-size:.68rem;font-weight:800}
+.bdg-green{background:#DCFCE7;color:#166534}
+.bdg-gray{background:#F1F5F9;color:#475569}
+.cv-quan_ly{background:#FEF9C3;color:#854D0E}
+.cv-thu_ngan{background:#DBEAFE;color:#1E40AF}
+.cv-ban_hang{background:#DCFCE7;color:#166534}
+.cv-kho{background:#F3E8FF;color:#5B21B6}
+.cv-giao_hang{background:#FFEDD5;color:#9A3412}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="nv-hero">
+  <div class="nv-av-lg">
+    {% if nv.nguoi_dung.anh_dai_dien %}<img src="{{ nv.nguoi_dung.anh_dai_dien.url }}">
+    {% else %}{{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}{% endif %}
+  </div>
+  <div style="flex:1;min-width:0">
+    <div style="font-size:1.4rem;font-weight:800;color:white;margin-bottom:.25rem">{{ nv.nguoi_dung.get_full_name|default:nv.nguoi_dung.username }}</div>
+    <div style="font-size:.78rem;color:#94A3B8;margin-bottom:.5rem">{{ nv.ma_nhan_vien }} · {{ nv.cua_hang.ten|default:"Chưa phân công" }}</div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <span class="bdg cv-{{ nv.chuc_vu }}">{{ nv.get_chuc_vu_display }}</span>
+      {% if nv.dang_lam_viec %}<span class="bdg bdg-green">● Đang làm việc</span>
+      {% else %}<span class="bdg bdg-gray">● Nghỉ việc</span>{% endif %}
+    </div>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto">
+    <a href="{% url 'sua_nhan_vien' nv.pk %}" style="display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#1565C0,#0D47A1);color:white;border-radius:9px;padding:.5rem 1.1rem;font-size:.8rem;font-weight:700;text-decoration:none">✏️ Sửa</a>
+    <a href="{% url 'xoa_nhan_vien' nv.pk %}" style="display:inline-flex;align-items:center;gap:.4rem;background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:9px;padding:.5rem 1.1rem;font-size:.8rem;font-weight:700;text-decoration:none">🗑 Nghỉ việc</a>
+  </div>
+</div>
+
+<div class="info-grid">
+  <div class="icard">
+    <div class="icard-hd">👤 Thông tin cá nhân</div>
+    <div class="icard-bd">
+      <div class="ir"><span class="il">Họ và tên</span><span class="iv">{{ nv.nguoi_dung.get_full_name }}</span></div>
+      <div class="ir"><span class="il">Tài khoản</span><span class="iv" style="font-family:monospace">{{ nv.nguoi_dung.username }}</span></div>
+      <div class="ir"><span class="il">Email</span><span class="iv">{{ nv.nguoi_dung.email|default:"—" }}</span></div>
+      <div class="ir"><span class="il">Điện thoại</span><span class="iv">{{ nv.nguoi_dung.so_dien_thoai|default:"—" }}</span></div>
+      <div class="ir"><span class="il">Địa chỉ</span><span class="iv">{{ nv.nguoi_dung.dia_chi|default:"—"|truncatechars:40 }}</span></div>
+    </div>
+  </div>
+
+  <div class="icard">
+    <div class="icard-hd">💼 Thông tin công việc</div>
+    <div class="icard-bd">
+      <div class="ir"><span class="il">Mã nhân viên</span><span class="iv" style="font-family:monospace;color:var(--or)">{{ nv.ma_nhan_vien }}</span></div>
+      <div class="ir"><span class="il">Chức vụ</span><span class="iv"><span class="bdg cv-{{ nv.chuc_vu }}">{{ nv.get_chuc_vu_display }}</span></span></div>
+      <div class="ir"><span class="il">Cửa hàng</span><span class="iv">{{ nv.cua_hang.ten|default:"—" }}</span></div>
+      <div class="ir"><span class="il">Ngày vào làm</span><span class="iv">{{ nv.ngay_vao_lam|date:"d/m/Y" }}</span></div>
+      <div class="ir"><span class="il">Lương cơ bản</span><span class="iv" style="color:var(--or)">{{ nv.luong_co_ban|floatformat:0 }}đ</span></div>
+    </div>
+  </div>
+</div>
+
+{% if don_hangs_gan_day %}
+<div class="icard">
+  <div class="icard-hd">📦 Đơn hàng gần đây tại {{ nv.cua_hang.ten }}</div>
+  <div class="icard-bd">
+    {% for dh in don_hangs_gan_day %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #F8FAFC;font-size:.78rem">
+      <div>
+        <span style="font-weight:700;color:var(--ink)">#{{ dh.ma_don_hang }}</span>
+        <span style="color:var(--sub);margin-left:.5rem">{{ dh.ngay_tao|date:"d/m H:i" }}</span>
+      </div>
+      <span style="font-weight:700;color:var(--or)">{{ dh.tong_tien|floatformat:0 }}đ</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.5rem">
+  <a href="{% url 'quan_ly_nhan_vien' %}" style="display:inline-flex;align-items:center;gap:.35rem;background:#F1F5F9;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:.5rem 1rem;font-size:.8rem;font-weight:700;text-decoration:none">← Danh sách</a>
+  <a href="{% url 'sua_nhan_vien' nv.pk %}" style="display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,var(--or),var(--ord));color:white;border-radius:9px;padding:.5rem 1.1rem;font-size:.8rem;font-weight:700;text-decoration:none">✏️ Chỉnh sửa</a>
+</div>
+{% endblock %}

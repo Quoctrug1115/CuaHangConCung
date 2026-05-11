@@ -1,0 +1,37 @@
+{% extends 'admin_base.html' %}
+{% block title %}Xác nhận vô hiệu hoá nhân viên - Con Cưng{% endblock %}
+{% block page_title %}Xác nhận vô hiệu hoá{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nhan_vien' %}">Nhân viên</a> › Xác nhận xoá{% endblock %}
+
+{% block admin_content %}
+<div style="max-width:500px;margin:0 auto">
+  <div style="background:white;border-radius:16px;border:1px solid var(--line);overflow:hidden">
+    <div style="background:linear-gradient(135deg,#FEF2F2,#FFF5F5);padding:2rem;text-align:center;border-bottom:1px solid #FECACA">
+      <div style="font-size:3rem;margin-bottom:.5rem">⚠️</div>
+      <h5 style="font-weight:800;color:#991B1B;margin:0">Xác nhận vô hiệu hoá nhân viên</h5>
+      <p style="font-size:.83rem;color:#DC2626;margin:.5rem 0 0">Nhân viên sẽ bị đánh dấu <strong>nghỉ việc</strong>, tài khoản vẫn được giữ lại.</p>
+    </div>
+    <div style="padding:1.5rem">
+      <div style="background:#F8FAFC;border-radius:12px;padding:1rem;margin-bottom:1.3rem;display:flex;align-items:center;gap:.9rem">
+        <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--or),#C94A0E);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:white;flex-shrink:0">
+          {{ nv.nguoi_dung.first_name|first|upper }}{{ nv.nguoi_dung.last_name|first|upper }}
+        </div>
+        <div>
+          <div style="font-weight:800;font-size:.92rem;color:var(--ink)">{{ nv.nguoi_dung.get_full_name }}</div>
+          <div style="font-size:.75rem;color:var(--sub);margin-top:.1rem">{{ nv.ma_nhan_vien }} · {{ nv.get_chuc_vu_display }}</div>
+          {% if nv.cua_hang %}<div style="font-size:.73rem;color:var(--sub)">🏪 {{ nv.cua_hang.ten }}</div>{% endif %}
+        </div>
+      </div>
+      <form method="post" style="display:flex;gap:.6rem">
+        {% csrf_token %}
+        <button type="submit" style="flex:1;padding:.65rem;background:#DC2626;color:white;border:none;border-radius:10px;font-weight:800;font-size:.88rem;cursor:pointer">
+          ✓ Xác nhận vô hiệu hoá
+        </button>
+        <a href="{% url 'quan_ly_nhan_vien' %}" style="flex:1;padding:.65rem;border:2px solid var(--line);border-radius:10px;font-weight:700;font-size:.88rem;text-align:center;text-decoration:none;color:var(--ink)">
+          Huỷ bỏ
+        </a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'admin_base.html' %}
+{% block title %}Quản lý cửa hàng - Con Cưng{% endblock %}
+{% block breadcrumb %} › Cửa hàng{% endblock %}
+{% block nav_cua_hang %}class="on"{% endblock %}
+
+{% block extra_css %}
+<style>
+.ch-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-bottom:1.1rem}
+.chs{background:white;border-radius:11px;border:1px solid var(--line);padding:.75rem .9rem;display:flex;align-items:center;gap:.6rem}
+.chs-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.chs-val{font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1}
+.chs-lbl{font-size:.63rem;color:var(--sub);font-weight:600;margin-top:.1rem}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem">
+  <div>
+    <h4 style="margin:0;font-size:1.15rem;font-weight:800;color:var(--ink)">🏪 Quản lý cửa hàng</h4>
+    <p style="margin:.2rem 0 0;font-size:.77rem;color:var(--sub)">Thêm, sửa và theo dõi hệ thống chi nhánh</p>
+  </div>
+  <div style="display:flex;gap:.5rem">
+    <a href="{% url 'ban_do' %}" class="btn-adm btn-gray">🗺️ Bản đồ GPS</a>
+    <a href="{% url 'them_cua_hang' %}" class="btn-adm btn-or">🆕 Thêm cửa hàng</a>
+  </div>
+</div>
+
+<div class="ch-stats">
+  <div class="chs"><div class="chs-ic" style="background:#F0FDF4">🏪</div><div><div class="chs-val">{{ tong_ch }}</div><div class="chs-lbl">Tổng cửa hàng</div></div></div>
+  <div class="chs"><div class="chs-ic" style="background:#ECFDF5">✅</div><div><div class="chs-val" style="color:#065F46">{{ so_hoat_dong }}</div><div class="chs-lbl">Đang mở</div></div></div>
+  <div class="chs"><div class="chs-ic" style="background:#EFF6FF">📍</div><div><div class="chs-val" style="color:#1E40AF">{{ so_co_gps }}</div><div class="chs-lbl">Có GPS</div></div></div>
+</div>
+
+<form method="get" class="filter-bar">
+  <input type="text" name="q" class="fi-sm" style="width:220px" placeholder="🔍 Tên, mã cửa hàng..." value="{{ tu_khoa }}">
+  <select name="tinh" class="fi-sm">
+    <option value="">Tất cả tỉnh/thành</option>
+    {% for tp in tinh_thanhs %}
+    <option value="{{ tp }}" {% if tinh_loc == tp %}selected{% endif %}>{{ tp }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-adm btn-gray">Lọc</button>
+  {% if tu_khoa or tinh_loc %}<a href="?" class="btn-adm btn-gray">✕ Xoá lọc</a>{% endif %}
+</form>
+
+<div class="card-adm">
+  <div class="tbl-wrap">
+    <table class="adm-tbl">
+      <thead>
+        <tr>
+          <th style="width:10px"></th>
+          <th>Cửa hàng</th>
+          <th>Địa chỉ</th>
+          <th>Liên hệ</th>
+          <th>Giờ mở cửa</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ch in cua_hangs %}
+        <tr>
+          <td><div style="width:8px;height:8px;border-radius:50%;background:{% if ch.dang_hoat_dong %}#E85D7E{% else %}#B80040{% endif %}"></div></td>
+          <td>
+            <div style="font-weight:700;font-size:.82rem;color:var(--ink)">{{ ch.ten }}</div>
+            <code style="font-size:.67rem;color:var(--sub)">{{ ch.ma_cua_hang }}</code>
+          </td>
+          <td>
+            <div style="font-size:.79rem">{{ ch.dia_chi|truncatechars:38 }}</div>
+            <div style="font-size:.7rem;color:var(--sub)">{{ ch.quan_huyen }}, {{ ch.tinh_thanh }}</div>
+          </td>
+          <td>
+            <div style="font-size:.79rem">{{ ch.so_dien_thoai }}</div>
+            {% if ch.email %}<div style="font-size:.7rem;color:var(--sub)">{{ ch.email }}</div>{% endif %}
+          </td>
+          <td style="font-size:.79rem;white-space:nowrap">{{ ch.gio_mo_cua|time:"H:i" }} – {{ ch.gio_dong_cua|time:"H:i" }}</td>
+          <td>
+            {% if ch.dang_hoat_dong %}<span class="bdg bdg-green">● Mở</span>{% else %}<span class="bdg bdg-red">● Đóng</span>{% endif %}
+            {% if ch.vi_tri %}<span class="bdg bdg-blue" style="margin-left:.3rem">📍 GPS</span>{% endif %}
+          </td>
+          <td>
+            <div class="td-actions">
+              <a href="{% url 'chi_tiet_cua_hang' ch.pk %}" class="btn-adm btn-blue btn-sm">👁</a>
+              <a href="{% url 'sua_cua_hang' ch.pk %}" class="btn-adm btn-gray btn-sm">✏️ Sửa</a>
+              {% if user.la_admin %}<a href="{% url 'xoa_cua_hang' ch.pk %}" class="btn-adm btn-red btn-sm">🗑️</a>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">
+          <div class="empty-state">
+            <div class="empty-icon">🏪</div>
+            <div style="font-weight:700;margin-bottom:.3rem">Chưa có cửa hàng nào</div>
+            <a href="{% url 'them_cua_hang' %}" class="btn-adm btn-or" style="margin-top:.5rem">🆕 Thêm cửa hàng</a>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if cua_hangs.has_other_pages %}
+<div class="pg">
+  {% if cua_hangs.has_previous %}<a href="?page={{ cua_hangs.previous_page_number }}&q={{ tu_khoa }}&tinh={{ tinh_loc }}">←</a>{% endif %}
+  {% for p in cua_hangs.paginator.page_range %}
+    {% if cua_hangs.number == p %}<span class="cur">{{ p }}</span>{% elif p > cua_hangs.number|add:"-3" and p < cua_hangs.number|add:"3" %}<a href="?page={{ p }}&q={{ tu_khoa }}&tinh={{ tinh_loc }}">{{ p }}</a>{% endif %}
+  {% endfor %}
+  {% if cua_hangs.has_next %}<a href="?page={{ cua_hangs.next_page_number }}&q={{ tu_khoa }}&tinh={{ tinh_loc }}">→</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

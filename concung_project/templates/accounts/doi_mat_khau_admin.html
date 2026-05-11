@@ -1,0 +1,45 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ tieu_de }} - Con Cưng Admin{% endblock %}
+{% block page_title %}{{ tieu_de }}{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nguoi_dung' %}">Người dùng</a> › Đổi mật khẩu{% endblock %}
+{% block top_actions %}
+<a href="{% url 'sua_nguoi_dung' nd.pk %}" class="btn-adm btn-gray">← Quay lại</a>
+{% endblock %}
+
+{% block admin_content %}
+<div style="max-width:480px;margin:0 auto;">
+    <div class="card-adm">
+        <div class="card-hdr">
+            <div style="display:flex;align-items:center;gap:.6rem;">
+                <div style="width:36px;height:36px;border-radius:9px;background:#FFF0F5;
+                            display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🔑</div>
+                <div class="card-title">Đổi mật khẩu cho: {{ nd.get_full_name|default:nd.username }}</div>
+            </div>
+        </div>
+        <div style="padding:1.4rem;">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="fg" style="margin-bottom:.9rem;">
+                    <label style="display:block;font-size:.74rem;font-weight:700;color:#374151;margin-bottom:.28rem;">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div style="font-size:.7rem;color:var(--red);margin-top:.2rem;">{{ field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
+                    <button type="submit" class="btn-adm btn-or" style="flex:1;justify-content:center;">
+                        🔑 Cập nhật mật khẩu
+                    </button>
+                    <a href="{% url 'sua_nguoi_dung' nd.pk %}" class="btn-adm btn-gray" style="flex:1;justify-content:center;">
+                        ✕ Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

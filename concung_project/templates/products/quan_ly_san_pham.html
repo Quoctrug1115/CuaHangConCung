@@ -1,0 +1,127 @@
+{% extends 'admin_base.html' %}
+{% block title %}Quản lý sản phẩm - Con Cưng{% endblock %}
+{% block breadcrumb %} › Sản phẩm{% endblock %}
+{% block nav_san_pham %}class="on"{% endblock %}
+{% block extra_css %}
+<style>
+.sp-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem;margin-bottom:1rem}
+.sps{background:white;border-radius:11px;border:1px solid var(--line);padding:.7rem .85rem;display:flex;align-items:center;gap:.5rem}
+.sps-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.sps-val{font-size:1.3rem;font-weight:800;color:var(--ink);line-height:1}
+.sps-lbl{font-size:.64rem;color:var(--sub);font-weight:600}
+.filter-bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;padding:.85rem 1.1rem;background:white;border-radius:12px;border:1px solid var(--line);margin-bottom:1rem}
+.fi-sm{border:1.5px solid var(--line);border-radius:8px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;outline:none;background:white;color:var(--ink)}
+.fi-sm:focus{border-color:var(--or)}
+.view-tog{display:flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
+.view-tog button{padding:.3rem .55rem;border:none;background:white;cursor:pointer;font-size:.85rem;transition:all .13s}
+.view-tog button.act{background:var(--or);color:white}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem}
+.sp-card{background:white;border-radius:14px;border:1.5px solid var(--line);overflow:hidden;transition:all .18s;position:relative}
+.sp-card:hover{border-color:#FFB89A;box-shadow:0 6px 24px rgba(255,107,53,.12);transform:translateY(-2px)}
+.sp-thumb{width:100%;height:135px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden}
+.sp-thumb img{width:100%;height:100%;object-fit:cover}
+.sp-body{padding:.8rem .9rem}
+.sp-name{font-size:.83rem;font-weight:800;color:var(--ink);margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-code{font-size:.66rem;color:var(--sub);font-weight:600;margin-bottom:.4rem}
+.sp-price{font-size:1rem;font-weight:800;color:var(--or)}
+.sp-foot{display:flex;align-items:center;justify-content:space-between;padding:.55rem .9rem;border-top:1px solid #F1F5F9;background:#FAFBFD}
+.sp-status{position:absolute;top:.55rem;right:.55rem}
+.grid-view,.tbl-view{display:none}
+.grid-view.show,.tbl-view.show{display:block}
+.bulk-bar{background:#FFF7ED;border:1px solid #FFD4B5;border-radius:10px;padding:.6rem .95rem;display:none;align-items:center;gap:.7rem;margin-bottom:.8rem;font-size:.79rem;font-weight:700;color:var(--or)}
+.bulk-bar.show{display:flex}
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="sp-stats">
+  <div class="sps"><div class="sps-ic" style="background:#FFF7ED">📦</div><div><div class="sps-val">{{ tong_san_pham|default:"0" }}</div><div class="sps-lbl">Tổng SP</div></div></div>
+  <div class="sps"><div class="sps-ic" style="background:#F0FDF4">✅</div><div><div class="sps-val">{{ dang_ban|default:"0" }}</div><div class="sps-lbl">Đang bán</div></div></div>
+  <div class="sps"><div class="sps-ic" style="background:#FEF9C3">⚠️</div><div><div class="sps-val">{{ canh_bao_kho|default:"0" }}</div><div class="sps-lbl">Cảnh báo kho</div></div></div>
+  <div class="sps"><div class="sps-ic" style="background:#FEE2E2">🚫</div><div><div class="sps-val">{{ het_hang|default:"0" }}</div><div class="sps-lbl">Hết hàng</div></div></div>
+  <div class="sps"><div class="sps-ic" style="background:#EFF6FF">🏷</div><div><div class="sps-val">{{ so_danh_muc|default:"0" }}</div><div class="sps-lbl">Danh mục</div></div></div>
+</div>
+<div class="filter-bar">
+  <input class="fi-sm" style="width:200px" type="text" id="searchInp" placeholder="🔍 Tên, mã sản phẩm..." value="{{ request.GET.q|default:'' }}">
+  <select class="fi-sm" id="catSel">
+    <option value="">Tất cả danh mục</option>
+    {% for dm in danh_mucs %}<option value="{{ dm.id }}" {% if request.GET.danh_muc == dm.id|stringformat:"s" %}selected{% endif %}>{{ dm.ten }}</option>{% endfor %}
+  </select>
+  <select class="fi-sm" id="statusSel">
+    <option value="">Trạng thái</option>
+    <option value="1" {% if request.GET.dang_ban == "1" %}selected{% endif %}>Đang bán</option>
+    <option value="0" {% if request.GET.dang_ban == "0" %}selected{% endif %}>Ngừng bán</option>
+  </select>
+  <div style="flex:1"></div>
+  <div class="view-tog">
+    <button class="act" id="btnGrid" onclick="switchView('grid')" title="Lưới">⊞</button>
+    <button id="btnList" onclick="switchView('list')" title="Danh sách">☰</button>
+  </div>
+  <button class="btn-adm btn-gray" onclick="applyFilter()">Lọc</button>
+  <a href="{% url 'them_san_pham' %}" class="btn-adm btn-or">＋ Thêm sản phẩm</a>
+</div>
+<div class="bulk-bar" id="bulkBar">
+  <span id="bulkCnt">0 đã chọn</span>
+  <button class="btn-adm btn-green btn-sm" onclick="bulkAction('active')">✅ Kích hoạt</button>
+  <button class="btn-adm btn-gray btn-sm" onclick="bulkAction('inactive')">🚫 Ngừng bán</button>
+  <button class="btn-adm btn-red btn-sm" onclick="bulkAction('delete')">🗑 Xóa</button>
+</div>
+<div class="grid-view show" id="gridView">
+  {% if san_phams %}
+  <div class="sp-grid">
+    {% for sp in san_phams %}
+    <div class="sp-card">
+      <div class="sp-status">{% if sp.dang_ban %}<span class="bdg bdg-green">● Bán</span>{% else %}<span class="bdg bdg-gray">● Ngừng</span>{% endif %}</div>
+      <div class="sp-thumb">{% if sp.hinh_anh %}<img src="{{ sp.hinh_anh.url }}" alt="{{ sp.ten }}">{% else %}📦{% endif %}</div>
+      <div class="sp-body">
+        <div class="sp-name" title="{{ sp.ten }}">{{ sp.ten }}</div>
+        <div class="sp-code">{{ sp.ma_san_pham }} • {{ sp.danh_muc.ten|default:"—" }}</div>
+        <div><span class="sp-price">{{ sp.gia_hien_thi|floatformat:0 }}đ</span>{% if sp.co_khuyen_mai %}<span style="font-size:.72rem;color:var(--sub);text-decoration:line-through;margin-left:.3rem">{{ sp.gia_ban|floatformat:0 }}đ</span>{% endif %}</div>
+      </div>
+      <div class="sp-foot">
+        <span class="bdg bdg-blue" style="font-size:.63rem">{{ sp.thuong_hieu|default:"—" }}</span>
+        <div style="display:flex;gap:.25rem">
+          <a href="{% url 'chi_tiet_san_pham' sp.pk %}" class="btn-adm btn-blue btn-sm">👁</a>
+          <a href="{% url 'sua_san_pham' sp.pk %}" class="btn-adm btn-gray btn-sm">✏️</a>
+          <a href="{% url 'xoa_san_pham' sp.pk %}" class="btn-adm btn-red btn-sm">🗑</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><div style="font-size:3rem;margin-bottom:.5rem">📦</div><div style="font-weight:800;margin-bottom:.3rem">Chưa có sản phẩm nào</div><a href="{% url 'them_san_pham' %}" class="btn-adm btn-or" style="margin-top:.5rem">＋ Thêm sản phẩm</a></div>
+  {% endif %}
+</div>
+<div class="tbl-view" id="listView">
+  <div class="tbl-wrap">
+    <div class="tbl-head"><div class="tbl-title">📦 Danh sách sản phẩm</div></div>
+    <table class="adm-tbl">
+      <thead><tr><th><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th><th>Sản phẩm</th><th>Mã SP</th><th>Danh mục</th><th>Giá bán</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        {% for sp in san_phams %}
+        <tr>
+          <td><input type="checkbox" class="row-chk" value="{{ sp.pk }}" onchange="updateBulk()"></td>
+          <td><div style="display:flex;align-items:center;gap:.6rem"><div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:#F8FAFC;display:flex;align-items:center;justify-content:center;flex-shrink:0">{% if sp.hinh_anh %}<img src="{{ sp.hinh_anh.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}<span>📦</span>{% endif %}</div><div><div style="font-weight:700;font-size:.81rem">{{ sp.ten }}</div><div style="font-size:.66rem;color:var(--sub)">{{ sp.thuong_hieu|default:"—" }}</div></div></div></td>
+          <td><code style="background:#F1F5F9;padding:.15rem .4rem;border-radius:5px;font-size:.71rem">{{ sp.ma_san_pham }}</code></td>
+          <td>{{ sp.danh_muc.ten|default:"—" }}</td>
+          <td><span style="font-weight:700;color:var(--or)">{{ sp.gia_hien_thi|floatformat:0 }}đ</span></td>
+          <td>{% if sp.dang_ban %}<span class="bdg bdg-green">● Đang bán</span>{% else %}<span class="bdg bdg-gray">● Ngừng</span>{% endif %}</td>
+          <td><div class="td-actions"><a href="{% url 'chi_tiet_san_pham' sp.pk %}" class="btn-adm btn-blue btn-sm">👁 Xem</a><a href="{% url 'sua_san_pham' sp.pk %}" class="btn-adm btn-gray btn-sm">✏️</a><a href="{% url 'xoa_san_pham' sp.pk %}" class="btn-adm btn-red btn-sm">🗑</a></div></td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="empty-state">Không có sản phẩm</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if san_phams.has_other_pages %}
+<div class="pg">{% if san_phams.has_previous %}<a href="?page={{ san_phams.previous_page_number }}">←</a>{% endif %}{% for p in san_phams.paginator.page_range %}{% if san_phams.number == p %}<span class="cur">{{ p }}</span>{% else %}<a href="?page={{ p }}">{{ p }}</a>{% endif %}{% endfor %}{% if san_phams.has_next %}<a href="?page={{ san_phams.next_page_number }}">→</a>{% endif %}</div>
+{% endif %}
+<script>
+function switchView(m){document.getElementById('gridView').classList.toggle('show',m==='grid');document.getElementById('listView').classList.toggle('show',m==='list');document.getElementById('btnGrid').classList.toggle('act',m==='grid');document.getElementById('btnList').classList.toggle('act',m==='list')}
+function applyFilter(){const q=document.getElementById('searchInp').value,cat=document.getElementById('catSel').value,st=document.getElementById('statusSel').value;let url='?';if(q)url+='q='+encodeURIComponent(q)+'&';if(cat)url+='danh_muc='+cat+'&';if(st!=='')url+='dang_ban='+st;window.location=url}
+document.getElementById('searchInp').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilter()});
+function toggleAll(cb){document.querySelectorAll('.row-chk').forEach(c=>c.checked=cb.checked);updateBulk()}
+function updateBulk(){const n=document.querySelectorAll('.row-chk:checked').length;document.getElementById('bulkBar').classList.toggle('show',n>0);document.getElementById('bulkCnt').textContent=n+' đã chọn'}
+function bulkAction(action){const ids=[...document.querySelectorAll('.row-chk:checked')].map(c=>c.value);if(!ids.length)return;if(action==='delete'&&!confirm('Xóa '+ids.length+' sản phẩm?'))return;alert('Bulk action: '+action+' trên '+ids.length+' sản phẩm')}
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'admin_base.html' %}
+{% block title %}Xác nhận vô hiệu hóa - Con Cưng Admin{% endblock %}
+{% block page_title %}Vô hiệu hóa tài khoản{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_nguoi_dung' %}">Người dùng</a> › Xóa{% endblock %}
+
+{% block admin_content %}
+<div style="max-width:480px;margin:0 auto;">
+    <div class="card-adm" style="border:1.5px solid #FECACA;">
+        <div class="card-hdr" style="background:#FEF2F2;">
+            <div style="display:flex;align-items:center;gap:.6rem;">
+                <div style="width:36px;height:36px;border-radius:9px;background:#FEE2E2;
+                            display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🚫</div>
+                <div class="card-title" style="color:#991B1B;">Xác nhận vô hiệu hóa tài khoản</div>
+            </div>
+        </div>
+        <div style="padding:1.4rem;">
+            <div style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:10px;padding:1rem;margin-bottom:1.2rem;">
+                <div style="font-weight:800;font-size:.9rem;color:#92400E;margin-bottom:.4rem;">
+                    👤 {{ nd.get_full_name|default:nd.username }}
+                </div>
+                <div style="font-size:.78rem;color:#B45309;">
+                    @{{ nd.username }} &bull; {{ nd.email }}<br>
+                    Vai trò: {{ nd.get_vai_tro_display }}
+                </div>
+            </div>
+
+            <p style="font-size:.84rem;color:#374151;margin-bottom:1.2rem;">
+                Tài khoản sẽ bị <strong>vô hiệu hóa</strong> (không bị xóa dữ liệu).
+                Người dùng sẽ không thể đăng nhập cho đến khi được kích hoạt lại.
+            </p>
+
+            <form method="post" style="display:flex;gap:.6rem;">
+                {% csrf_token %}
+                <button type="submit" class="btn-adm btn-red" style="flex:1;justify-content:center;">
+                    🚫 Xác nhận vô hiệu hóa
+                </button>
+                <a href="{% url 'quan_ly_nguoi_dung' %}" class="btn-adm btn-gray" style="flex:1;justify-content:center;">
+                    ← Hủy
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

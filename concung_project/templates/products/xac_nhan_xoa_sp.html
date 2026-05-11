@@ -1,0 +1,28 @@
+{% extends 'admin_base.html' %}
+{% block title %}Xác nhận xoá sản phẩm - Con Cưng{% endblock %}
+{% block breadcrumb %} › <a href="{% url 'quan_ly_san_pham' %}">Sản phẩm</a> › Xoá{% endblock %}
+{% block nav_san_pham %}class="on"{% endblock %}
+
+{% block admin_content %}
+<div style="max-width:480px;margin:2rem auto">
+  <div class="card-adm" style="text-align:center;padding:2.5rem 2rem">
+    <div style="font-size:3.5rem;margin-bottom:1rem">⚠️</div>
+    <h5 style="font-weight:800;color:var(--ink);margin-bottom:.5rem">Xác nhận xoá sản phẩm</h5>
+    <p style="color:var(--sub);font-size:.85rem;margin-bottom:.5rem">Bạn có chắc chắn muốn xoá sản phẩm này?</p>
+    <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:.85rem 1rem;margin:.8rem 0 1.2rem">
+      <div style="font-weight:800;color:var(--red);font-size:.95rem">{{ san_pham.ten }}</div>
+      <div style="font-size:.75rem;color:var(--sub);margin-top:.2rem">{{ san_pham.ma_san_pham }} • {{ san_pham.danh_muc.ten|default:"—" }}</div>
+    </div>
+    <p style="color:var(--red);font-size:.8rem;font-weight:600;margin-bottom:1.5rem">
+      ⚠️ Hành động này không thể hoàn tác. Tất cả dữ liệu tồn kho liên quan cũng sẽ bị xoá.
+    </p>
+    <div style="display:flex;gap:.7rem;justify-content:center">
+      <a href="{% url 'quan_ly_san_pham' %}" class="btn-adm btn-gray">↩ Quay lại</a>
+      <form method="post" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" class="btn-adm btn-red">🗑️ Xác nhận xoá</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
